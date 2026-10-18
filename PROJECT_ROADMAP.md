@@ -17,7 +17,7 @@
 
 ## Active next step
 
-**Phase 6B.3 — hybrid frontend integration prototype with the three reviewed crops.** Direction chosen by the user on 2026-10-19; the implementation plan needs approval before coding.
+**Phase 6B.3 — hybrid frontend integration prototype with the three reviewed crops.** Implemented 2026-10-19 as a dev-only, dish- and style-gated sample (see `PROJECT_HANDOVER.md`); next is deciding on hero refinement or further integration.
 
 1. Agree where the reviewed crops live in the client and how One-Page Zine places them.
 2. Integrate them as development samples; leave the rejected hero out.

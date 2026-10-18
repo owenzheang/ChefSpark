@@ -39,6 +39,8 @@ export default defineConfig({
       workbox: {
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         globPatterns: ["**/*.{js,css,html,png,svg,webp,ico}"],
+        // Development-only reviewed Zine artwork must not enter the offline precache.
+        globIgnores: ["**/node_modules/**/*", "zine-assets/**"],
         navigateFallback: "/index.html",
         runtimeCaching: []
       }

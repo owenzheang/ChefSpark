@@ -5,6 +5,7 @@ import { createServer } from "vite";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { getPreviewStyle, developerStyle } from "../src/data/zineStyles.js";
+import { developerAssetSample, zineAssetSamples } from "../src/data/zineAssetSamples.js";
 let server, Screen, Entry, Zine;
 before(async () => {
   server = await createServer({ server: { middlewareMode: true, hmr: false }, appType: "custom" });
@@ -113,4 +114,47 @@ test("ordinary renders preserve the supplied Zine style", () => {
   const first = renderToStaticMarkup(createElement(Screen, props));
   assert.equal(renderToStaticMarkup(createElement(Screen, { ...props })), first);
   assert.match(first, /one-zine--notebook/);
+});
+
+test("reviewed asset sample requires dev mode, flag, matching style and matching dish", () => {
+  const flag = "?zineAssets=sample";
+  assert.equal(developerAssetSample(flag, true, recipe, "collage")?.id, "chicken-fried-rice-collage");
+  assert.equal(developerAssetSample(flag, true, { title: "  chicken fried rice " }, "collage")?.id, "chicken-fried-rice-collage");
+  assert.equal(developerAssetSample(flag, false, recipe, "collage"), null);
+  assert.equal(developerAssetSample("", true, recipe, "collage"), null);
+  assert.equal(developerAssetSample("?zineAssets=other", true, recipe, "collage"), null);
+  for (const styleId of ["notebook", "journal"]) assert.equal(developerAssetSample(flag, true, recipe, styleId), null);
+  assert.equal(developerAssetSample(flag, true, { ...recipe, title: "Spaghetti Bolognese" }, "collage"), null);
+  assert.equal(developerAssetSample(flag, true, null, "collage"), null);
+});
+
+test("sample excludes the rejected hero and every referenced crop is a local PNG", async () => {
+  for (const sample of zineAssetSamples) {
+    assert.deepEqual(Object.keys(sample.assets).sort(), ["cooking", "decoration", "ingredients"]);
+    for (const asset of Object.values(sample.assets)) {
+      assert.match(asset.src, /^\/zine-assets\/dev-samples\//);
+      const data = await readFile(new URL("../public" + asset.src, import.meta.url));
+      assert.equal(data.subarray(1, 4).toString(), "PNG");
+    }
+  }
+});
+
+test("Zine with assets keeps every fact as text and hides decoration from assistive tech", () => {
+  const { assets } = zineAssetSamples[0];
+  const plain = renderToStaticMarkup(createElement(Zine, { recipe, styleId: "collage" }));
+  assert.doesNotMatch(plain, /one-zine-asset|zine-assets/);
+  const html = renderToStaticMarkup(createElement(Zine, { recipe, styleId: "collage", assets }));
+  for (const value of ["Chicken Fried Rice", "25 minutes", "Serves 2", "200 g", "1.5 cup", "Salt", "First instruction.", "Use chilled rice.", "Tofu"]) assert.ok(html.includes(value), value);
+  assert.ok(html.includes(assets.ingredients.alt) && html.includes(assets.cooking.alt));
+  assert.match(html, /<figure class="one-zine-asset one-zine-asset--decoration" aria-hidden="true"><img src="[^"]+decoration\.png" alt=""/);
+  assert.ok(html.indexOf("one-zine-asset--ingredients") < html.indexOf("200 g"));
+  assert.doesNotMatch(html, /hero\.png|null|undefined/);
+});
+
+test("preview caption discloses reviewed AI artwork only when a sample is shown", () => {
+  const plain = renderToStaticMarkup(createElement(Screen, { recipe, view: "preview" }));
+  assert.match(plain, /No personalized AI image has been generated/);
+  const html = renderToStaticMarkup(createElement(Screen, { recipe, view: "preview", assetSample: zineAssetSamples[0] }));
+  assert.match(html, /Development sample: AI-generated artwork manually reviewed on 2026-10-19/);
+  assert.doesNotMatch(html, /No personalized AI image has been generated/);
 });

@@ -4,6 +4,7 @@ import { ArrowLeft, ChefHat, CheckCircle2, ShoppingCart, ListChecks, Lightbulb, 
 import { getSavedRecipe } from "../services/api.js";
 import ZineSamplePreview, { ZineEntry } from "../components/ZineSamplePreview.jsx";
 import { getPreviewStyle, developerStyle } from "../data/zineStyles.js";
+import { developerAssetSample } from "../data/zineAssetSamples.js";
 
 function IngredientChips({ title, items, owned }) {
   const Icon = owned ? CheckCircle2 : ShoppingCart;
@@ -74,6 +75,7 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack }) {
 
   if (zine && recipe) {
     return <ZineSamplePreview recipe={recipe} view={zine.view} styleId={zine.styleId}
+      assetSample={developerAssetSample(window.location.search, import.meta.env.DEV, recipe, zine.styleId)}
       onNavigate={navigateZine} onBackToRecipe={closeZine} />;
   }
 

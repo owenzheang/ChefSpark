@@ -66,6 +66,22 @@
 .one-zine-notes dd { margin:0 0 12px; }
 .one-zine-footer { display:flex; flex-wrap:wrap; gap:10px; align-items:center; border-top:1px solid var(--olive); padding-top:18px; margin-top:32px; font-size:.75rem; color:var(--olive); }
 .one-zine-footer span:last-child { margin-left:auto; letter-spacing:.14em; }
+/* Reviewed development artwork: taped prints beside the factual HTML sections. */
+.one-zine-asset { margin:0 0 18px; padding:8px; background:#fffcf2; box-shadow:2px 4px 10px #342a2422; position:relative; }
+.one-zine-asset:before { content:""; position:absolute; width:34%; height:18px; background:#cbb17d90; top:-9px; left:33%; }
+.one-zine-asset img { display:block; width:100%; object-fit:cover; }
+.one-zine-asset--ingredients { transform:rotate(-2deg); }
+.one-zine-asset--ingredients:before { transform:rotate(6deg); }
+.one-zine-asset--ingredients img { aspect-ratio:1; max-height:240px; }
+.one-zine-asset--cooking { transform:rotate(1.5deg); }
+.one-zine-asset--cooking:before { transform:rotate(-5deg); }
+.one-zine-asset--cooking img { aspect-ratio:16/10; max-height:300px; }
+.one-zine-asset--decoration { margin:30px 0 0; padding:0; background:none; box-shadow:none; }
+.one-zine-asset--decoration:before { display:none; }
+.one-zine-asset--decoration img { height:150px; object-position:center 28%; mix-blend-mode:multiply;
+  -webkit-mask-image:linear-gradient(to right,transparent,#000 12%,#000 88%,transparent),linear-gradient(transparent,#000 22%,#000 78%,transparent);
+  -webkit-mask-composite:source-in; mask-image:linear-gradient(to right,transparent,#000 12%,#000 88%,transparent),linear-gradient(transparent,#000 22%,#000 78%,transparent);
+  mask-composite:intersect; }
 /* Notebook: photo on the left, ruled manuscript and margin rail. */
 .one-zine--notebook { --paper:#eee2c7; --olive:#52614b; --red:#91492f; background-image:repeating-linear-gradient(transparent 0 31px,#66765920 32px 33px); border-left:12px solid #6d7553; }
 .one-zine--notebook .one-zine-hero { grid-template-columns:1.1fr 1fr; }
@@ -104,4 +120,7 @@
   .zine-style-picker > div { gap:5px; }
   .zine-style-picker button { padding:7px 4px; font-size:.7rem; }
   .one-zine-notes > div { grid-template-columns:1fr; }
+  .one-zine-asset--ingredients img { max-height:200px; }
+  .one-zine-asset--cooking img { max-height:220px; }
+  .one-zine-asset--decoration img { height:110px; }
 }

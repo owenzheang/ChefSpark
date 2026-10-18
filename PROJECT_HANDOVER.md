@@ -90,14 +90,16 @@ Secrets are manually supplied in ignored `server/.env`, remain server-only, and 
 
 ## Exact next action
 
-**Phase 6B.3 — hybrid frontend integration prototype, using the three reviewed crops (user chose this direction on 2026-10-19; implementation plan must be approved before coding).**
+**Phase 6B.3 hybrid integration prototype — implemented 2026-10-19 (approved plan).**
 
-1. Present the integration plan: where the reviewed crops live in the client, how One-Page Zine uses them, and how the rejected hero slot is handled.
-2. After approval, integrate the cooking, ingredients and decoration crops as development samples only. Do not use the rejected hero.
-3. Visually check the hybrid layout in the browser; recipe facts must remain HTML text.
-4. Then decide with the user whether to refine the hero prompt (a new paid request needing separate approval) or continue the integration.
+- Reviewed crops copied to `client/public/zine-assets/dev-samples/chicken-fried-rice-collage/` (cooking, ingredients, decoration; the rejected hero is absent). Originals in `server/generated-zines/` are untouched.
+- `client/src/data/zineAssetSamples.js` holds the sample manifest and `developerAssetSample`. Samples appear only when all hold: Vite dev mode, `?zineAssets=sample`, style `collage`, and recipe title "Chicken Fried Rice" (case-insensitive). Otherwise the Zine is unchanged.
+- `OnePageZine` accepts optional `assets`: ingredients crop above the ingredient list, cooking crop above the steps, decoration as an edge-faded band above the footer (`alt=""`, `aria-hidden`). The hero keeps the existing photo/placeholder. The preview caption discloses reviewed AI artwork when a sample is shown.
+- `zine-assets/**` is excluded from the PWA precache in `client/vite.config.js`.
+- Verified: 30 client tests pass. In the browser, a different saved recipe (with the flag and collage) showed no samples; the Chicken Fried Rice layout was checked by rendering the real preview component with the fixture recipe, at desktop (~730px) and 375px widths, with no horizontal overflow. The logged-in account has no saved Chicken Fried Rice, so the full click-through path with a real saved record was not exercised.
+- Note: running the client tests starts a Vite instance that re-optimizes `client/node_modules/.vite`; an already-running dev server may then return `504 Outdated Optimize Dep` until reloaded or restarted.
 
-Do not run another paid request, expose a generation endpoint, or add persistence as part of this step.
+Next, decided with the user: refine the hero prompt (a new paid request needing separate approval) or continue integration. Do not run another paid request, expose a generation endpoint, or add persistence without approval.
 
 ## New Claude Code session checklist
 

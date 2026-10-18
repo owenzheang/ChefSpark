@@ -12,7 +12,16 @@ function RecipeVisual({ recipe }) {
       <div className="one-zine-placeholder"><div className="one-zine-plate"><Utensils size={52} strokeWidth={1} aria-hidden="true" /><Leaf size={32} aria-hidden="true" /></div><span>Room for a delicious picture</span><small>Visual placeholder · no image generated</small></div>}
   </figure>;
 }
-export default function OnePageZine({ recipe = {}, styleId = "collage" }) {
+// Optional reviewed artwork; decorative assets carry an empty alt and are hidden from assistive tech.
+function ZineAsset({ asset, className }) {
+  const [failed, setFailed] = useState(false);
+  if (!asset?.src || failed) return null;
+  const decorative = !asset.alt;
+  return <figure className={`one-zine-asset ${className}`} aria-hidden={decorative || undefined}>
+    <img src={asset.src} alt={asset.alt || ""} loading="lazy" onError={() => setFailed(true)} />
+  </figure>;
+}
+export default function OnePageZine({ recipe = {}, styleId = "collage", assets = null }) {
   const style = getZineStyle(styleId), tips = strings(recipe.tips), suggestions = strings(recipe.servingSuggestions);
   const substitutions = Array.isArray(recipe.substitutions) ? recipe.substitutions : [];
   const ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
@@ -30,10 +39,12 @@ export default function OnePageZine({ recipe = {}, styleId = "collage" }) {
     {typeof recipe.description === "string" && recipe.description.trim() && <section className="one-zine-about"><h3>About the dish</h3><p>{recipe.description}</p></section>}
     <div className="one-zine-body">
       <section className="one-zine-ingredients"><span className="one-zine-eyebrow">Gather & prepare</span><h3>Ingredients</h3>
+        <ZineAsset asset={assets?.ingredients} className="one-zine-asset--ingredients" />
         <ul>{ingredients.map((ingredient, i) => <li key={i}><span>{typeof ingredient === "string" ? ingredient : ingredient.name}</span>
           {typeof ingredient !== "string" && ingredient.quantity != null && <span className="one-zine-quantity">{[ingredient.quantity, ingredient.unit].filter(value => value != null && value !== "").join(" ")}</span>}</li>)}</ul>
       </section>
       <section className="one-zine-steps"><span className="one-zine-eyebrow">At the stove</span><h3>Let's make it</h3>
+        <ZineAsset asset={assets?.cooking} className="one-zine-asset--cooking" />
         <ol>{steps.map((step, i) => <li key={i} value={typeof step === "object" && Number.isFinite(step.step) ? step.step : i + 1}><p>{typeof step === "string" ? step : step.instruction}</p></li>)}</ol>
       </section>
     </div>
@@ -42,6 +53,7 @@ export default function OnePageZine({ recipe = {}, styleId = "collage" }) {
       {substitutions.length > 0 && <section><h4>Substitutions</h4><dl>{substitutions.map((item, i) => <div key={i}>{typeof item === "string" ? <dd>{item}</dd> : <><dt>{item.ingredient}</dt><dd>{item.substitute}</dd></>}</div>)}</dl></section>}
       {suggestions.length > 0 && <section><h4>Serving suggestions</h4><ul>{suggestions.map((item, i) => <li key={i}>{item}</li>)}</ul></section>}
     </div></section>}
+    <ZineAsset asset={assets?.decoration} className="one-zine-asset--decoration" />
     <footer className="one-zine-footer"><Leaf size={18} aria-hidden="true" /><span>Your recipe. A little imagination.</span><span>CHEFSPARK</span></footer>
   </article>;
 }
