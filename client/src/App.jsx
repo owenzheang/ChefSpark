@@ -29,15 +29,32 @@ const navIndicatorTransition = {
 function App() {
   const [page, setPage] = useState(getToken() ? "ingredients" : "login");
   const [selectedSavedRecipeId, setSelectedSavedRecipeId] = useState(null);
+  const [selectedGeneratedRecipe, setSelectedGeneratedRecipe] = useState(null);
+  const [generatedRecipes, setGeneratedRecipes] = useState([]);
+  const [cuisine, setCuisine] = useState("Chinese");
+  const [difficulty, setDifficulty] = useState("Easy");
+  const activePage = page === "recipeDetail"
+    ? (selectedGeneratedRecipe ? "recipes" : "savedRecipes") : page;
 
   function handleLogout() {
     removeToken();
     setSelectedSavedRecipeId(null);
+    setSelectedGeneratedRecipe(null);
+    setGeneratedRecipes([]);
+    setCuisine("Chinese");
+    setDifficulty("Easy");
     setPage("login");
   }
 
   function viewSavedRecipe(id) {
+    setSelectedGeneratedRecipe(null);
     setSelectedSavedRecipeId(id);
+    setPage("recipeDetail");
+  }
+
+  function viewGeneratedRecipe(recipe) {
+    setSelectedSavedRecipeId(null);
+    setSelectedGeneratedRecipe(recipe);
     setPage("recipeDetail");
   }
 
@@ -87,11 +104,11 @@ function App() {
             </motion.button>
             <motion.button
               type="button"
-              className={page === "recipes" ? "active" : ""}
+              className={activePage === "recipes" ? "active" : ""}
               onClick={() => setPage("recipes")}
               whileTap={{ scale: 0.94 }}
             >
-              {page === "recipes" && (
+              {activePage === "recipes" && (
                 <motion.span
                   className="bottom-nav-indicator"
                   layoutId="bottom-nav-indicator"
@@ -101,14 +118,14 @@ function App() {
               <motion.span
                 className="bottom-nav-content"
                 animate={{
-                  color: page === "recipes" ? "#ffffff" : "#738076",
-                  opacity: page === "recipes" ? 1 : 0.82
+                  color: activePage === "recipes" ? "#ffffff" : "#738076",
+                  opacity: activePage === "recipes" ? 1 : 0.82
                 }}
                 transition={navTransition}
               >
                 <motion.span
                   className="bottom-nav-icon"
-                  animate={{ scale: page === "recipes" ? 1.07 : 1 }}
+                  animate={{ scale: activePage === "recipes" ? 1.07 : 1 }}
                   transition={navIconTransition}
                 >
                   <ChefHat size={19} strokeWidth={2} aria-hidden="true" />
@@ -120,11 +137,11 @@ function App() {
             </motion.button>
             <motion.button
               type="button"
-              className={page === "savedRecipes" || page === "recipeDetail" ? "active" : ""}
+              className={activePage === "savedRecipes" ? "active" : ""}
               onClick={() => setPage("savedRecipes")}
               whileTap={{ scale: 0.94 }}
             >
-              {(page === "savedRecipes" || page === "recipeDetail") && (
+              {(activePage === "savedRecipes") && (
                 <motion.span
                   className="bottom-nav-indicator"
                   layoutId="bottom-nav-indicator"
@@ -135,11 +152,11 @@ function App() {
                 className="bottom-nav-content"
                 animate={{
                   color:
-                    page === "savedRecipes" || page === "recipeDetail"
+                    activePage === "savedRecipes"
                       ? "#ffffff"
                       : "#738076",
                   opacity:
-                    page === "savedRecipes" || page === "recipeDetail"
+                    activePage === "savedRecipes"
                       ? 1
                       : 0.82
                 }}
@@ -149,7 +166,7 @@ function App() {
                   className="bottom-nav-icon"
                   animate={{
                     scale:
-                      page === "savedRecipes" || page === "recipeDetail"
+                      activePage === "savedRecipes"
                         ? 1.07
                         : 1
                   }}
@@ -195,6 +212,13 @@ function App() {
   if (page === "recipes") {
     return renderWithNavigation(
       <RecipeGenerationPage
+        recipes={generatedRecipes}
+        setRecipes={setGeneratedRecipes}
+        cuisine={cuisine}
+        setCuisine={setCuisine}
+        difficulty={difficulty}
+        setDifficulty={setDifficulty}
+        onViewRecipe={viewGeneratedRecipe}
         onBack={() => setPage("ingredients")}
         onLogout={handleLogout}
         onSavedRecipes={() => setPage("savedRecipes")}
@@ -215,8 +239,10 @@ function App() {
   if (page === "recipeDetail") {
     return renderWithNavigation(
       <RecipeDetailPage
+        key={selectedGeneratedRecipe ? "generated" : selectedSavedRecipeId}
+        generatedRecipe={selectedGeneratedRecipe}
         savedRecipeId={selectedSavedRecipeId}
-        onBack={() => setPage("savedRecipes")}
+        onBack={() => setPage(selectedGeneratedRecipe ? "recipes" : "savedRecipes")}
         onLogout={handleLogout}
       />
     );

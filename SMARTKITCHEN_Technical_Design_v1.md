@@ -1,5 +1,8 @@
 # SMARTKITCHEN Technical Design v1
 
+> Historical v1 reference. It records an earlier technical design and does not override
+> `PROJECT_CONTEXT.md`, `PROJECT_ROADMAP.md`, or `PROJECT_HANDOVER.md`.
+
 ## Authentication
 
 Authentication:

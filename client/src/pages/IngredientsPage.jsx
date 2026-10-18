@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import { useRef } from "react";
+import IngredientCategoryIcon from "../components/IngredientCategoryIcon.jsx";
+import IngredientSuggestions from "../components/IngredientSuggestions.jsx";
+import { searchIngredients } from "../utils/ingredientSearch.js";
 import {
   ArrowRight,
   Bell,
@@ -60,6 +64,15 @@ function IngredientsPage({ onGenerateRecipes }) {
   const [form, setForm] = useState(emptyForm);
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const ingredientInput = useRef(null);
+  const suggestions = showSuggestions ? searchIngredients(form.name) : [];
+
+  function selectSuggestion(name) {
+    setForm({ name });
+    setShowSuggestions(false);
+    ingredientInput.current?.focus();
+  }
 
   async function loadIngredients() {
     setMessage("");
@@ -91,6 +104,7 @@ function IngredientsPage({ onGenerateRecipes }) {
 
   function resetForm() {
     setForm(emptyForm);
+    setShowSuggestions(false);
   }
 
   async function addIngredientByName(name) {
@@ -226,6 +240,7 @@ function IngredientsPage({ onGenerateRecipes }) {
           <AnimatePresence initial={false}>
             {ingredients.map((ingredient) => (
               <motion.li key={ingredient.id} layout {...chipMotion}>
+                <IngredientCategoryIcon name={ingredient.name} />
                 <span>{ingredient.name}</span>
                 <motion.button
                   type="button"
@@ -257,8 +272,18 @@ function IngredientsPage({ onGenerateRecipes }) {
           <Search size={15} strokeWidth={1.8} aria-hidden="true" />
           <input
             type="text"
+            ref={ingredientInput}
+            aria-label="Ingredient name"
+            aria-controls={suggestions.length ? "ingredient-suggestions" : undefined}
+            autoComplete="off"
             value={form.name}
-            onChange={(event) => setForm({ name: event.target.value })}
+            onChange={(event) => {
+              setForm({ name: event.target.value });
+              setShowSuggestions(true);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") setShowSuggestions(false);
+            }}
             placeholder="Search or type an ingredient..."
             required
           />
@@ -266,6 +291,7 @@ function IngredientsPage({ onGenerateRecipes }) {
             <Plus size={16} strokeWidth={2.5} aria-hidden="true" />
           </motion.button>
         </motion.form>
+        <IngredientSuggestions suggestions={suggestions} onSelect={selectSuggestion} />
       </motion.section>
 
       <motion.section
@@ -283,7 +309,7 @@ function IngredientsPage({ onGenerateRecipes }) {
               onClick={() => addIngredientByName(ingredient)}
               whileTap={{ scale: 0.93 }}
             >
-              <Plus size={11} strokeWidth={2.5} aria-hidden="true" />
+              <IngredientCategoryIcon name={ingredient} />
               {ingredient}
             </motion.button>
           ))}

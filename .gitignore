@@ -6,6 +6,7 @@ dist/
 server/node_modules/
 server/.env
 server/*.db
+server/generated-zines/
 
 client/node_modules/
 client/.env

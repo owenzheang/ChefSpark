@@ -1,29 +1,12 @@
 ﻿import database from "../database.js";
 
-function isStringArray(value) {
-  return Array.isArray(value) && value.every((item) => typeof item === "string");
-}
-
-function isOptionalString(value) {
-  return value === undefined || typeof value === "string";
-}
+import {
+  isValidLegacyRecipe,
+  isValidStructuredRecipe
+} from "../utils/recipeValidation.js";
 
 function isValidRecipe(recipe) {
-  return (
-    recipe &&
-    typeof recipe.title === "string" &&
-    typeof recipe.cuisine === "string" &&
-    typeof recipe.difficulty === "string" &&
-    typeof recipe.cookTime === "string" &&
-    Number.isInteger(recipe.matchScore) &&
-    recipe.matchScore >= 0 &&
-    recipe.matchScore <= 100 &&
-    isStringArray(recipe.missingIngredients) &&
-    isStringArray(recipe.ingredients) &&
-    isStringArray(recipe.steps) &&
-    isOptionalString(recipe.imagePrompt) &&
-    isOptionalString(recipe.imageUrl)
-  );
+  return isValidStructuredRecipe(recipe) || isValidLegacyRecipe(recipe);
 }
 
 function formatSavedRecipe(row) {

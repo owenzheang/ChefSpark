@@ -12,6 +12,9 @@ import {
 } from "lucide-react";
 import { generateRecipes, getIngredients, saveRecipe } from "../services/api.js";
 
+import { useRef } from "react";
+import RecipePreviewCard from "../components/RecipePreviewCard.jsx";
+
 const pageMotion = {
   initial: { opacity: 0, y: 18 },
   animate: { opacity: 1, y: 0 },
@@ -38,34 +41,16 @@ const cuisineOptions = [
   }
 ];
 
-const difficultyDotCounts = {
-  Easy: 1,
-  Medium: 2,
-  Hard: 3
-};
-
-function DifficultyDots({ difficulty }) {
-  const count = difficultyDotCounts[difficulty] || 1;
-
-  return (
-    <span className={`difficulty-dots ${difficulty.toLowerCase()}`} aria-hidden="true">
-      {Array.from({ length: count }).map((_, index) => (
-        <span key={index}></span>
-      ))}
-    </span>
-  );
-}
-
-function RecipeGenerationPage({ onBack }) {
+function RecipeGenerationPage({ onBack, onViewRecipe, recipes, setRecipes, cuisine, setCuisine, difficulty, setDifficulty }) {
   const [ingredients, setIngredients] = useState([]);
-  const [cuisine, setCuisine] = useState("Chinese");
-  const [difficulty, setDifficulty] = useState("Easy");
-  const [recipes, setRecipes] = useState([]);
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [savingTitle, setSavingTitle] = useState("");
 
+  const isMounted = useRef(false);
+
   useEffect(() => {
+    isMounted.current = true;
     async function loadIngredients() {
       try {
         const data = await getIngredients();
@@ -76,6 +61,7 @@ function RecipeGenerationPage({ onBack }) {
     }
 
     loadIngredients();
+    return () => { isMounted.current = false; };
   }, []);
 
   async function handleGenerate() {
@@ -85,7 +71,7 @@ function RecipeGenerationPage({ onBack }) {
 
     try {
       const data = await generateRecipes({ cuisine, difficulty });
-      setRecipes(data.recipes);
+      if (isMounted.current) setRecipes(data.recipes);
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -265,62 +251,13 @@ function RecipeGenerationPage({ onBack }) {
             <h2>Recommended Recipes</h2>
             <div className="recipe-grid">
               {recipes.map((recipe, index) => (
-                <motion.article
-                  key={recipe.title}
-                  className="panel recipe-card"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ delay: index * 0.06, duration: 0.3 }}
-                >
-                <div className={recipe.imageUrl ? "recipe-card-image has-image" : "recipe-card-image"}>
-                  {recipe.imageUrl && (
-                    <img src={recipe.imageUrl} alt={recipe.title} />
-                  )}
-                  <span>{recipe.cuisine}</span>
-                </div>
-
-                <div className="recipe-card-header">
-                  <h3>{recipe.title}</h3>
-                  <span>{recipe.matchScore}% match</span>
-                </div>
-                <p className="recipe-card-meta">
-                  <span>{recipe.cuisine}</span>
-                  <span className="meta-separator">|</span>
-                  <span className="difficulty-indicator">
-                    <DifficultyDots difficulty={recipe.difficulty} />
-                    {recipe.difficulty}
-                  </span>
-                  <span className="meta-separator">|</span>
-                  <span>{recipe.cookTime}</span>
-                </p>
-
-                <h4>Missing Ingredients</h4>
-                <p>{recipe.missingIngredients.length > 0 ? recipe.missingIngredients.join(", ") : "None"}</p>
-
-                <h4>Ingredients</h4>
-                <ul>
-                  {recipe.ingredients.map((ingredient) => (
-                    <li key={ingredient}>{ingredient}</li>
-                  ))}
-                </ul>
-
-                <h4>Steps</h4>
-                <ol>
-                  {recipe.steps.map((step) => (
-                    <li key={step}>{step}</li>
-                  ))}
-                </ol>
-
-                <motion.button
-                  type="button"
-                  onClick={() => handleSave(recipe)}
-                  disabled={savingTitle === recipe.title}
-                  whileTap={{ scale: 0.97 }}
-                >
-                  {savingTitle === recipe.title ? "Saving..." : "Save Recipe"}
-                </motion.button>
-                </motion.article>
+                <RecipePreviewCard
+                  key={`${recipe.title}-${index}`}
+                  recipe={recipe}
+                  onViewRecipe={onViewRecipe}
+                  onSave={handleSave}
+                  isSaving={savingTitle === recipe.title}
+                />
               ))}
             </div>
           </motion.section>

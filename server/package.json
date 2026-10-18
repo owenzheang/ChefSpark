@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch src/index.js",
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "test": "node --test",
+    "zine:poc": "node scripts/zine-poc.js",
+    "zine:assets": "node scripts/zine-assets.js"
   },
   "dependencies": {
     "bcrypt": "latest",
@@ -14,5 +17,8 @@
     "express": "latest",
     "jsonwebtoken": "latest",
     "sqlite3": "5.1.7"
+  },
+  "devDependencies": {
+    "pngjs": "7.0.0"
   }
 }

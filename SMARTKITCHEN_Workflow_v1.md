@@ -1,5 +1,8 @@
 # SMARTKITCHEN Workflow v1
 
+> Historical v1 reference. It records an earlier product concept and does not override
+> `PROJECT_CONTEXT.md`, `PROJECT_ROADMAP.md`, or `PROJECT_HANDOVER.md`.
+
 ---
 
 # 1. User Journey

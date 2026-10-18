@@ -1,6 +1,8 @@
 ﻿import database from "../database.js";
 import { generateRecipesWithDeepSeek } from "../services/deepseekService.js";
 import { fetchRecipeImageUrl } from "../services/pexelsService.js";
+import { addRecipeMatch } from "../utils/recipeMatching.js";
+import { isValidStructuredRecipe } from "../utils/recipeValidation.js";
 
 const allowedCuisines = ["Chinese", "Western"];
 const allowedDifficulties = ["Easy", "Medium", "Hard"];
@@ -44,8 +46,14 @@ export async function generateRecipes(req, res) {
     }
 
     const recipes = await generateRecipesWithDeepSeek({ ingredients, cuisine, difficulty });
+    const recipesWithMatches = recipes.recipes.map((recipe) => addRecipeMatch(recipe, ingredients));
+
+    if (!recipesWithMatches.every(isValidStructuredRecipe)) {
+      throw new Error("Generated recipe matching data was invalid. Please try again.");
+    }
+
     const recipesWithImages = await Promise.all(
-      recipes.recipes.map(async (recipe) => ({
+      recipesWithMatches.map(async (recipe) => ({
         ...recipe,
         imageUrl: await fetchRecipeImageUrl({
           imagePrompt: recipe.imagePrompt,
