@@ -103,7 +103,9 @@ Hero prompt revision (2026-10-19): the user chose to refine the hero. The approv
 
 Style coverage (2026-10-19): the user ran one notebook and one journal sheet with the revised prompt. The hero allow-list held in both; notebook crops are usable; journal failed because botanical accents appear in the food quadrants and cross boundaries (see "Style coverage" in `server/ZINE_ASSETS_POC.md`).
 
-**Next:** confine style decorations to the decoration quadrant in `buildAssetPrompt` (free change plus mocked test and dry-run), then one journal re-test, which needs separate user authorization.
+Decoration confinement applied to `buildAssetPrompt` with mocked tests and passing dry-runs for all three styles (see "Decoration-confinement revision" in `server/ZINE_ASSETS_POC.md`).
+
+**Next:** one journal re-test with the revised prompt (about USD 0.017, unverified), only after the user explicitly authorizes it and runs the interactive command; then review every crop. The collage development sample predates this rule; its sheet already had no plants in the food quadrants.
 
 ## New Claude Code session checklist
 

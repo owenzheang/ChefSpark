@@ -66,6 +66,14 @@ test("hero prompt allow-lists only JSON ingredients and counters dish-title asso
   assert.match(prompt, /no sauces or sauce colouring \(no soy-sauce browning\)/);
   assert.match(prompt, /re-check the top-left quadrant/);
   assert.ok(prompt.indexOf("re-check the top-left") < prompt.indexOf("RECIPE_JSON:"));
+  for (const style of zineStyles) {
+    const styled = buildAssetPrompt(recipe, style.id);
+    // Decorations are confined to the decoration quadrant, after the style's art direction.
+    assert.ok(styled.indexOf(style.artDirection) < styled.indexOf("place decorative elements"));
+    assert.match(styled, /decorative elements \(leaves, sprigs, flowers, botanical accents, stamps, tape, pinned photographs, ink marks\) ONLY in the bottom-right quadrant/);
+    assert.match(styled, /top-left, top-right and bottom-left quadrants contain no plants of any kind: no leaves, sprigs, flowers or potted plants, in the food or the background/);
+    assert.match(styled, /re-check the three food quadrants: remove any plant or decorative element and anything crossing a quadrant boundary/);
+  }
   const custom = { ...recipe, ingredients: [{ name: "Egg", quantity: 2, unit: "" }, { name: "Rice", quantity: 1, unit: "cup" }] };
   assert.ok(buildAssetPrompt(custom, "notebook").includes('listed ingredients: ["Egg","Rice"].'));
   const quoted = { ...recipe, ingredients: [{ name: 'Rice "basmati"', quantity: 1, unit: "cup" }] };

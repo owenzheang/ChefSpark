@@ -197,5 +197,16 @@ Findings: the hero allow-list held in all three styles; no egg or sauce colourin
 is style-driven: journal's "botanical accents" art direction places leaves and sprigs in the food
 quadrants, where they look like ingredients and cross quadrant boundaries. Notebook's style is only
 weakly expressed in the food quadrants (green cloth backdrop, no ruled-paper or pencil treatment).
-Suggested fix (not applied): confine style decorations such as leaves, sprigs, stamps and pinned photos
-to the bottom-right quadrant and forbid plants in the three food quadrants, then re-test journal.
+Suggested fix: confine style decorations such as leaves, sprigs, stamps and pinned photos to the
+bottom-right quadrant and forbid plants in the three food quadrants, then re-test journal.
+
+### Decoration-confinement revision (2026-10-19, not yet tested live)
+
+`buildAssetPrompt` now adds, after the style art direction, a rule that the treatment applies to palette,
+paper, lighting and drawing or photographic style everywhere, but decorative elements (leaves, sprigs,
+flowers, botanical accents, stamps, tape, pinned photographs, ink marks) appear ONLY in the bottom-right
+quadrant, and the three food quadrants contain no plants of any kind, in the food or the background. The
+final self-check also asks the model to remove plants, decorations and boundary-crossing objects from the
+food quadrants. Mocked tests cover all three styles. Dry-runs: collage 3649, notebook 3655, journal 3651
+prompt characters; no network, no writes. Expected estimate about USD 0.017 per request, unverified.
+Next live check: one journal sheet, with separate user authorization.
