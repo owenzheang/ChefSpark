@@ -128,7 +128,7 @@ ingredient instruction did not hold for the finished-dish quadrant, so prompt wo
 not guarantee food accuracy. This is a single sample and does not establish consistency across
 recipes or styles.
 
-## Hero prompt revision (2026-10-19, not yet tested live)
+## Hero prompt revision (2026-10-19)
 
 Approved changes to `buildAssetPrompt`, applying to every recipe and style:
 
@@ -149,3 +149,27 @@ Sources:
 - https://developers.openai.com/api/docs/guides/image-generation
 - https://developers.openai.com/api/docs/models/gpt-image-2.5-flare
 - https://developers.openai.com/api/reference/resources/images/methods/generate
+
+### Second live result (revised prompt)
+
+Report: `server/generated-zines/assets-poc/assets-2026-10-19T11-29-02-914Z-ecad0a78-65ae-4867-8cb2-8908f15db993.json`.
+Run by the user after explicit authorization; prompt hash matches the reviewed dry-run.
+
+- 2026-10-19T11:29:02Z, `collage`, `gpt-image-2.5-flare`, medium, 1024x1024, no reference, manual
+  confirmation received, `result: success`, 0 retries, ~31 s.
+- Usage: 681 text input, 0 image input, 439 image output tokens. Usage-based estimate USD 0.016575
+  (not billed cost; `actualCost` null).
+
+Manual review (2026-10-19):
+
+| Crop | Food accuracy | Unwanted text | Crop boundary | Verdict |
+| --- | --- | --- | --- | --- |
+| Hero | Pass: only chicken pieces and pale rice; no egg, sauce colouring, vegetables or garnish | None | Clean | Usable |
+| Cooking | Pass: chicken with rice grains in a pan, matching step 3 "Add the rice"; a fingertip and spatula handle enter at the top-right outer edge | None | Clean internal edges | Usable |
+| Ingredients | Pass: chicken breast, rice and salt only | None | Clean | Usable |
+| Decoration | n/a (non-food) | None | Clean | Usable |
+
+Findings: the allow-list and title-association guard removed the unlisted egg and soy-sauce colouring
+in this sample. Trade-off: the food quadrants are plainer, with less collage treatment (no torn-paper
+corners) than the first sheet. Still a single sample per prompt version; consistency across recipes and
+styles is not established.
