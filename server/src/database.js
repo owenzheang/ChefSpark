@@ -1,4 +1,5 @@
 ﻿import sqlite3 from "sqlite3";
+import { initZineTables } from "./services/zineStore.js";
 
 const database = new sqlite3.Database("smartkitchen.db");
 
@@ -34,5 +35,7 @@ database.serialize(() => {
     )
   `);
 });
+
+initZineTables(database).catch(error => console.error("Zine tables could not be initialised:", error.message));
 
 export default database;

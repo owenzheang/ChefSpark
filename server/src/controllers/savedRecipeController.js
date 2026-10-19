@@ -1,4 +1,5 @@
 ﻿import database from "../database.js";
+import { deleteZinesForSavedRecipe } from "../services/zineStore.js";
 
 import {
   isValidLegacyRecipe,
@@ -100,6 +101,9 @@ export function deleteSavedRecipe(req, res) {
       return res.status(404).json({ message: "Saved recipe not found." });
     }
 
-    res.json({ message: "Saved recipe deleted." });
+    // The recipe's Zine artwork belongs to it; remove it too.
+    deleteZinesForSavedRecipe(database, req.params.id)
+      .catch(() => {})
+      .finally(() => res.json({ message: "Saved recipe deleted." }));
   });
 }

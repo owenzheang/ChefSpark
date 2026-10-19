@@ -5,6 +5,7 @@ import authRoutes from "./routes/authRoutes.js";
 import ingredientRoutes from "./routes/ingredientRoutes.js";
 import recipeRoutes from "./routes/recipeRoutes.js";
 import savedRecipeRoutes from "./routes/savedRecipeRoutes.js";
+import zineRoutes from "./routes/zineRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -46,6 +47,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/ingredients", ingredientRoutes);
 app.use("/api/recipes", recipeRoutes);
 app.use("/api/saved-recipes", savedRecipeRoutes);
+app.use("/api/zines", zineRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
