@@ -14,11 +14,11 @@
 | 6B.1 | Complete frontend prototype | Responsive One-Page Hybrid Zine with HTML facts, legacy compatibility, and stable random `collage`, `notebook`, or `journal` style assignment. |
 | 6B.2 implementation | Complete | Local, reference-free text-free asset-sheet CLI, quadrants/crops, reports, mocked coverage, and dry-runs. |
 | 6B.2 live test | Complete; reviewed | One paid `collage` sheet (2026-10-15, estimate USD 0.016, not billed cost). Cooking, ingredients and decoration crops usable; hero rejected for unlisted egg. See `server/ZINE_ASSETS_POC.md`. |
-| 6C Zine artwork | Implemented; live test pending | User-facing, saved-recipe AI artwork with SQLite storage, background generation, per-user/global daily limits, no retries and illustration-only disclosure. Local only. |
+| 6C Zine artwork | Implemented; live test passed locally | User-facing, saved-recipe AI artwork with SQLite storage, background generation, per-user/global daily limits, no retries and illustration-only disclosure. Local only. |
 
 ## Active next step
 
-**Phase 6C — first live end-to-end test.** With `ZINE_GENERATION_ENABLED=true` locally, the user creates artwork for one saved recipe in the app; then review the four images, the stored usage/cost estimate and the failure/limit behaviour. Afterwards decide on deployment (persistent storage) and broader testing.
+**Phase 6C live test passed locally (2026-10-19).** Next: merge to `main`, small UX fixes, then deployment with persistent storage. See `PROJECT_HANDOVER.md`.
 
 ## Later, separately approved only when scoped
 
