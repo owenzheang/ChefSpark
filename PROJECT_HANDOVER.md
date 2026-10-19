@@ -105,7 +105,9 @@ Style coverage (2026-10-19): the user ran one notebook and one journal sheet wit
 
 Decoration confinement applied to `buildAssetPrompt` with mocked tests and passing dry-runs for all three styles (see "Decoration-confinement revision" in `server/ZINE_ASSETS_POC.md`).
 
-**Next:** one journal re-test with the revised prompt (about USD 0.017, unverified), only after the user explicitly authorizes it and runs the interactive command; then review every crop. The collage development sample predates this rule; its sheet already had no plants in the food quadrants.
+Journal re-test (2026-10-19, ~USD 0.017 estimate): all four crops usable; the decoration rule held. Each style now has one passing sheet with the current prompt.
+
+**Next:** paused for a product decision with the user; the image experiment is no longer the bottleneck.
 
 ## New Claude Code session checklist
 

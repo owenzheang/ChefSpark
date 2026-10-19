@@ -210,3 +210,12 @@ final self-check also asks the model to remove plants, decorations and boundary-
 food quadrants. Mocked tests cover all three styles. Dry-runs: collage 3649, notebook 3655, journal 3651
 prompt characters; no network, no writes. Expected estimate about USD 0.017 per request, unverified.
 Next live check: one journal sheet, with separate user authorization.
+
+### Journal re-test with decoration confinement (2026-10-19)
+
+`assets-2026-10-19T11-49-15-695Z-ac72aae2-6ef1-4dea-8abe-d111e894eca5`: run by the user after authorization,
+`result: success`, 791 text in / 439 image out, ~USD 0.017125 (estimate, not billed cost), ~14 s.
+Review: all four crops usable. Hero shows only chicken and rice; cooking shows chicken in a pan (step 2);
+ingredients shows only chicken breast, rice and salt; no plants in any food quadrant; leaves and stamps
+appear only in the decoration quadrant; no text; clean boundaries. The confinement rule fixed the journal
+failure in this sample.
