@@ -173,3 +173,29 @@ Findings: the allow-list and title-association guard removed the unlisted egg an
 in this sample. Trade-off: the food quadrants are plainer, with less collage treatment (no torn-paper
 corners) than the first sheet. Still a single sample per prompt version; consistency across recipes and
 styles is not established.
+
+### Style coverage with the revised prompt (notebook, journal)
+
+Both run by the user after authorization on 2026-10-19, `gpt-image-2.5-flare`, medium, 1024x1024, no
+reference, manual confirmation received, `result: success`, 0 retries. Usage-based estimates are not billed cost.
+
+- notebook: `assets-2026-10-19T11-41-38-831Z-d14c8db3-9771-41ee-a64f-071ac1206723`, 682 text in / 439 image out, ~USD 0.01658, ~22 s.
+- journal: `assets-2026-10-19T11-44-18-283Z-9c7e92fa-e9b4-42fd-9100-34aac1ee0af9`, 680 text in / 439 image out, ~USD 0.01657, ~14 s.
+
+| Style | Crop | Food accuracy | Unwanted text | Crop boundary | Verdict |
+| --- | --- | --- | --- | --- | --- |
+| notebook | Hero | Pass: chicken and rice only; rice slightly golden but no egg pieces, sauce or garnish | None | Clean | Usable |
+| notebook | Cooking | Pass: chicken browning, matching step 2 | None | Clean | Usable |
+| notebook | Ingredients | Pass: chicken breast, rice, salt | None | Clean | Usable |
+| notebook | Decoration | n/a; includes a pinned mountain-landscape photo and an ink leaf sprig (unrelated but non-food) | None | Clean | Usable, caveat |
+| journal | Hero | Pass for the food | None | **Fail**: a leaf sprig from the ingredients quadrant crosses into the bottom-left corner | Not usable as-is |
+| journal | Cooking | Pass for the pan (chicken, step 2); a potted plant sits in the background | None | Clean | Usable, caveat |
+| journal | Ingredients | **Fail**: three botanical sprigs (one with berries) beside chicken, rice and salt can read as herbs, which are not listed; top sprig is cut by the boundary | None | **Fail** | Rejected |
+| journal | Decoration | n/a | None | Clean | Usable |
+
+Findings: the hero allow-list held in all three styles; no egg or sauce colouring appeared. The new failure
+is style-driven: journal's "botanical accents" art direction places leaves and sprigs in the food
+quadrants, where they look like ingredients and cross quadrant boundaries. Notebook's style is only
+weakly expressed in the food quadrants (green cloth backdrop, no ruled-paper or pencil treatment).
+Suggested fix (not applied): confine style decorations such as leaves, sprigs, stamps and pinned photos
+to the bottom-right quadrant and forbid plants in the three food quadrants, then re-test journal.

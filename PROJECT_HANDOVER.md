@@ -101,7 +101,9 @@ Secrets are manually supplied in ignored `server/.env`, remain server-only, and 
 
 Hero prompt revision (2026-10-19): the user chose to refine the hero. The approved prompt changes, a mocked test and a free collage dry-run are done (see "Hero prompt revision" in `server/ZINE_ASSETS_POC.md`). The user then ran one live collage sheet with the revised prompt (2026-10-19T11:29Z, estimate USD 0.016575, not billed cost). Review: all four crops usable, hero now free of egg and sauce colouring, though food quadrants are plainer than the first sheet (see "Second live result" in `server/ZINE_ASSETS_POC.md`). The development sample now uses all four crops from this second sheet (one generation, consistent lighting and palette), including the AI hero in the taped hero frame; the hero caption no longer claims the hero is non-AI. Client tests (30) pass, and the layout was checked in the browser at desktop and 375px with no horizontal overflow. The first sheet's crops remain in git history (`75c1e22`) and in `server/generated-zines/`.
 
-**Next:** validate the revised prompt beyond collage with one `notebook` and one `journal` sheet. Both dry-runs pass (3112 and 3108 prompt characters; about USD 0.017 each, unverified). Each is a separate paid request that the user must run in an interactive terminal and confirm; then review every crop as before. Do not run another paid request, expose a generation endpoint, or add persistence without approval.
+Style coverage (2026-10-19): the user ran one notebook and one journal sheet with the revised prompt. The hero allow-list held in both; notebook crops are usable; journal failed because botanical accents appear in the food quadrants and cross boundaries (see "Style coverage" in `server/ZINE_ASSETS_POC.md`).
+
+**Next:** confine style decorations to the decoration quadrant in `buildAssetPrompt` (free change plus mocked test and dry-run), then one journal re-test, which needs separate user authorization.
 
 ## New Claude Code session checklist
 
