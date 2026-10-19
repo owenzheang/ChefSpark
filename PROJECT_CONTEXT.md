@@ -26,19 +26,25 @@ AI-generated artwork = visual presentation only.
 - Recipe Guide renders structured or reasonable legacy saved data.
 - One-Page Zine frontend prototype renders all factual content in HTML. It has `collage`, `notebook`, and `journal` variants. A new preview receives one randomly selected style, held stable by session storage with a deterministic fallback; development supports `?zineStyle=<id>` overrides.
 
-## Image-generation tooling, not product UI
+## Zine artwork (product feature)
+
+- Saved recipes can add optional AI artwork to their One-Page Zine: one server-side `gpt-image-2.5-flare` request makes a text-free 2x2 sheet that is split into hero, cooking, ingredients and decoration images. It is off unless `ZINE_GENERATION_ENABLED=true`, limited per user (default 3/day) and globally (default 30/day), never retried, and labelled as illustration only; recipe facts always remain HTML text.
+- Backend: `server/src/services/zineStore.js` (tables `zines`, `zine_images` with PNG BLOBs, `zine_generations` for limits), `zineGenerationService.js`, `controllers/zineController.js`, authenticated `/api/zines` routes. Each Zine stores its random `styleId` and `prompt_version`; Recipe JSON is unchanged. Deleting a saved recipe removes its Zine; limits count attempts, including failures and deleted Zines.
+- Frontend: `client/src/components/ZineArtwork.jsx` (status polling, blob image URLs, create/regenerate/remove) feeds `ZineSamplePreview`/`OnePageZine`. Unsaved generated recipes are asked to save first; failure keeps the full text Zine with a message.
+- Not yet live-tested end to end; deployed hosting is not set up (local only).
+
+## Image-generation tooling (developer only)
 
 - Phase 6A is a developer-only, local Discover-image editing PoC. One paid request was previously completed successfully using `gpt-image-2.5-flare`, medium, one 1024x1536 PNG, and the historical Discover sample as a reference. The ignored local output/report are under `server/generated-zines/poc/`. Its billed cost is not known exactly.
-- Phase 6B.2 is a separate developer-only, reference-free 1024x1024 asset-sheet PoC. It produces one sheet and, after validation, four 512x512 local crops. One paid `collage` sheet was generated on 2026-10-15 and manually reviewed on 2026-10-19: the cooking, ingredients and decoration crops are usable; the hero is rejected for unlisted egg. It is not yet connected to the frontend.
-- Neither tool is a public endpoint or user-facing generation feature. Existing three-page sample images remain historical assets, not the active Zine experience.
+- Phase 6B.2 is a separate developer-only, reference-free 1024x1024 asset-sheet PoC. It produces one sheet and, after validation, four 512x512 local crops. One paid `collage` sheet was generated on 2026-10-15 and manually reviewed on 2026-10-19: the cooking, ingredients and decoration crops are usable; the hero was rejected for unlisted egg. Revised prompts then produced fully usable sheets for collage, notebook and journal (see `server/ZINE_ASSETS_POC.md`); the product feature reuses that prompt.
+- Neither CLI tool is exposed as an endpoint; the product feature uses its own service. Existing three-page sample images remain historical assets, not the active Zine experience.
 
 ## Limits and non-goals today
 
-- No persistent Zine record, cloud storage, credits, sharing/export, or public image-generation API.
-- The active frontend does not use real generated asset sheets.
+- No cloud storage, credits, sharing/export, or deployment; images live in local SQLite.
+- Generated artwork is not human-reviewed before users see it; the prompt rules reduce but do not eliminate wrong food or crop defects.
 - Generated recipe results remain page state until saved; navigation is state-based rather than routed URLs.
-- Image quality and factual correctness always need human review; AI artwork must be checked for unwanted text, wrong food, and crop defects.
 
 ## Immediate approved next action
 
-**Phase 6B.3 — hybrid frontend integration prototype using the three reviewed crops; the implementation plan needs user approval before coding.** See `PROJECT_HANDOVER.md` for the sequence and safeguards.
+**First live end-to-end Zine artwork test, run locally by the user.** See `PROJECT_HANDOVER.md`.

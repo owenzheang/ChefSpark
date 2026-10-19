@@ -107,7 +107,11 @@ Decoration confinement applied to `buildAssetPrompt` with mocked tests and passi
 
 Journal re-test (2026-10-19, ~USD 0.017 estimate): all four crops usable; the decoration rule held. Each style now has one passing sheet with the current prompt.
 
-**Next:** paused for a product decision with the user; the image experiment is no longer the bottleneck.
+**Product decision (2026-10-19): AI artwork becomes a user-facing feature.** User choices: local only for now; all logged-in users; 3 per user and 30 globally per day; on failure keep the text Zine with a message.
+
+**Phase 6C implemented (2026-10-19):** backend tables/service/controller/routes (`zineStore.js`, `zineGenerationService.js`, `zineController.js`, `zineRoutes.js`), frontend `ZineArtwork.jsx` wired through `RecipeDetailPage`, `ZineSamplePreview` and `OnePageZine`. Off unless `ZINE_GENERATION_ENABLED=true`; see `server/.env.example`. One request per creation, no retries, generic failure text, no secrets or raw API errors stored; limits count every attempt and survive deletion; restart marks in-flight jobs failed; stored style wins over the session style once artwork exists. Verified: 52 server and 32 client tests (mocked, no network); in the browser, the disabled state works end to end with a saved recipe at desktop and 375px. A local test account (`zine-test-…@example.test`) with one saved Chicken Fried Rice recipe was created in the local database for this check.
+
+**Next:** the first live end-to-end test. The user adds `ZINE_GENERATION_ENABLED=true` (and the model/quality values) to `server/.env`, restarts the backend, opens a saved recipe's Zine and clicks Create AI artwork once (about USD 0.017, unverified). Then review the four images and the `zine_generations` row. Deployment needs persistent storage before going online.
 
 ## New Claude Code session checklist
 

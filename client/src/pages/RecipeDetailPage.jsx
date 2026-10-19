@@ -5,6 +5,7 @@ import { getSavedRecipe } from "../services/api.js";
 import ZineSamplePreview, { ZineEntry } from "../components/ZineSamplePreview.jsx";
 import { getPreviewStyle, developerStyle } from "../data/zineStyles.js";
 import { developerAssetSample } from "../data/zineAssetSamples.js";
+import { useZineArtwork, ZineArtworkPanel } from "../components/ZineArtwork.jsx";
 
 function IngredientChips({ title, items, owned }) {
   const Icon = owned ? CheckCircle2 : ShoppingCart;
@@ -68,14 +69,19 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack }) {
   }, [savedRecipeId, generatedRecipe]);
 
   const recipe = generatedRecipe || savedRecipe?.recipe;
-
+  // Artwork belongs to a saved recipe; unsaved generated recipes are asked to save first.
+  const artwork = useZineArtwork({ savedRecipeId: generatedRecipe ? null : savedRecipeId,
+    title: recipe?.title, active: zine?.view === "preview" });
 
   const hasServings = Number.isFinite(recipe?.servings) && recipe.servings > 0;
   const hasScore = Number.isFinite(recipe?.matchScore) && recipe.matchScore >= 0 && recipe.matchScore <= 100;
 
   if (zine && recipe) {
-    return <ZineSamplePreview recipe={recipe} view={zine.view} styleId={zine.styleId}
-      assetSample={developerAssetSample(window.location.search, import.meta.env.DEV, recipe, zine.styleId)}
+    // Generated artwork was drawn in the Zine's stored style, so that style wins once it exists.
+    const styleId = artwork.assets && artwork.zine?.styleId ? artwork.zine.styleId : zine.styleId;
+    return <ZineSamplePreview recipe={recipe} view={zine.view} styleId={styleId}
+      assetSample={developerAssetSample(window.location.search, import.meta.env.DEV, recipe, styleId)}
+      artworkAssets={artwork.assets} artworkPanel={<ZineArtworkPanel artwork={artwork} />}
       onNavigate={navigateZine} onBackToRecipe={closeZine} />;
   }
 

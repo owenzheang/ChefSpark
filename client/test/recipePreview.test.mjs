@@ -83,7 +83,7 @@ test("detail uses backend score and matching lists without dynamic food images",
   assert.match(html, /Soy Sauce/);
   assert.doesNotMatch(html, /food.jpg|Salt|Cooking Oil/);
   assert.equal((html.match(/<img /g) || []).length, 0);
-  assert.match(html, /Local prototype/);
+  assert.match(html, /One-Page Zine/);
 });
 
 test("detail omits unavailable legacy fields and preserves ingredient text", () => {

@@ -20,7 +20,7 @@ Implemented application features include:
 - Ingredient categories and autocomplete.
 - A local One-Page Zine prototype: factual recipe data remains readable React/HTML text, with three internally available visual variants selected once per preview.
 
-The active UI does **not** generate personalized AI artwork. The historical Discover/Cook/Finish sample images remain in the repository for reference only; the active Zine direction is one continuous page.
+Saved recipes can add optional AI artwork to their One-Page Zine: one server-side `gpt-image-2.5-flare` request makes a text-free 2x2 sheet that is split into hero, cooking, ingredients and decoration images. It is off unless `ZINE_GENERATION_ENABLED=true`, limited per user (default 3/day) and globally (default 30/day), never retried, and labelled as illustration only; recipe facts always remain HTML text. The historical Discover/Cook/Finish sample images remain in the repository for reference only; the active Zine direction is one continuous page.
 
 ## Core accuracy rule
 
@@ -63,7 +63,7 @@ The backend normally serves `http://localhost:5000`; Vite normally serves `http:
 
 Keep secrets in ignored `server/.env` and frontend-safe configuration only in `client/.env`. Never commit keys.
 
-Typical backend values are `DEEPSEEK_API_KEY`, `JWT_SECRET`, `PEXELS_API_KEY`, and `CORS_ORIGINS`. `OPENAI_API_KEY` is required only by explicitly approved developer-only image commands; it is never a frontend value.
+Typical backend values are `DEEPSEEK_API_KEY`, `JWT_SECRET`, `PEXELS_API_KEY`, and `CORS_ORIGINS`. `OPENAI_API_KEY` is used only server-side, by the optional Zine artwork feature and the developer-only image commands; it is never a frontend value. Zine artwork also needs `ZINE_GENERATION_ENABLED=true`, `OPENAI_IMAGE_MODEL=gpt-image-2.5-flare` and `OPENAI_IMAGE_QUALITY=medium`; see `server/.env.example`. It switches itself off when the reviewed pricing profile expires (2026-11-13) until pricing is re-checked.
 
 ## Developer-only image experiments
 
@@ -91,6 +91,4 @@ Do not run a paid command merely while setting up or reviewing the project.
 
 ## Current next step
 
-**Phase 6B.3 — hybrid frontend integration prototype.**
-
-The first paid Phase 6B.2 asset sheet has been generated and reviewed: three of four crops are usable and the hero was rejected for unlisted egg. The next step integrates the three reviewed crops into the One-Page Zine as development samples, once the implementation plan is approved. No further paid request is part of this step.
+**First live end-to-end test of Zine artwork**, run locally by the user with the feature switched on. See `PROJECT_HANDOVER.md`.

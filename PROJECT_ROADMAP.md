@@ -14,27 +14,20 @@
 | 6B.1 | Complete frontend prototype | Responsive One-Page Hybrid Zine with HTML facts, legacy compatibility, and stable random `collage`, `notebook`, or `journal` style assignment. |
 | 6B.2 implementation | Complete | Local, reference-free text-free asset-sheet CLI, quadrants/crops, reports, mocked coverage, and dry-runs. |
 | 6B.2 live test | Complete; reviewed | One paid `collage` sheet (2026-10-15, estimate USD 0.016, not billed cost). Cooking, ingredients and decoration crops usable; hero rejected for unlisted egg. See `server/ZINE_ASSETS_POC.md`. |
+| 6C Zine artwork | Implemented; live test pending | User-facing, saved-recipe AI artwork with SQLite storage, background generation, per-user/global daily limits, no retries and illustration-only disclosure. Local only. |
 
 ## Active next step
 
-**Phase 6B.3 — hybrid frontend integration prototype with the three reviewed crops.** Implemented 2026-10-19 as a dev-only, dish- and style-gated sample (see `PROJECT_HANDOVER.md`); next is deciding on hero refinement or further integration.
-
-1. Agree where the reviewed crops live in the client and how One-Page Zine places them.
-2. Integrate them as development samples; leave the rejected hero out.
-3. Visually check the layout; recipe facts remain HTML text.
-4. Decide whether to refine the hero prompt (a separately approved paid request) or continue integration.
-
-Do not expose a generation endpoint, add persistence, or make paid requests as part of this step.
+**Phase 6C — first live end-to-end test.** With `ZINE_GENERATION_ENABLED=true` locally, the user creates artwork for one saved recipe in the app; then review the four images, the stored usage/cost estimate and the failure/limit behaviour. Afterwards decide on deployment (persistent storage) and broader testing.
 
 ## Later, separately approved only when scoped
 
-- Persisted Zines that store `styleId`, style/prompt/recipe versions, ownership, and status outside Recipe JSON.
-- Cloud object storage and generation-state/duplicate/rate-limit/credit safeguards.
-- User-facing generation, credits, sharing/export, and stronger production operations.
+- Cloud object storage and deployment with persistent data; credits/billing for users.
+- Sharing/export and stronger production operations (monitoring, abuse controls, automated image checks).
 
 ## Decisions that remain fixed
 
 - Recipe JSON is factual; visuals are presentation.
 - One-page Zine is the active format, not a three-page production flow.
-- Users do not choose a visual style manually; selection is stable per Zine identity.
+- Users do not choose a visual style manually; the server picks one per Zine and stores it.
 - No fuzzy matching, schema rewrite, or broad platform change without approval.

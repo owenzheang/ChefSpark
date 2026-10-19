@@ -62,10 +62,10 @@ test("entry, preview and recipe return callbacks work locally", () => {
   click(tree(), "Preview One-Page Zine"); assert.equal(view, "preview");
   click(tree(), "Back to Recipe"); assert.equal(returned, true);
 });
-test("active prototype has no three-page navigation or generation requests", async () => {
+test("Zine screens have no three-page navigation and the presentational components make no requests", async () => {
   for (const view of ["intro", "preview"]) {
     const html = renderToStaticMarkup(createElement(Screen, { recipe, view }));
-    assert.match(html, /Local prototype/);
+    assert.match(html, /One-Page Zine/);
     assert.doesNotMatch(html, /Next Page|Previous Page|View all three|Discover|zine-samples|Choose a visual style|aria-pressed/);
   }
   for (const file of ["ZineSamplePreview.jsx", "OnePageZine.jsx"]) {
@@ -155,8 +155,41 @@ test("Zine with assets keeps every fact as text and hides decoration from assist
 
 test("preview caption discloses reviewed AI artwork only when a sample is shown", () => {
   const plain = renderToStaticMarkup(createElement(Screen, { recipe, view: "preview" }));
-  assert.match(plain, /No personalized AI image has been generated/);
+  assert.match(plain, /No AI artwork has been created for this Zine/);
   const html = renderToStaticMarkup(createElement(Screen, { recipe, view: "preview", assetSample: zineAssetSamples[0] }));
   assert.match(html, /Development sample: AI-generated artwork manually reviewed on 2026-10-19/);
-  assert.doesNotMatch(html, /No personalized AI image has been generated/);
+  assert.doesNotMatch(html, /No AI artwork has been created for this Zine/);
+});
+
+test("generated artwork takes precedence over samples and is disclosed as illustration only", () => {
+  const artworkAssets = { hero: { src: "blob:hero", alt: "AI-generated illustration of Chicken Fried Rice" },
+    cooking: { src: "blob:cook", alt: "AI-generated cooking scene" }, ingredients: { src: "blob:ing", alt: "AI-generated ingredient illustration" },
+    decoration: { src: "blob:deco", alt: "" } };
+  const html = renderToStaticMarkup(createElement(Screen, { recipe, view: "preview", artworkAssets, assetSample: zineAssetSamples[0],
+    artworkPanel: createElement("section", { className: "zine-artwork" }, "panel") }));
+  assert.match(html, /blob:hero/); assert.doesNotMatch(html, /zine-assets\/dev-samples/);
+  assert.match(html, /AI-generated artwork, for illustration only\. Every ingredient, amount and step comes from your saved recipe\./);
+  assert.ok(html.indexOf("zine-artwork") < html.indexOf("one-zine "));
+  for (const value of ["200 g", "1.5 cup", "First instruction.", "Use chilled rice."]) assert.ok(html.includes(value), value);
+  const intro = renderToStaticMarkup(createElement(Screen, { recipe, view: "intro", artworkPanel: createElement("section", {}, "panel") }));
+  assert.doesNotMatch(intro, /panel/);
+});
+
+test("artwork panel covers unsaved, disabled, empty, generating, ready, failed and exhausted states", async () => {
+  const { ZineArtworkPanel } = await server.ssrLoadModule("/src/components/ZineArtwork.jsx");
+  const base = { saved: true, loading: false, busy: false, message: "", zine: null, availability: { enabled: true, remainingToday: 3 },
+    create() {}, regenerate() {}, remove() {} };
+  const render = patch => renderToStaticMarkup(createElement(ZineArtworkPanel, { artwork: { ...base, ...patch } }));
+  assert.match(render({ saved: false }), /Save this recipe to add personalised AI artwork/);
+  assert.match(render({ availability: { enabled: false, remainingToday: 0 } }), /isn&#x27;t available right now\. Your Zine works without it/);
+  const empty = render({});
+  assert.match(empty, /Create AI artwork/); assert.match(empty, /3 of today&#x27;s creations left/); assert.doesNotMatch(empty, /disabled/);
+  assert.match(render({ zine: { status: "generating" } }), /role="status"[^>]*>.*Creating your artwork/);
+  const ready = render({ zine: { status: "ready" }, availability: { enabled: true, remainingToday: 1 } });
+  assert.match(ready, /Create new artwork/); assert.match(ready, /Remove artwork/);
+  const failed = render({ zine: { status: "failed", error: "We couldn't create the artwork this time. Your recipe is still complete." } });
+  assert.match(failed, /role="alert">We couldn&#x27;t create the artwork/); assert.match(failed, /Try again/);
+  const exhausted = render({ availability: { enabled: true, remainingToday: 0 } });
+  assert.match(exhausted, /<button[^>]*disabled=""[^>]*>.*Create AI artwork/); assert.match(exhausted, /used today&#x27;s artwork creations/);
+  assert.match(render({ busy: true, zine: { status: "ready" } }), /<button[^>]*disabled=""[^>]*>.*Remove artwork/);
 });

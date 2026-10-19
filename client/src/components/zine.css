@@ -82,6 +82,18 @@
   -webkit-mask-image:linear-gradient(to right,transparent,#000 12%,#000 88%,transparent),linear-gradient(transparent,#000 22%,#000 78%,transparent);
   -webkit-mask-composite:source-in; mask-image:linear-gradient(to right,transparent,#000 12%,#000 88%,transparent),linear-gradient(transparent,#000 22%,#000 78%,transparent);
   mask-composite:intersect; }
+/* AI artwork controls above the Zine. */
+.zine-artwork { max-width:820px; margin:0 auto 8px; padding:14px 16px; background:#fffdf7; border:1px solid #d7cfba; border-radius:12px; font-size:.9rem; }
+.zine-artwork p { margin:0; }
+.zine-artwork [role=alert] { color:#8a3a2e; margin-top:8px; }
+.zine-artwork-actions { display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
+.zine-artwork-actions small { color:#565c52; }
+.zine-artwork-actions > p { flex-basis:100%; }
+.zine-artwork button:disabled { opacity:.55; cursor:not-allowed; }
+.zine-artwork-progress { display:flex; align-items:center; gap:8px; color:#385435; }
+.zine-artwork-progress svg { animation:zine-spin 1s linear infinite; }
+@keyframes zine-spin { to { transform:rotate(360deg); } }
+@media (prefers-reduced-motion:reduce) { .zine-artwork-progress svg { animation:none; } }
 /* Notebook: photo on the left, ruled manuscript and margin rail. */
 .one-zine--notebook { --paper:#eee2c7; --olive:#52614b; --red:#91492f; background-image:repeating-linear-gradient(transparent 0 31px,#66765920 32px 33px); border-left:12px solid #6d7553; }
 .one-zine--notebook .one-zine-hero { grid-template-columns:1.1fr 1fr; }

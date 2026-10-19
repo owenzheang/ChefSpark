@@ -104,3 +104,31 @@ export function deleteSavedRecipe(id) {
     method: "DELETE"
   });
 }
+
+export function getZineArtwork(savedRecipeId) {
+  return request(`/zines/recipe/${savedRecipeId}`);
+}
+
+export function createZineArtwork(savedRecipeId, regenerate = false) {
+  return request(`/zines/recipe/${savedRecipeId}`, {
+    method: "POST",
+    body: JSON.stringify({ regenerate })
+  });
+}
+
+export function deleteZineArtwork(zineId) {
+  return request(`/zines/${zineId}`, {
+    method: "DELETE"
+  });
+}
+
+// Images require the auth header, so they are fetched as blobs and shown via object URLs.
+export async function getZineImageUrl(zineId, kind) {
+  const response = await fetch(`${API_BASE_URL}/zines/${zineId}/images/${kind}`, {
+    headers: { Authorization: `Bearer ${getToken()}` }
+  });
+  if (!response.ok) {
+    throw new Error("Image could not be loaded.");
+  }
+  return URL.createObjectURL(await response.blob());
+}
