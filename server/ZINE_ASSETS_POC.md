@@ -128,6 +128,23 @@ ingredient instruction did not hold for the finished-dish quadrant, so prompt wo
 not guarantee food accuracy. This is a single sample and does not establish consistency across
 recipes or styles.
 
+## Hero prompt revision (2026-10-19, not yet tested live)
+
+Approved changes to `buildAssetPrompt`, applying to every recipe and style:
+
+- The hero line now gives an explicit allow-list built from the JSON ingredient names (as a quoted
+  JSON array, so names stay data) and forbids any other visible food.
+- A new line tells the model to ignore ingredients commonly associated with the dish title.
+- The negative rule now names egg in any form, sauce colouring (soy-sauce browning), vegetables,
+  green onion, peas, carrots, sesame, chilli, herbs, garnish and side dishes, unless listed.
+- A final line asks the model to re-check the top-left quadrant before finishing.
+
+Mocked tests cover the new text. Collage dry-run: 3106 prompt characters (previously 2471), no network,
+no writes. Expected usage-based estimate for one live request is about USD 0.017 (roughly 700 text
+input and ~440 image output tokens at the reviewed rates), unverified before sending. A live run
+needs separate explicit user authorization and the interactive confirmation; if egg persists, the next
+lever is withholding the dish title from the hero instruction.
+
 Sources:
 - https://developers.openai.com/api/docs/guides/image-generation
 - https://developers.openai.com/api/docs/models/gpt-image-2.5-flare

@@ -99,7 +99,7 @@ Secrets are manually supplied in ignored `server/.env`, remain server-only, and 
 - Verified: 30 client tests pass. In the browser, a different saved recipe (with the flag and collage) showed no samples; the Chicken Fried Rice layout was checked by rendering the real preview component with the fixture recipe, at desktop (~730px) and 375px widths, with no horizontal overflow. The logged-in account has no saved Chicken Fried Rice, so the full click-through path with a real saved record was not exercised.
 - Note: running the client tests starts a Vite instance that re-optimizes `client/node_modules/.vite`; an already-running dev server may then return `504 Outdated Optimize Dep` until reloaded or restarted.
 
-Next, decided with the user: refine the hero prompt (a new paid request needing separate approval) or continue integration. Do not run another paid request, expose a generation endpoint, or add persistence without approval.
+Hero prompt revision (2026-10-19): the user chose to refine the hero. The approved prompt changes, a mocked test and a free collage dry-run are done (see "Hero prompt revision" in `server/ZINE_ASSETS_POC.md`). **Next: one live collage asset sheet with the revised prompt, only after the user explicitly authorizes it and runs the interactive command themselves**, then review the full sheet and all four crops as before. Do not run another paid request, expose a generation endpoint, or add persistence without approval.
 
 ## New Claude Code session checklist
 

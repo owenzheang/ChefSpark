@@ -58,6 +58,20 @@ test("asset prompt validates recipe and reuses all frontend style directions wit
   assert.throws(() => buildAssetPrompt(recipe, "bogus"), /Unsupported/);
 });
 
+test("hero prompt allow-lists only JSON ingredients and counters dish-title associations", () => {
+  const prompt = buildAssetPrompt(recipe, "collage");
+  assert.ok(prompt.includes('The ONLY visible foods are these listed ingredients: ["Chicken","Rice","Salt"].'));
+  assert.match(prompt, /Ignore those associations; depict only the listed ingredients/);
+  assert.match(prompt, /no egg in any form \(no yellow scrambled pieces\)/);
+  assert.match(prompt, /no sauces or sauce colouring \(no soy-sauce browning\)/);
+  assert.match(prompt, /re-check the top-left quadrant/);
+  assert.ok(prompt.indexOf("re-check the top-left") < prompt.indexOf("RECIPE_JSON:"));
+  const custom = { ...recipe, ingredients: [{ name: "Egg", quantity: 2, unit: "" }, { name: "Rice", quantity: 1, unit: "cup" }] };
+  assert.ok(buildAssetPrompt(custom, "notebook").includes('listed ingredients: ["Egg","Rice"].'));
+  const quoted = { ...recipe, ingredients: [{ name: 'Rice "basmati"', quantity: 1, unit: "cup" }] };
+  assert.ok(buildAssetPrompt(quoted, "journal").includes('["Rice \\"basmati\\""]'));
+});
+
 test("asset dry-run validates settings, no reference, redacted summary and zero API calls", async () => {
   for (const style of zineStyles) {
     let calls = 0;
