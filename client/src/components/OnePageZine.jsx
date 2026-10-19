@@ -3,12 +3,15 @@ import { Leaf, Utensils, MoveDownRight } from "lucide-react";
 import { getZineStyle } from "../data/zineStyles.js";
 import "./zine.css";
 const strings = values => Array.isArray(values) ? values.filter(value => typeof value === "string" && value.trim()) : [];
-function RecipeVisual({ recipe }) {
+function RecipeVisual({ recipe, asset }) {
   const [failed, setFailed] = useState(false);
-  const url = typeof recipe.imageUrl === "string" && !recipe.imageUrl.includes("zine-samples") &&
+  const photo = typeof recipe.imageUrl === "string" && !recipe.imageUrl.includes("zine-samples") &&
     /^(https?:\/\/|\/[^/])/.test(recipe.imageUrl) ? recipe.imageUrl : "";
+  // A reviewed hero asset takes precedence over existing photography.
+  const url = asset?.src || photo;
+  const alt = asset?.src ? asset.alt : recipe.title || "Recipe photograph";
   return <figure className="one-zine-visual">
-    {url && !failed ? <img src={url} alt={recipe.title || "Recipe photograph"} onError={() => setFailed(true)} /> :
+    {url && !failed ? <img src={url} alt={alt} onError={() => setFailed(true)} /> :
       <div className="one-zine-placeholder"><div className="one-zine-plate"><Utensils size={52} strokeWidth={1} aria-hidden="true" /><Leaf size={32} aria-hidden="true" /></div><span>Room for a delicious picture</span><small>Visual placeholder · no image generated</small></div>}
   </figure>;
 }
@@ -34,7 +37,7 @@ export default function OnePageZine({ recipe = {}, styleId = "collage", assets =
           {Number.isFinite(recipe.servings) && recipe.servings > 0 && <span>Serves {recipe.servings}</span>}</div>
         <MoveDownRight className="one-zine-arrow" size={48} strokeWidth={1.3} aria-hidden="true" />
       </header>
-      <RecipeVisual key={recipe.imageUrl || "placeholder"} recipe={recipe} />
+      <RecipeVisual key={assets?.hero?.src || recipe.imageUrl || "placeholder"} recipe={recipe} asset={assets?.hero} />
     </div>
     {typeof recipe.description === "string" && recipe.description.trim() && <section className="one-zine-about"><h3>About the dish</h3><p>{recipe.description}</p></section>}
     <div className="one-zine-body">

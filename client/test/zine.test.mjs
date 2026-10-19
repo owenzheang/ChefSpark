@@ -128,9 +128,9 @@ test("reviewed asset sample requires dev mode, flag, matching style and matching
   assert.equal(developerAssetSample(flag, true, null, "collage"), null);
 });
 
-test("sample excludes the rejected hero and every referenced crop is a local PNG", async () => {
+test("sample uses all four reviewed crops and every referenced crop is a local PNG", async () => {
   for (const sample of zineAssetSamples) {
-    assert.deepEqual(Object.keys(sample.assets).sort(), ["cooking", "decoration", "ingredients"]);
+    assert.deepEqual(Object.keys(sample.assets).sort(), ["cooking", "decoration", "hero", "ingredients"]);
     for (const asset of Object.values(sample.assets)) {
       assert.match(asset.src, /^\/zine-assets\/dev-samples\//);
       const data = await readFile(new URL("../public" + asset.src, import.meta.url));
@@ -148,7 +148,9 @@ test("Zine with assets keeps every fact as text and hides decoration from assist
   assert.ok(html.includes(assets.ingredients.alt) && html.includes(assets.cooking.alt));
   assert.match(html, /<figure class="one-zine-asset one-zine-asset--decoration" aria-hidden="true"><img src="[^"]+decoration\.png" alt=""/);
   assert.ok(html.indexOf("one-zine-asset--ingredients") < html.indexOf("200 g"));
-  assert.doesNotMatch(html, /hero\.png|null|undefined/);
+  assert.ok(html.includes(`<figure class="one-zine-visual"><img src="${assets.hero.src}" alt="${assets.hero.alt}"`));
+  assert.doesNotMatch(html, /Room for a delicious picture|null|undefined/);
+  assert.match(plain, /Room for a delicious picture/);
 });
 
 test("preview caption discloses reviewed AI artwork only when a sample is shown", () => {
