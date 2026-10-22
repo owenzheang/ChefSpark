@@ -78,7 +78,7 @@ handwritten chef's note only from the recipe's first substitution, serif-numbere
 substitutions columns. The mockup's "Light the stove" button is left out until Cooking Mode exists
 (Phase 2). The Zine entry still appears only with `VITE_ZINE_ENABLED=true`. Verified: 47 client tests;
 build; browser at 375px on saved recipe 12 (no overflow; time fits after a fix). A script bug had
-written backspace characters instead of `` in one regex; fixed, and all project files were scanned
+written backspace characters instead of `\b` in one regex; fixed, and all project files were scanned
 clean.
 
 Shelf + cleanup (2026-10-23) — **Phase 1 complete**:
