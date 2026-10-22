@@ -102,42 +102,77 @@ Return JSON only.`
   };
 }
 
-export async function generateRecipesWithDeepSeek({ ingredients, cuisine, difficulty }) {
+export const DEEPSEEK_TIMEOUT_MS = 60_000;
+
+// Errors whose message is safe to show users. Anything else is reported generically.
+export class RecipeGenerationError extends Error {
+  constructor(message, status = 502) {
+    super(message);
+    this.status = status;
+  }
+}
+
+export async function generateRecipesWithDeepSeek({ ingredients, cuisine, difficulty, signal, timeoutMs = DEEPSEEK_TIMEOUT_MS }) {
   const apiKey = process.env.DEEPSEEK_API_KEY;
 
   if (!apiKey) {
-    throw new Error("DeepSeek API key is missing.");
+    console.error("Recipe generation unavailable: DEEPSEEK_API_KEY is not set.");
+    throw new RecipeGenerationError("Recipe generation is unavailable right now.", 503);
   }
 
   const prompt = buildRecipePrompt(ingredients, cuisine, difficulty);
+  // Stop waiting when the time limit passes or the user cancels (the client disconnects).
+  const timeout = AbortSignal.timeout(timeoutMs);
+  let response;
 
-  const response = await fetch(DEEPSEEK_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`
-    },
-    body: JSON.stringify({
-      model: DEEPSEEK_MODEL,
-      response_format: { type: "json_object" },
-      temperature: 0.7,
-      messages: [
-        { role: "system", content: prompt.system },
-        { role: "user", content: prompt.user }
-      ]
-    })
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`DeepSeek request failed: ${errorText}`);
+  try {
+    response = await fetch(DEEPSEEK_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: DEEPSEEK_MODEL,
+        response_format: { type: "json_object" },
+        temperature: 0.7,
+        messages: [
+          { role: "system", content: prompt.system },
+          { role: "user", content: prompt.user }
+        ]
+      }),
+      signal: signal ? AbortSignal.any([signal, timeout]) : timeout
+    });
+  } catch (error) {
+    if (signal?.aborted) throw new RecipeGenerationError("Recipe generation was cancelled.", 499);
+    if (timeout.aborted) {
+      throw new RecipeGenerationError("The recipe service took too long to answer. Please try again.", 504);
+    }
+    console.error("DeepSeek request could not be sent:", error.name);
+    throw new RecipeGenerationError("Couldn't reach the recipe service. Please try again.", 502);
   }
 
-  const deepseekData = await response.json();
+  if (!response.ok) {
+    // Log only the status: the body may contain account or request details.
+    console.error(`DeepSeek request failed with HTTP ${response.status}.`);
+    if (response.status === 429) {
+      throw new RecipeGenerationError("The recipe service is busy. Please wait a moment and try again.", 503);
+    }
+    throw new RecipeGenerationError("Recipe generation is unavailable right now. Please try again later.", 502);
+  }
+
+  let deepseekData;
+
+  try {
+    deepseekData = await response.json();
+  } catch {
+    throw new RecipeGenerationError("The recipe service sent an unreadable answer. Please try again.");
+  }
+
   const content = deepseekData.choices?.[0]?.message?.content;
 
   if (!content) {
-    throw new Error("DeepSeek returned an empty response.");
+    throw new RecipeGenerationError("The recipe service returned no recipes. Please try again.");
   }
 
   let parsedContent;
@@ -145,11 +180,11 @@ export async function generateRecipesWithDeepSeek({ ingredients, cuisine, diffic
   try {
     parsedContent = JSON.parse(content);
   } catch (error) {
-    throw new Error("AI returned invalid JSON. Please try again.");
+    throw new RecipeGenerationError("AI returned invalid JSON. Please try again.");
   }
 
   if (!validateStructuredRecipeResponse(parsedContent)) {
-    throw new Error("AI response format was invalid. Please try again.");
+    throw new RecipeGenerationError("AI response format was invalid. Please try again.");
   }
 
   return parsedContent;

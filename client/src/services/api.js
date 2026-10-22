@@ -25,15 +25,23 @@ async function request(path, options = {}) {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers
-  });
+  let response;
 
-  const data = await response.json();
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      headers
+    });
+  } catch (error) {
+    if (error.name === "AbortError") throw error;
+    throw new Error("Can't reach ChefSpark right now. Check your connection and try again.");
+  }
+
+  // A proxy or crashed server may answer with non-JSON; fall back to a plain message.
+  const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(data.message || "Request failed.");
+    throw new Error(data.message || "Something went wrong. Please try again.");
   }
 
   return data;
@@ -77,10 +85,12 @@ export function deleteIngredient(id) {
   });
 }
 
-export function generateRecipes(options) {
+// Pass an AbortSignal to let the user cancel; the server then stops its AI request too.
+export function generateRecipes(options, { signal } = {}) {
   return request("/recipes/generate", {
     method: "POST",
-    body: JSON.stringify(options)
+    body: JSON.stringify(options),
+    signal
   });
 }
 

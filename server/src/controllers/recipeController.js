@@ -1,5 +1,5 @@
 ﻿import database from "../database.js";
-import { generateRecipesWithDeepSeek } from "../services/deepseekService.js";
+import { generateRecipesWithDeepSeek, RecipeGenerationError } from "../services/deepseekService.js";
 import { fetchRecipeImageUrl } from "../services/pexelsService.js";
 import { addRecipeMatch } from "../utils/recipeMatching.js";
 import { isValidStructuredRecipe } from "../utils/recipeValidation.js";
@@ -28,6 +28,12 @@ function getUserIngredients(userId) {
 }
 
 export async function generateRecipes(req, res) {
+  // If the user cancels (the connection closes before we answer), stop the AI request too.
+  const cancelled = new AbortController();
+  res.on("close", () => {
+    if (!res.writableEnded) cancelled.abort();
+  });
+
   try {
     const { cuisine, difficulty } = req.body;
 
@@ -45,11 +51,11 @@ export async function generateRecipes(req, res) {
       return res.status(400).json({ message: "Please add ingredients before generating recipes." });
     }
 
-    const recipes = await generateRecipesWithDeepSeek({ ingredients, cuisine, difficulty });
+    const recipes = await generateRecipesWithDeepSeek({ ingredients, cuisine, difficulty, signal: cancelled.signal });
     const recipesWithMatches = recipes.recipes.map((recipe) => addRecipeMatch(recipe, ingredients));
 
     if (!recipesWithMatches.every(isValidStructuredRecipe)) {
-      throw new Error("Generated recipe matching data was invalid. Please try again.");
+      throw new RecipeGenerationError("Generated recipe matching data was invalid. Please try again.");
     }
 
     const recipesWithImages = await Promise.all(
@@ -64,6 +70,11 @@ export async function generateRecipes(req, res) {
 
     res.json({ recipes: recipesWithImages });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    if (res.headersSent || cancelled.signal.aborted) return;
+    if (error instanceof RecipeGenerationError) {
+      return res.status(error.status).json({ message: error.message });
+    }
+    console.error("Recipe generation failed:", error.name);
+    res.status(500).json({ message: "Something went wrong while creating recipes. Please try again." });
   }
 }

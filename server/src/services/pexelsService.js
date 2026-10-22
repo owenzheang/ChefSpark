@@ -34,10 +34,12 @@ async function searchPexels(query) {
       orientation: "landscape"
     });
 
+    // Pictures are optional: never let a slow image search hold up the recipes.
     const response = await fetch(`${PEXELS_SEARCH_URL}?${params.toString()}`, {
       headers: {
         Authorization: apiKey
-      }
+      },
+      signal: AbortSignal.timeout(5000)
     });
 
     if (!response.ok) {

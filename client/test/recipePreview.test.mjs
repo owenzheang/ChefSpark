@@ -29,19 +29,31 @@ test("preview summarizes requirements and hides full instructions and quantities
   assert.match(html, /Garlic, Ginger \+ 2 more/);
   assert.match(html, /Chicken, Rice/);
   assert.match(html, /Serves 2/);
-  assert.match(html, /80% match/);
+  assert.match(html, /80%<\/span><span[^>]*>MATCH/);
+  assert.match(html, /You have 2:/);
+  assert.match(html, /You need 4:/);
   assert.doesNotMatch(html, /Cook the chicken thoroughly|400/);
 });
+
+function findButtons(node, found = []) {
+  if (!node || typeof node !== "object") return found;
+  if (Array.isArray(node)) { node.forEach(child => findButtons(child, found)); return found; }
+  if (node.type === "button") found.push(node);
+  findButtons(node.props?.children, found);
+  return found;
+}
 
 test("view and save are separate callbacks carrying the complete recipe", () => {
   let viewed;
   let saved;
   const tree = Preview({ recipe, onViewRecipe: value => { viewed = value; }, onSave: value => { saved = value; } });
-  const actions = tree.props.children.at(-1).props.children;
-  actions[0].props.onClick();
+  const [open, save] = findButtons(tree);
+  assert.equal(open.props["aria-label"], "Open recipe: Chicken and Rice");
+  assert.equal(save.props["aria-label"], "Save Chicken and Rice");
+  open.props.onClick();
   assert.equal(viewed, recipe);
   assert.equal(saved, undefined);
-  actions[1].props.onClick();
+  save.props.onClick();
   assert.equal(saved, recipe);
 });
 
@@ -50,9 +62,13 @@ test("generation renders three previews and preserves supplied selections", () =
     recipes: [recipe, { ...recipe, title: "Second dish" }, { ...recipe, title: "Third dish" }],
     cuisine: "Western", difficulty: "Hard"
   }));
-  assert.equal((html.match(/View Recipe/g) || []).length, 3);
-  assert.equal((html.match(/Save Recipe/g) || []).length, 3);
-  assert.match(html, /value="Hard" selected/);
+  assert.equal((html.match(/>Open recipe/g) || []).length, 3);
+  assert.equal((html.match(/aria-label="Save /g) || []).length, 3);
+  assert.match(html, /aria-pressed="true"[^>]*><span[^>]*>Western</);
+  assert.match(html, /aria-pressed="true"[^>]*>Hard</);
+  assert.match(html, /3 dishes for tonight/);
+  assert.match(html, /data-ds=""/);
+  assert.doesNotMatch(html, /<img /);
   assert.doesNotMatch(html, /Cook the chicken thoroughly/);
 });
 

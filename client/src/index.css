@@ -34,6 +34,19 @@
   --shadow-hard-sm: 3px 3px 0 var(--color-ink);
   --shadow-hard: 4px 4px 0 var(--color-ink);
   --shadow-hard-lg: 5px 5px 0 var(--color-ink);
+
+  /* Moving diagonal stripes for "working on it" states (no fake progress percentage). */
+  --animate-stripes: stripes 0.9s linear infinite;
+  @keyframes stripes {
+    to {
+      background-position: 28px 0;
+    }
+  }
+}
+
+@utility bg-stripes {
+  background-image: repeating-linear-gradient(-45deg, #2f4fe026 0 10px, transparent 10px 20px);
+  background-size: 28px 28px;
 }
 
 /*
@@ -68,6 +81,15 @@
     color: inherit;
     font-size: inherit;
     font-weight: inherit;
+  }
+  [data-ds] :where(fieldset) {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  [data-ds] :where(legend) {
+    padding: 0;
   }
   [data-ds] :where(ul, ol) {
     margin: 0;

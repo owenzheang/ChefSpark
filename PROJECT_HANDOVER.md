@@ -10,7 +10,7 @@ Repository: `D:\aproject\SmartKitchen`, branch `main`.
 
 - Direction changed to an AI cooking companion (see `PROJECT_CONTEXT.md`). Phase 0 done in this
   session apart from the open git decision below.
-- Tests: 52 server and 36 client tests pass (mocked; no network or paid calls); production build passes.
+- Tests: 58 server and 41 client tests pass (mocked; no network or paid calls); production build passes.
 - Zine paused: `client/src/data/features.js` hides the Zine entry unless `VITE_ZINE_ENABLED=true`;
   `RecipeDetailPage` takes a `zineEnabled` prop for tests. Server artwork generation is off unless
   `ZINE_GENERATION_ENABLED=true`.
@@ -55,12 +55,32 @@ step indicator, saved/ingredient stat cards (and their extra API call). The scop
 also clears list padding. Data functions are unchanged. Browser-checked at 375px with the test account:
 suggestion → add → delete, last quick-add chip reachable above the button, no overflow.
 
-## Next action: migrate "Plan tonight" (RecipeGenerationPage)
+Plan tonight + generation feedback (2026-10-22, option A approved by the user):
+- `RecipeGenerationPage` follows the Plan tonight artboard (cuisine tiles and segmented difficulty with
+  `aria-pressed`, ingredient summary, primary action in the page flow). Backend contract unchanged:
+  one cuisine, Chinese or Western.
+- `components/GenerationProgress.jsx`: honest loading state while the single request runs — rotating
+  status lines by elapsed time (no percentage), elapsed clock, indeterminate striped bar
+  (`role="progressbar"` without a value), three placeholder cards, "taking longer" note after 25 s,
+  Cancel. Animations are `motion-safe` only. Its props can later be fed real events (option B,
+  streaming progress, deferred; needs one authorised DeepSeek test call first).
+- Cancel aborts the browser request (`generateRecipes(options, { signal })`); leaving the page also
+  aborts; the server aborts its DeepSeek call when the client disconnects.
+- Server: DeepSeek calls time out after 60 s; `RecipeGenerationError` carries user-safe messages and
+  statuses (504 timeout, 503 busy/unavailable, 502 bad answer); raw service bodies are never returned or
+  logged (status only). Pexels search times out after 5 s. `api.js` turns network failures and
+  non-JSON error responses into readable messages.
+- `RecipePreviewCard`: typographic tomato/cobalt cover with the dish name instead of the Pexels photo,
+  match stamp, have/need panels, uniquely labelled Open/Save buttons.
+- Verified: 41 client and 58 server tests; build. Browser at 375px with an in-page stub of the generate
+  request (no API call): stages and clock, long-wait note, placeholders, Cancel message, result cards,
+  focus moves to the results heading. Real generation was not exercised (paid API).
+- Scoped reset now also covers `fieldset`/`legend`.
 
-Follow the Plan tonight artboard: cuisine tiles, segmented difficulty, primary action above the nav,
-then the Results cards. Keep the current backend contract (one cuisine, Chinese or Western) unless the
-user approves the multi-cuisine / "cook now only" backend changes as a separate step. Router question
-still open.
+## Next action: migrate the Recipe page
+
+Merge the Recipe Guide and paused Zine layout into one page following the Recipe artboard. Decide the
+router question first (back button, refresh losing unsaved generated recipes).
 
 ## File map
 
