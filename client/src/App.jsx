@@ -32,8 +32,9 @@ function WithNavigation({ children }) {
   const navigate = useNavigate();
   return (
     <RequireAuth>
-      <div className="app-shell bg-iron">
-        <div className="phone-container bg-iron">
+      <div className="min-h-screen bg-iron">
+        {/* "phone-container" is only a hook for the paused Zine's wider layout (zine.css). */}
+        <div className="phone-container relative mx-auto min-h-screen w-full max-w-[430px] overflow-x-hidden bg-iron">
           {children}
           <BottomNav activePage={tabForPath(location.pathname)} onNavigate={(tab) => navigate(pathForTab(tab))} />
         </div>
@@ -114,7 +115,7 @@ export function AppRoutes() {
       <Route path={`${paths.cook}/dish/:dish`} element={<WithNavigation><GeneratedDishRoute recipes={generatedRecipes} /></WithNavigation>} />
 
       <Route path={paths.shelf} element={<WithNavigation>
-        <SavedRecipesPage onBack={() => navigate(paths.kitchen)} onViewRecipe={(id) => navigate(paths.savedRecipe(id))} />
+        <SavedRecipesPage onViewRecipe={(id) => navigate(paths.savedRecipe(id))} onCook={() => navigate(paths.cook)} />
       </WithNavigation>} />
       <Route path={`${paths.shelf}/:id`} element={<WithNavigation><SavedRecipeRoute /></WithNavigation>} />
 

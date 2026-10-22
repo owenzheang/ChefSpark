@@ -37,13 +37,13 @@ Paused, code kept: the One-Page Zine and its optional AI artwork (see
 
 ## Current focus
 
-**Phase 1 — full UI redesign** with Tailwind CSS, following [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md)
-("Ember": cast-iron black, flour-white type, one butter-cream accent) and its mockup. Then Cooking Mode (Phase 2). See [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md).
+**Phase 1 — full UI redesign: done (2026-10-23).** Built with Tailwind CSS, following [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md)
+("Ember": cast-iron black, flour-white type, one butter-cream accent) and its mockup. Next: deployment (1.5), then Cooking Mode (Phase 2). See [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md).
 
 ## Stack
 
-- Frontend: React, Vite, Tailwind CSS (approved 2026-10-22; migration in Phase 1, legacy
-  `styles.css` until then), React Router (URLs: `/kitchen`, `/cook`, `/cook/dish/:n`, `/shelf`,
+- Frontend: React, Vite, Tailwind CSS (approved 2026-10-22; every screen uses it, no legacy stylesheet),
+  React Router (URLs: `/kitchen`, `/cook`, `/cook/dish/:n`, `/shelf`,
   `/shelf/:id`, `/login`, `/register`), lucide-react, motion, vite-plugin-pwa.
 - Hosting note: the built client is a single-page app; the web server must serve `index.html` for
   unknown paths so deep links and refresh work.

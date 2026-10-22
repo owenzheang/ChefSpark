@@ -1,7 +1,9 @@
 ﻿import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowLeft, Bookmark, Clock, Trash2 } from "lucide-react";
 import { deleteSavedRecipe, getSavedRecipes } from "../services/api.js";
+import Burners from "../components/Burners.jsx";
+import PlateRing from "../components/PlateRing.jsx";
+import Spark from "../components/Spark.jsx";
 
 const pageMotion = {
   initial: { opacity: 0, y: 18 },
@@ -9,78 +11,37 @@ const pageMotion = {
   transition: { duration: 0.42, ease: [0.25, 0.46, 0.45, 0.94] }
 };
 
-function formatSavedDate(savedAt) {
+const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream";
+
+export function formatSavedDate(savedAt, now = new Date()) {
   const savedDate = new Date(savedAt);
 
   if (Number.isNaN(savedDate.getTime())) {
     return "Saved recently";
   }
 
-  const today = new Date();
-  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const startOfSavedDate = new Date(
-    savedDate.getFullYear(),
-    savedDate.getMonth(),
-    savedDate.getDate()
-  );
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfSavedDate = new Date(savedDate.getFullYear(), savedDate.getMonth(), savedDate.getDate());
   const dayDifference = Math.round((startOfToday - startOfSavedDate) / 86400000);
 
-  if (dayDifference === 0) {
-    return "today";
-  }
+  if (dayDifference === 0) return "today";
+  if (dayDifference > 0 && dayDifference < 7) return `${dayDifference}d ago`;
 
-  if (dayDifference > 0 && dayDifference < 7) {
-    return `${dayDifference}d ago`;
-  }
-
-  return savedDate.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric"
-  });
+  return savedDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
 function formatCookTime(cookTime) {
-  return cookTime.replace(/\bminutes\b/i, "min").replace(/\bminute\b/i, "min");
+  return typeof cookTime === "string" ? cookTime.replace(/\bminutes?\b/i, "min") : "";
 }
 
-function getMatchClass(matchScore) {
-  if (matchScore >= 90) {
-    return "high";
-  }
-
-  if (matchScore >= 70) {
-    return "medium";
-  }
-
-  return "low";
-}
-
-const difficultyDotCounts = {
-  Easy: 1,
-  Medium: 2,
-  Hard: 3
-};
-
-function DifficultyDots({ difficulty }) {
-  const count = difficultyDotCounts[difficulty] || 1;
-
-  return (
-    <span className={`difficulty-dots ${difficulty.toLowerCase()}`} aria-hidden="true">
-      {Array.from({ length: count }).map((_, index) => (
-        <span key={index}></span>
-      ))}
-    </span>
-  );
-}
-
-function SavedRecipesPage({ onBack, onViewRecipe }) {
+function SavedRecipesPage({ onViewRecipe, onCook }) {
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
+  const [confirmingId, setConfirmingId] = useState(null);
 
   async function loadSavedRecipes() {
-    setMessage("");
     setIsLoading(true);
 
     try {
@@ -90,6 +51,7 @@ function SavedRecipesPage({ onBack, onViewRecipe }) {
       setMessage(error.message);
     } finally {
       setIsLoading(false);
+      setHasLoaded(true);
     }
   }
 
@@ -99,136 +61,104 @@ function SavedRecipesPage({ onBack, onViewRecipe }) {
 
   async function handleDelete(id) {
     setMessage("");
+    setConfirmingId(null);
 
     try {
       await deleteSavedRecipe(id);
-      setMessage("Saved recipe deleted.");
-      await loadSavedRecipes();
+      setSavedRecipes((current) => current.filter((item) => item.id !== id));
+      setMessage("Removed from your shelf.");
     } catch (error) {
       setMessage(error.message);
     }
   }
 
+  const count = savedRecipes.length;
+
   return (
-    <motion.main className="app-page saved-screen" {...pageMotion}>
-      <motion.header
-        className="saved-topbar"
-        initial={{ opacity: 0, y: -14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.38 }}
-      >
-        <motion.button
-          className="saved-back-button"
-          type="button"
-          aria-label="Back"
-          onClick={onBack}
-          whileTap={{ scale: 0.92 }}
-        >
-          <ArrowLeft size={24} strokeWidth={1.9} aria-hidden="true" />
-        </motion.button>
+    <motion.main data-ds="" {...pageMotion}
+      className="min-h-screen bg-iron bg-ember-glow px-6 pt-5 pb-[calc(110px+env(safe-area-inset-bottom,0px))]">
+      <header className="flex items-center justify-between">
+        <span className="flex items-center gap-2 font-display text-2xl italic">
+          <Spark size={16} className="text-cream" />
+          ChefSpark
+        </span>
+        <span className="font-mono text-[11px] tracking-[0.18em] text-ash">
+          {count} {count === 1 ? "RECIPE" : "RECIPES"} SAVED
+        </span>
+      </header>
 
-        <div className="saved-title">
-          <span>CHEFSPARK</span>
-          <h1>Saved Recipes</h1>
-        </div>
+      <h1 className="mt-8 font-display text-[56px] leading-[0.95] tracking-[-0.01em] italic">Your shelf</h1>
 
-        <div className="saved-bookmark" aria-hidden="true">
-          <Bookmark size={22} strokeWidth={1.8} fill="currentColor" />
-        </div>
-      </motion.header>
+      {isLoading && !hasLoaded && <p role="status" className="mt-6 font-mono text-xs tracking-[0.16em] text-ash">LOADING…</p>}
+      {message && (
+        <p role="status" className="mt-5 flex items-center gap-2 text-[15px] text-flour">
+          <Spark size={11} className="text-cream" />
+          {message}
+        </p>
+      )}
 
-      <motion.p
-        className="saved-summary"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.1, duration: 0.34 }}
-      >
-        <strong>{savedRecipes.length} {savedRecipes.length === 1 ? "recipe" : "recipes"}</strong>
-        {" "}saved in your collection
-      </motion.p>
+      {hasLoaded && count === 0 && (
+        <section className="mt-10 flex flex-col items-start gap-4 border-t border-flour/16 pt-8">
+          <p className="font-display text-[30px] leading-tight italic">Nothing on the shelf yet.</p>
+          <p className="text-[15px] text-soft">Save a dish from tonight's menu and it will wait for you here.</p>
+          {onCook && (
+            <button type="button" onClick={onCook}
+              className={`min-h-11 border-b border-cream font-semibold text-flour hover:text-cream ${focusRing}`}>
+              Plan tonight →
+            </button>
+          )}
+        </section>
+      )}
 
-      {isLoading && <p className="message">Loading saved recipes...</p>}
-      {message && <p className="message">{message}</p>}
-
-      <AnimatePresence>
-        {!isLoading && savedRecipes.length === 0 && (
-          <motion.section
-            className="saved-empty-card"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-          >
-            <p>No saved recipes yet.</p>
-          </motion.section>
-        )}
-      </AnimatePresence>
-
-      <motion.section className="saved-card-list" layout>
-        <AnimatePresence initial={false}>
-        {savedRecipes.map((savedRecipe) => {
-          const recipe = savedRecipe.recipe;
-          const matchScore = recipe.matchScore ?? 0;
-
-          return (
-            <motion.article
-              key={savedRecipe.id}
-              className="saved-recipe-card"
-              layout
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, x: -36, transition: { duration: 0.22 } }}
-            >
-              <div className={recipe.imageUrl ? "saved-image-placeholder has-image" : "saved-image-placeholder"}>
-                {recipe.imageUrl && (
-                  <img src={recipe.imageUrl} alt={recipe.title} />
-                )}
-                <span className={`match-badge ${getMatchClass(matchScore)}`}>
-                  {matchScore}% match
-                </span>
-                <span className="saved-date-badge">{formatSavedDate(savedRecipe.savedAt)}</span>
-              </div>
-
-              <div className="saved-card-body">
-                <div className="saved-tags">
-                  <span>{recipe.cuisine}</span>
-                </div>
-
-                <h2>{recipe.title}</h2>
-
-                <div className="saved-meta">
-                  <span><Clock size={15} strokeWidth={1.9} aria-hidden="true" /> {formatCookTime(recipe.cookTime)}</span>
-                  <span className="difficulty-indicator">
-                    <DifficultyDots difficulty={recipe.difficulty} />
-                    {recipe.difficulty}
-                  </span>
-                </div>
-
-                <div className="saved-card-actions">
-                  <motion.button
-                    type="button"
-                    className="saved-delete-button"
-                    aria-label={`Delete ${recipe.title}`}
-                    onClick={() => handleDelete(savedRecipe.id)}
-                    whileTap={{ scale: 0.92 }}
-                  >
-                    <Trash2 size={21} strokeWidth={1.9} aria-hidden="true" />
-                  </motion.button>
-
-                  <motion.button
-                    type="button"
-                    className="saved-view-button"
-                    onClick={() => onViewRecipe(savedRecipe.id)}
-                    whileTap={{ scale: 0.97 }}
-                  >
-                    View Detail
-                  </motion.button>
-                </div>
-              </div>
-            </motion.article>
-          );
-        })}
-        </AnimatePresence>
-      </motion.section>
+      {count > 0 && (
+        <ul className="mt-8 border-t border-flour/16" aria-label="Saved recipes">
+          <AnimatePresence initial={false}>
+            {savedRecipes.map((savedRecipe) => {
+              const recipe = savedRecipe.recipe || {};
+              const hasScore = Number.isFinite(recipe.matchScore);
+              const confirming = confirmingId === savedRecipe.id;
+              return (
+                <motion.li key={savedRecipe.id} layout
+                  initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -24, transition: { duration: 0.2 } }}
+                  className="border-b border-flour/16 py-4">
+                  <button type="button" onClick={() => onViewRecipe(savedRecipe.id)} aria-label={`Open ${recipe.title}`}
+                    className={`flex w-full items-center gap-4 text-left ${focusRing}`}>
+                    <PlateRing percent={hasScore ? recipe.matchScore : null} size={64} stroke={2.5} decorative>
+                      {hasScore
+                        ? <span className="font-display text-lg leading-none italic">{recipe.matchScore}%</span>
+                        : <Spark size={14} className="text-cream" />}
+                    </PlateRing>
+                    <span className="flex min-w-0 flex-1 flex-col gap-1.5">
+                      <span className="font-display text-[26px] leading-none italic">{recipe.title}</span>
+                      <span className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[11px] tracking-[0.12em] text-ash uppercase">
+                        {recipe.difficulty && <><Burners difficulty={recipe.difficulty} size={7} /><span>{recipe.difficulty}</span></>}
+                        {recipe.cuisine && <><span aria-hidden="true">·</span><span>{recipe.cuisine}</span></>}
+                        {recipe.cookTime && <><span aria-hidden="true">·</span><span>{formatCookTime(recipe.cookTime)}</span></>}
+                        <span aria-hidden="true">·</span><span>{formatSavedDate(savedRecipe.savedAt)}</span>
+                      </span>
+                    </span>
+                  </button>
+                  <div className="mt-2 flex justify-end gap-4 text-sm">
+                    {confirming ? (
+                      <>
+                        <span className="self-center text-soft">Remove from your shelf?</span>
+                        <button type="button" onClick={() => setConfirmingId(null)}
+                          className={`min-h-11 px-1 text-ash hover:text-flour ${focusRing}`}>Keep</button>
+                        <button type="button" onClick={() => handleDelete(savedRecipe.id)} aria-label={`Yes, remove ${recipe.title}`}
+                          className={`min-h-11 px-1 font-semibold text-flour underline decoration-cream underline-offset-4 ${focusRing}`}>Yes, remove</button>
+                      </>
+                    ) : (
+                      <button type="button" onClick={() => setConfirmingId(savedRecipe.id)} aria-label={`Remove ${recipe.title}`}
+                        className={`min-h-11 px-1 text-ash hover:text-flour ${focusRing}`}>Remove</button>
+                    )}
+                  </div>
+                </motion.li>
+              );
+            })}
+          </AnimatePresence>
+        </ul>
+      )}
     </motion.main>
   );
 }

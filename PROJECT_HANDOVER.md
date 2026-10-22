@@ -35,7 +35,7 @@ replaced; see `DESIGN_SYSTEM.md` for the current rules.
 
 Foundation:
 - Tailwind 4.3.3 via `@tailwindcss/vite` (pinned). `client/src/index.css`: layer order
-  `legacy, theme, base, components, utilities`; legacy `styles.css` in the `legacy` layer; no global
+  `legacy, theme, base, components, utilities` during migration (superseded: see the cleanup below); no global
   preflight. Ember tokens only (`iron`, `flour`, `soft`, `ash`, `cream`; display/sans/mono/hand
   fonts; `shadow-glow`; `animate-shimmer`; `bg-ember-glow`).
 - `[data-ds]` scoped reset (base layer): legacy element rules, default border widths, lists, fieldsets,
@@ -81,11 +81,23 @@ build; browser at 375px on saved recipe 12 (no overflow; time fits after a fix).
 written backspace characters instead of `` in one regex; fixed, and all project files were scanned
 clean.
 
-## Next action: migrate the Shelf (saved recipes)
+Shelf + cleanup (2026-10-23) — **Phase 1 complete**:
+- `SavedRecipesPage` in Ember: rows instead of cards (small plate ring, serif title, burners · cuisine ·
+  time · saved date), the whole row opens the recipe, "Remove" asks "Remove from your shelf? Keep /
+  Yes, remove" before deleting, empty state only after loading ("Nothing on the shelf yet" + Plan
+  tonight link). The old bug where the empty message and a count could show together is gone.
+- `client/src/styles.css` (≈2,400 lines) deleted; Tailwind preflight enabled; `index.css` is only
+  theme + preflight + utilities + `html`/`body` defaults. App layout uses utilities; `phone-container`
+  remains only as a hook for the paused Zine's wider layout; the Zine screen carries its old font and
+  text colour in `zine.css`. Built CSS is about 34 KB.
+- Verified: 48 client and 58 server tests; build; browser at 375px for Kitchen, Plan tonight, recipe
+  12 and the Shelf (remove confirmation shown then cancelled; nothing deleted).
 
-Follow the Ember direction for `SavedRecipesPage` (no cards; plate rings or typographic covers; no stock
-photos; delete action moved away from the primary action with a confirmation). After that Phase 1 ends
-with removing `styles.css` rules no longer used and turning on Tailwind preflight.
+## Next action: Phase 1.5 — deployment
+
+Choose hosting with persistent storage for SQLite (and SPA fallback to `index.html` for the client),
+configure `CORS_ORIGINS`, `JWT_SECRET` and API keys as host secrets, and decide how `main` relates to
+`origin/main` before pushing (see the open git decision above). Then Phase 2, Cooking Mode.
 
 ## File map
 
@@ -93,7 +105,7 @@ with removing `styles.css` rules no longer used and turning on Tailwind prefligh
 | --- | --- |
 | App shell and navigation | `client/src/App.jsx` (routes, auth guard, sign-out), `client/src/routes.js` (paths and helpers), `client/src/utils/sessionState.js`, `client/src/main.jsx` (`BrowserRouter`) |
 | Screens | `client/src/pages/` — `IngredientsPage`, `RecipeGenerationPage`, `RecipeDetailPage`, `SavedRecipesPage`, `LoginPage`, `RegisterPage` |
-| Legacy styles | `client/src/styles.css` (≈2,400 lines), `client/src/components/zine.css` |
+| Styles | `client/src/index.css` (Tailwind theme tokens), `client/src/components/zine.css` (paused Zine only) |
 | API client | `client/src/services/api.js` |
 | Recipe generation | `server/src/services/deepseekService.js`, `server/src/controllers/recipeController.js` (cuisine allow-list: Chinese, Western) |
 | Validation and matching | `server/src/utils/recipeValidation.js`, `server/src/utils/recipeMatching.js` |

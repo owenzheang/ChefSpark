@@ -40,13 +40,33 @@ test("bottom navigation has exactly three labelled tabs and marks the current on
   assert.doesNotMatch(html, /Log out/);
 });
 
-test("Tailwind tokens match DESIGN_SYSTEM.md and legacy CSS sits in a lower layer", async () => {
+test("Tailwind tokens match DESIGN_SYSTEM.md and the legacy stylesheet is gone", async () => {
   const css = await readFile(new URL("../src/index.css", import.meta.url), "utf8");
   const doc = await readFile(new URL("../../DESIGN_SYSTEM.md", import.meta.url), "utf8");
-  assert.match(css, /@layer legacy, theme, base, components, utilities;/);
-  assert.match(css, /@import "\.\/styles\.css" layer\(legacy\);/);
+  assert.match(css, /@layer theme, base, components, utilities;/);
+  assert.match(css, /@import "tailwindcss\/preflight\.css" layer\(base\);/);
+  assert.doesNotMatch(css, /styles\.css|legacy/);
+  await assert.rejects(readFile(new URL("../src/styles.css", import.meta.url), "utf8"));
   for (const [token, hex] of [["iron", "#15120F"], ["flour", "#F7F5F0"], ["soft", "#D8CFC2"], ["ash", "#A39B90"], ["cream", "#EBCD98"]]) {
     assert.ok(doc.includes(`\`${token}\` | \`${hex}\``), `${token} documented`);
     assert.ok(css.toLowerCase().includes(`--color-${token}: ${hex.toLowerCase()};`), `${token} defined`);
   }
+});
+
+test("the Shelf lists saved recipes as rows and asks before removing one", async () => {
+  const { default: Shelf, formatSavedDate } = await server.ssrLoadModule("/src/pages/SavedRecipesPage.jsx");
+  const html = renderToStaticMarkup(createElement(Shelf, { onViewRecipe() {}, onCook() {} }));
+  assert.match(html, /<main data-ds=""[^>]*bg-iron/);
+  assert.match(html, /Your shelf/);
+  assert.match(html, /0 RECIPES SAVED/);
+  // The empty state appears only after loading finishes, never alongside a list.
+  assert.doesNotMatch(html, /Nothing on the shelf yet/);
+  const source = await readFile(new URL("../src/pages/SavedRecipesPage.jsx", import.meta.url), "utf8");
+  assert.match(source, /onClick=\{\(\) => setConfirmingId\(savedRecipe\.id\)\}/);
+  assert.match(source, /onClick=\{\(\) => handleDelete\(savedRecipe\.id\)\}/);
+  assert.doesNotMatch(source, /<img /);
+  const now = new Date("2026-10-23T12:00:00");
+  assert.equal(formatSavedDate("2026-10-23T08:00:00", now), "today");
+  assert.equal(formatSavedDate("2026-10-20T08:00:00", now), "3d ago");
+  assert.equal(formatSavedDate("not a date", now), "Saved recently");
 });

@@ -1,13 +1,12 @@
 /*
  * ChefSpark styles entry. Tokens come from DESIGN_SYSTEM.md ("Ember").
- * During the Phase 1 migration the legacy stylesheet sits in a low-priority layer, so
- * Tailwind utilities on migrated screens always win while unmigrated screens are unchanged.
- * Tailwind's preflight reset is left out until styles.css is removed.
+ * Standard Tailwind setup: theme, preflight reset and utilities. The paused One-Page Zine keeps its
+ * own stylesheet (components/zine.css).
  */
-@layer legacy, theme, base, components, utilities;
+@layer theme, base, components, utilities;
 
-@import "./styles.css" layer(legacy);
 @import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css" layer(utilities);
 
 @theme {
@@ -44,76 +43,17 @@
   background-image: radial-gradient(ellipse 90% 32% at 50% -4%, #ebcd982e, transparent 72%);
 }
 
-/*
- * Scoped reset for migrated UI: anything inside [data-ds] ignores the legacy element rules
- * (green buttons, bordered inputs, grid labels). Utilities still win over this layer.
- */
 @layer base {
-  /* The app is dark everywhere; no light legacy background may show around or behind screens. */
-  body {
-    background-color: var(--color-iron);
-  }
-  /* Preflight's border defaults, scoped: a border style alone never draws default-width borders. */
-  [data-ds],
-  [data-ds] *,
-  [data-ds] ::before,
-  [data-ds] ::after {
-    border-width: 0;
-    border-style: solid;
-    border-color: currentColor;
-  }
-  [data-ds] {
+  html {
     font-family: var(--font-sans);
     color: var(--color-flour);
+    background-color: var(--color-iron);
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
   }
-  [data-ds] :where(button, input, select, textarea) {
-    min-height: auto;
-    border: 0;
-    border-radius: 0;
-    padding: 0;
-    color: inherit;
-    background: none;
-    font: inherit;
-    box-shadow: none;
-  }
-  [data-ds] :where(button):hover {
-    background: none;
-  }
-  [data-ds] :where(button):disabled {
-    opacity: 1;
-  }
-  [data-ds] :where(input, select, textarea) {
-    width: auto;
-    outline: revert;
-  }
-  [data-ds] :where(label) {
-    display: inline;
-    gap: 0;
-    color: inherit;
-    font-size: inherit;
-    font-weight: inherit;
-  }
-  [data-ds] :where(fieldset) {
-    min-width: 0;
-    margin: 0;
-    padding: 0;
-    border: 0;
-  }
-  [data-ds] :where(legend) {
-    padding: 0;
-  }
-  [data-ds] :where(ul, ol) {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-  [data-ds] :where(h1, h2, h3, h4, p) {
-    margin: 0;
-    color: inherit;
-    font-size: inherit;
-    font-weight: inherit;
-    letter-spacing: inherit;
-    line-height: inherit;
+  body {
+    min-width: 320px;
+    min-height: 100vh;
+    background-color: var(--color-iron);
   }
 }
-

@@ -1,8 +1,7 @@
 # ChefSpark design system — "Ember" (cream)
 
-Status: approved direction for the Phase 1 UI redesign (2026-10-23). It replaces the earlier "Riso
-Kitchen" direction and the legacy green look in `client/src/styles.css`, which stays only until each
-screen is migrated to Tailwind.
+Status: implemented across every screen (Phase 1, completed 2026-10-23). It replaced the earlier
+"Riso Kitchen" direction and the original green look; the old `styles.css` has been removed.
 
 Reference mockup (private design canvas, page "C · Ember"): visual system, Kitchen, Tonight's menu,
 Recipe, Cooking Mode — https://claude.ai/artifact/CsSP8SNGtVMv881mk9tSRy
@@ -106,5 +105,6 @@ dish).
 
 Tailwind CSS 4 through its Vite plugin. `client/src/index.css` declares these tokens once (colours, font
 families, glow shadow) and the `bg-ember-glow` utility; components use names such as `bg-iron`,
-`text-flour`, `bg-cream`, `font-display`, `border-flour/16`. Migrated markup carries `data-ds`, which
-applies a scoped reset of the legacy element rules while `styles.css` still serves unmigrated screens.
+`text-flour`, `bg-cream`, `font-display`, `border-flour/16`. Tailwind's preflight reset is on; `html`
+and `body` default to the sans font, `flour` text and the `iron` background. Screen roots carry a
+`data-ds` attribute as a marker for tests (it no longer drives any CSS).

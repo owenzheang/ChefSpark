@@ -15,7 +15,8 @@
 ## Design
 
 1. New and migrated UI follows `DESIGN_SYSTEM.md` and uses its tokens; no ad-hoc colours or fonts.
-2. Migrate screens one at a time; legacy `styles.css` may serve unmigrated screens until removed.
+2. Style with Tailwind utilities and the theme tokens in `client/src/index.css`; add custom CSS only
+   when utilities cannot express it (the paused Zine keeps `components/zine.css`).
 3. Accessibility is part of done: real controls, labels, focus states, 44px targets, 4.5:1 text contrast.
 
 ## Recipe accuracy and AI

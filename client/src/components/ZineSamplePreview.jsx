@@ -12,7 +12,7 @@ export function ZineEntry({ onOpen }) {
 // Presentation only: artwork state and API calls live in ZineArtwork.jsx and arrive as props.
 export default function ZineSamplePreview({ recipe, view, styleId = "collage", assetSample = null, artworkAssets = null, artworkPanel = null, onNavigate, onBackToRecipe }) {
   const assets = artworkAssets || assetSample?.assets;
-  return <main className="app-page zine-screen">
+  return <main className="zine-screen">
     <header className="zine-topbar"><button type="button" className="zine-secondary" onClick={onBackToRecipe}><ArrowLeft size={18} aria-hidden="true" />Back to Recipe</button><span><Leaf size={18} aria-hidden="true" />ChefSpark</span></header>
     <div className="zine-heading"><span className="zine-label">One-Page Zine</span><h1 id="zine-heading" tabIndex={-1}>Your One-Page Zine</h1><p>One recipe. Three ways to tell its story.</p></div>
     {view === "intro" ? <section className="zine-intro"><Leaf size={46} aria-hidden="true" /><h2>A little paper. A lot of personality.</h2><p>Preview <strong>{recipe?.title}</strong> with every ingredient and instruction rendered as readable text. The page grows with your recipe.</p><button type="button" className="zine-primary" onClick={() => onNavigate("preview")}>Preview One-Page Zine <ArrowRight size={18} aria-hidden="true" /></button></section>

@@ -1,6 +1,7 @@
 /* Widen only the active local Zine; other app screens remain phone-sized. */
 .phone-container:has(.zine-screen) { max-width: 960px; }
-.zine-screen { padding: 24px clamp(12px, 3vw, 32px) 130px; background: #e9e8df; }
+/* The paused Zine keeps its original light look; it no longer inherits the old global stylesheet. */
+.zine-screen { min-height: 100vh; padding: 24px clamp(12px, 3vw, 32px) 130px; background: #e9e8df; color: #203126; font-family: Inter, Arial, sans-serif; }
 .zine-topbar { display:flex; justify-content:space-between; align-items:center; gap:12px; }
 .zine-topbar > span { display:flex; gap:6px; align-items:center; font-weight:700; color:#385435; }
 .zine-heading { text-align:center; margin:30px 0; }
