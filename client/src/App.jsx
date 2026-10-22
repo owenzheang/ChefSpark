@@ -1,16 +1,17 @@
-﻿import { useEffect } from "react";
+﻿import { useEffect, useState } from "react";
 import { MotionConfig } from "motion/react";
 import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router";
 import BottomNav from "./components/BottomNav.jsx";
+import CookingModePage from "./pages/CookingModePage.jsx";
 import IngredientsPage from "./pages/IngredientsPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RecipeDetailPage from "./pages/RecipeDetailPage.jsx";
 import RecipeGenerationPage from "./pages/RecipeGenerationPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
 import SavedRecipesPage from "./pages/SavedRecipesPage.jsx";
-import { getToken, removeToken, SIGNED_OUT_EVENT } from "./services/api.js";
+import { getSavedRecipe, getToken, removeToken, saveRecipe, SIGNED_OUT_EVENT } from "./services/api.js";
 import { dishIndexFromParam, pathForTab, paths, safeReturnPath, tabForPath } from "./routes.js";
-import { clearSessionKeys, useSessionState } from "./utils/sessionState.js";
+import { clearSessionKeys, clearSessionPrefix, useSessionState } from "./utils/sessionState.js";
 
 const sessionKeys = {
   recipes: "chefspark:tonight:recipes",
@@ -43,19 +44,70 @@ function WithNavigation({ children }) {
   );
 }
 
+// Storage key for one recipe's cooking progress and servings. Generated dishes include the title so a
+// new menu never resumes an old dish's step.
+const generatedKey = (dish, recipe) => `generated-${dish}-${recipe.title}`;
+
+// Full-screen pages (Cooking Mode): same centred column, no bottom navigation.
+function FullScreen({ children }) {
+  return (
+    <RequireAuth>
+      <div className="min-h-screen bg-iron">
+        <div className="relative mx-auto min-h-screen w-full max-w-[430px] overflow-x-hidden">{children}</div>
+      </div>
+    </RequireAuth>
+  );
+}
+
 function GeneratedDishRoute({ recipes }) {
   const { dish } = useParams();
   const navigate = useNavigate();
-  const recipe = recipes[dishIndexFromParam(dish)];
+  const index = dishIndexFromParam(dish);
+  const recipe = recipes[index];
   // The unsaved menu lives in this tab only; if it is gone, return to planning.
   if (!recipe) return <Navigate to={paths.cook} replace />;
-  return <RecipeDetailPage key={`generated-${dish}`} generatedRecipe={recipe} onBack={() => navigate(paths.cook)} />;
+  return <RecipeDetailPage key={`generated-${dish}`} generatedRecipe={recipe} onBack={() => navigate(paths.cook)}
+    servingsKey={generatedKey(dish, recipe)} onStartCooking={() => navigate(paths.generatedDishCooking(index))} />;
 }
 
 function SavedRecipeRoute() {
   const { id } = useParams();
   const navigate = useNavigate();
-  return <RecipeDetailPage key={`saved-${id}`} savedRecipeId={id} onBack={() => navigate(paths.shelf)} />;
+  return <RecipeDetailPage key={`saved-${id}`} savedRecipeId={id} onBack={() => navigate(paths.shelf)}
+    servingsKey={`saved-${id}`} onStartCooking={() => navigate(paths.savedRecipeCooking(id))} />;
+}
+
+function GeneratedCookingRoute({ recipes }) {
+  const { dish } = useParams();
+  const navigate = useNavigate();
+  const index = dishIndexFromParam(dish);
+  const recipe = recipes[index];
+  if (!recipe) return <Navigate to={paths.cook} replace />;
+  return <CookingModePage recipe={recipe} recipeKey={generatedKey(dish, recipe)}
+    onExit={() => navigate(paths.generatedDish(index))} onSave={saveRecipe} />;
+}
+
+function SavedCookingRoute() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [state, setState] = useState({ recipe: null, error: "" });
+  useEffect(() => {
+    let active = true;
+    getSavedRecipe(id)
+      .then((data) => active && setState({ recipe: data.recipe, error: "" }))
+      .catch((error) => active && setState({ recipe: null, error: error.message }));
+    return () => { active = false; };
+  }, [id]);
+  if (!state.recipe) {
+    return (
+      <main data-ds="" className="min-h-screen bg-iron px-6 pt-8">
+        <p role={state.error ? "alert" : "status"} className="font-mono text-xs tracking-[0.16em] text-ash">
+          {state.error || "LOADING RECIPE…"}
+        </p>
+      </main>
+    );
+  }
+  return <CookingModePage recipe={state.recipe} recipeKey={`saved-${id}`} onExit={() => navigate(paths.savedRecipe(id))} />;
 }
 
 export function AppRoutes() {
@@ -68,6 +120,7 @@ export function AppRoutes() {
   function signOut() {
     removeToken();
     clearSessionKeys(Object.values(sessionKeys));
+    clearSessionPrefix("chefspark:"); // cooking progress and chosen servings too
     setGeneratedRecipes([]);
     setCuisine("Chinese");
     setDifficulty("Easy");
@@ -113,11 +166,14 @@ export function AppRoutes() {
         />
       </WithNavigation>} />
       <Route path={`${paths.cook}/dish/:dish`} element={<WithNavigation><GeneratedDishRoute recipes={generatedRecipes} /></WithNavigation>} />
+      {/* Cooking Mode is full screen: signed in, but without the bottom navigation. */}
+      <Route path={`${paths.cook}/dish/:dish/cooking`} element={<FullScreen><GeneratedCookingRoute recipes={generatedRecipes} /></FullScreen>} />
 
       <Route path={paths.shelf} element={<WithNavigation>
         <SavedRecipesPage onViewRecipe={(id) => navigate(paths.savedRecipe(id))} onCook={() => navigate(paths.cook)} />
       </WithNavigation>} />
       <Route path={`${paths.shelf}/:id`} element={<WithNavigation><SavedRecipeRoute /></WithNavigation>} />
+      <Route path={`${paths.shelf}/:id/cooking`} element={<FullScreen><SavedCookingRoute /></FullScreen>} />
 
       <Route path="*" element={<Navigate to={paths.kitchen} replace />} />
     </Routes>

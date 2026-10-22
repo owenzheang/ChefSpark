@@ -9,14 +9,18 @@ import { features } from "../data/features.js";
 import Spark from "../components/Spark.jsx";
 import PlateRing from "../components/PlateRing.jsx";
 import Burners from "../components/Burners.jsx";
+import { scaleIngredients } from "../utils/scaleRecipe.js";
+import { useSessionState } from "../utils/sessionState.js";
 
 const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream";
 
-function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, zineEnabled = features.zine }) {
+function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, onStartCooking, servingsKey, zineEnabled = features.zine }) {
   const [savedRecipe, setSavedRecipe] = useState(null);
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [zine, setZine] = useState(null);
+  // Chosen servings are shared with Cooking Mode for the same recipe (per tab).
+  const [servingsChoice, setServingsChoice] = useSessionState(`chefspark:servings:${servingsKey || "none"}`, null);
 
   async function navigateZine(view) {
     const styleId = zine?.styleId || developerStyle(window.location.search, import.meta.env.DEV) ||
@@ -76,6 +80,10 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, zineEnabled 
       onNavigate={navigateZine} onBackToRecipe={closeZine} />;
   }
 
+  const servings = hasServings ? (servingsChoice || recipe.servings) : null;
+  const scaledRows = scaleIngredients(recipe?.ingredients || [], hasServings ? recipe.servings : null, servings);
+  const canScale = hasServings && Boolean(servingsKey) && (recipe?.ingredients || []).some((item) => typeof item !== "string");
+  const canCook = Boolean(onStartCooking) && Array.isArray(recipe?.steps) && recipe.steps.length > 0;
   const youHave = Array.isArray(recipe?.youHave) ? recipe.youHave : null;
   const youNeed = Array.isArray(recipe?.youNeed) ? recipe.youNeed : null;
   const needed = new Set((youNeed || []).map((name) => String(name).trim().toLowerCase()));
@@ -86,7 +94,7 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, zineEnabled 
 
   return (
     <motion.main data-ds="" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-      className="min-h-screen bg-iron bg-ember-glow px-6 pt-4 pb-[calc(110px+env(safe-area-inset-bottom,0px))]">
+      className={`min-h-screen bg-iron bg-ember-glow px-6 pt-4 ${canCook ? "pb-[calc(190px+env(safe-area-inset-bottom,0px))]" : "pb-[calc(110px+env(safe-area-inset-bottom,0px))]"}`}>
       <header className="flex items-center justify-between">
         <button type="button" onClick={onBack}
           aria-label={generatedRecipe ? "Back to generated recipes" : "Back to saved recipes"}
@@ -171,16 +179,27 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, zineEnabled 
           <section aria-labelledby="ticket-heading" className="mt-9 border-y-2 border-dashed border-flour/40 pt-3.5 pb-2.5">
             <div className="flex justify-between font-mono text-[11px] tracking-[0.18em] text-ash">
               <h2 id="ticket-heading" className="uppercase">Ingredients</h2>
-              {hasServings && <span>FOR {recipe.servings}</span>}
+              {hasServings && !canScale && <span>FOR {recipe.servings}</span>}
             </div>
+            {canScale && (
+              <div className="mt-2 flex items-center justify-between">
+                <span className="font-mono text-[11px] tracking-[0.18em] text-ash">SERVES</span>
+                <span className="flex items-center gap-1">
+                  <button type="button" aria-label="Fewer servings" disabled={servings <= 1}
+                    onClick={() => setServingsChoice((value) => Math.max(1, (value || recipe.servings) - 1))}
+                    className={`flex size-11 items-center justify-center rounded-full text-xl ring-1 ring-flour/40 disabled:opacity-40 ${focusRing}`}>−</button>
+                  <span aria-live="polite" className="w-10 text-center font-display text-2xl italic">{servings}</span>
+                  <button type="button" aria-label="More servings" disabled={servings >= 24}
+                    onClick={() => setServingsChoice((value) => Math.min(24, (value || recipe.servings) + 1))}
+                    className={`flex size-11 items-center justify-center rounded-full text-xl ring-1 ring-flour/40 disabled:opacity-40 ${focusRing}`}>+</button>
+                </span>
+              </div>
+            )}
             <ul className="mt-2.5 flex flex-col gap-2.5 font-mono text-[14px]">
               {(recipe.ingredients || []).map((ingredient, index) => {
                 const name = typeof ingredient === "string" ? ingredient : ingredient.name;
                 const isNeeded = typeof ingredient !== "string" && needed.has(String(name).trim().toLowerCase());
-                const amount = typeof ingredient === "string" ? "" : [
-                  Number.isFinite(ingredient.quantity) ? ingredient.quantity : null,
-                  typeof ingredient.unit === "string" ? ingredient.unit : null
-                ].filter(value => value !== null && value !== "").join(" ");
+                const amount = scaledRows[index]?.amount || "";
                 return (
                   <li key={index} className={`flex justify-between gap-4 ${isNeeded ? "text-cream" : ""}`}>
                     <span className="flex items-baseline gap-1.5 uppercase">
@@ -193,6 +212,11 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, zineEnabled 
                 );
               })}
             </ul>
+            {servings !== recipe.servings && hasServings && (
+              <p className="mt-3 font-sans text-[13px] text-ash">
+                Amounts above are for {servings}; amounts written in the method are for {recipe.servings}.
+              </p>
+            )}
           </section>
           {firstSwap && (
             <p className="mt-3 -rotate-[1.5deg] self-end font-hand text-[22px] text-cream">
@@ -239,6 +263,20 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, zineEnabled 
 
           {zineEnabled && <div className="mt-8"><ZineEntry onOpen={() => navigateZine("intro")} /></div>}
         </article>
+      )}
+
+      {recipe && canCook && (
+        <>
+          <div aria-hidden="true"
+            className="pointer-events-none fixed inset-x-0 bottom-0 z-[5] mx-auto h-[calc(170px+env(safe-area-inset-bottom,0px))] max-w-[430px] bg-linear-to-t from-iron from-60% to-transparent" />
+          <div className="fixed inset-x-6 bottom-[calc(84px+env(safe-area-inset-bottom,0px))] z-10 mx-auto max-w-[382px]">
+            <button type="button" onClick={onStartCooking}
+              className={`flex min-h-[58px] w-full items-center justify-between rounded-full bg-cream px-6 text-lg font-semibold text-iron shadow-glow ${focusRing}`}>
+              Light the stove — start cooking
+              <Spark size={20} />
+            </button>
+          </div>
+        </>
       )}
     </motion.main>
   );

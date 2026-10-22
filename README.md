@@ -29,7 +29,10 @@ Any AI change to a recipe must produce a new validated recipe version that the u
   with quantities, numbered steps, tips, substitutions), validated server-side.
 - Match Score V2 with matching-only pantry assumptions (salt, sugar, basic cooking oil).
 - A Recipe Guide for current and older saved recipe shapes.
-- Recipe pictures from Pexels search (often do not match the dish; to be replaced in Phase 1).
+- Cooking Mode: one step per screen, stove-dial timers read from step text (ranges start at the
+  lower bound), the step's ingredients, screen wake lock, resume after refresh, servings scaling.
+- Recipe pictures: Pexels URLs are still returned by the server but no longer shown (plate rings and
+  typographic covers instead).
 
 Paused, code kept: the One-Page Zine and its optional AI artwork (see
 [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md)). Hidden unless `VITE_ZINE_ENABLED=true` (client) and
@@ -38,7 +41,7 @@ Paused, code kept: the One-Page Zine and its optional AI artwork (see
 ## Current focus
 
 **Phase 1 — full UI redesign: done (2026-10-23).** Built with Tailwind CSS, following [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md)
-("Ember": cast-iron black, flour-white type, one butter-cream accent) and its mockup. Next: deployment (1.5), then Cooking Mode (Phase 2). See [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md).
+("Ember": cast-iron black, flour-white type, one butter-cream accent) and its mockup. **Phase 2 — Cooking Mode: done (2026-10-23).** Deployment (1.5) was deferred; next is Phase 3 or deployment. See [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md).
 
 ## Stack
 

@@ -30,3 +30,13 @@ export function clearSessionKeys(keys) {
     // Nothing to clear when storage is unavailable.
   }
 }
+
+// Removes every key with the given prefix (e.g. all of ChefSpark's per-tab state on sign-out).
+export function clearSessionPrefix(prefix) {
+  try {
+    Object.keys(window.sessionStorage).filter((key) => key.startsWith(prefix))
+      .forEach((key) => window.sessionStorage.removeItem(key));
+  } catch {
+    // Nothing to clear when storage is unavailable.
+  }
+}

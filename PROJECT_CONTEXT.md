@@ -36,7 +36,13 @@ Why ChefSpark rather than asking a general chatbot:
   Western; difficulty Easy/Medium/Hard. Results stay in this tab (sessionStorage) until saved.
 - Match Score V2, server authoritative. Salt, sugar and basic cooking oil satisfy matching without
   being written to inventory or listed in `youHave`; soy sauce is not a pantry default.
-- Recipe Guide (`RecipeDetailPage`) for structured and legacy recipes.
+- Recipe Guide (`RecipeDetailPage`) for structured and legacy recipes, with a servings control
+  (amounts rescaled in code; amounts written inside step text are not rewritten and a note says so).
+- Cooking Mode (`/cook/dish/:n/cooking`, `/shelf/:id/cooking`): one step per screen, timers detected
+  in step text (range → lower bound, "check at 5 min, up to 6"), chime + vibration + screen-reader
+  announcement on finish (sound toggle), timers keep running across steps and survive refresh, step
+  ingredients at the chosen servings, Screen Wake Lock where supported, "Done" screen with save for
+  unsaved dishes. Per-tab state; cleared on sign-out.
 - Images: Pexels search by recipe image prompt; frequently mismatched.
 - React Router URLs: `/kitchen`, `/cook`, `/cook/dish/:n` (unsaved dish), `/shelf`, `/shelf/:id`,
   `/login`, `/register`. Protected routes redirect to login and return afterwards; an API 401 signs

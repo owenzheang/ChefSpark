@@ -93,18 +93,43 @@ Shelf + cleanup (2026-10-23) — **Phase 1 complete**:
 - Verified: 48 client and 58 server tests; build; browser at 375px for Kitchen, Plan tonight, recipe
   12 and the Shelf (remove confirmation shown then cancelled; nothing deleted).
 
-## Next action: Phase 1.5 — deployment
+## Phase 2 — Cooking Mode (done 2026-10-23)
 
-Choose hosting with persistent storage for SQLite (and SPA fallback to `index.html` for the client),
-configure `CORS_ORIGINS`, `JWT_SECRET` and API keys as host secrets, and decide how `main` relates to
-`origin/main` before pushing (see the open git decision above). Then Phase 2, Cooking Mode.
+The user deferred deployment and approved the Cooking Mode plan with: ranged times start at the lower
+bound ("check early rather than overcook"), finish chime on by default with a sound toggle, servings
+scaling included.
+
+- `utils/cookingTimers.js`: finds durations in step text (digits, ½-style fractions, number words,
+  seconds/minutes/hours, ranges "5 to 6", "2-3", "8–10", adjectives like "10-minute"); no time → no
+  timer; `formatClock`.
+- `utils/scaleRecipe.js`: `scaleQuantity` (metric rounded to 5/10/50, spoons/cups/pieces to ¼ or ⅓),
+  `formatQuantity` (½ ¼ ¾ ⅓ ⅔), `scaleIngredients` (null quantity unchanged, legacy strings marked not
+  scaled), `ingredientsInStep` (name matching in step text).
+- `utils/useCookingTimers.js`: pure start/pause/reset/tick transitions on absolute end times; the hook
+  stores timers in sessionStorage per recipe so they survive refresh and keep running across steps.
+- `utils/useWakeLock.js` (re-acquired on return to the tab), `utils/chime.js` (Web Audio, prepared on
+  the Start gesture), `components/StoveDial.jsx`, `pages/CookingModePage.jsx`.
+- Routes `/cook/dish/:n/cooking` and `/shelf/:id/cooking` inside `FullScreen` (auth, no bottom nav).
+  Recipe page: "Light the stove — start cooking" button and a servings stepper shared with Cooking
+  Mode (`chefspark:servings:<key>`). Sign-out clears every `chefspark:` session key.
+- Verified: 60 client tests (timer parsing, scaling, timer state, page render, routes, recipe page)
+  and 58 server tests; build; browser at 375px on saved recipe 12: servings 2→3 rescales the ticket,
+  start → `/shelf/12/cooking`, step 3 timer runs and keeps running on step 4, refresh resumes the step
+  and the timer, step 4 shows "Check at 5 min, up to 6 min", finish screen and exit. Not verified in
+  the browser: the save button on the finish screen for an unsaved dish, the chime and vibration
+  (pane), and wake lock (the embedded pane does not grant it).
+
+## Next action
+
+Choose between Phase 3 (scoped recipe assistant) and deployment (1.5, deferred). Deployment needs
+hosting with persistent SQLite storage, SPA fallback, host secrets, and the open git decision above.
 
 ## File map
 
 | Area | Files |
 | --- | --- |
 | App shell and navigation | `client/src/App.jsx` (routes, auth guard, sign-out), `client/src/routes.js` (paths and helpers), `client/src/utils/sessionState.js`, `client/src/main.jsx` (`BrowserRouter`) |
-| Screens | `client/src/pages/` — `IngredientsPage`, `RecipeGenerationPage`, `RecipeDetailPage`, `SavedRecipesPage`, `LoginPage`, `RegisterPage` |
+| Screens | `client/src/pages/` — `IngredientsPage`, `RecipeGenerationPage`, `RecipeDetailPage`, `CookingModePage`, `SavedRecipesPage`, `LoginPage`, `RegisterPage` |
 | Styles | `client/src/index.css` (Tailwind theme tokens), `client/src/components/zine.css` (paused Zine only) |
 | API client | `client/src/services/api.js` |
 | Recipe generation | `server/src/services/deepseekService.js`, `server/src/controllers/recipeController.js` (cuisine allow-list: Chinese, Western) |

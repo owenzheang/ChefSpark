@@ -5,8 +5,10 @@ export const paths = Object.freeze({
   kitchen: "/kitchen",
   cook: "/cook",
   generatedDish: (index) => `/cook/dish/${index + 1}`,
+  generatedDishCooking: (index) => `/cook/dish/${index + 1}/cooking`,
   shelf: "/shelf",
-  savedRecipe: (id) => `/shelf/${encodeURIComponent(id)}`
+  savedRecipe: (id) => `/shelf/${encodeURIComponent(id)}`,
+  savedRecipeCooking: (id) => `/shelf/${encodeURIComponent(id)}/cooking`
 });
 
 const publicPaths = new Set([paths.login, paths.register]);
