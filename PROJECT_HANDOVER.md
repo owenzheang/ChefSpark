@@ -59,17 +59,27 @@ tonight, progress + Cancel and the results menu (generate request stubbed in-pag
 login component rendered on its own. Saved recipes and the recipe page are still legacy (light green) and
 look inconsistent until migrated.
 
+Router (2026-10-23, approved by the user): `react-router` 8.4.0 (pinned; 8.5.0 was only days old).
+Routes `/login`, `/register`, `/kitchen` (and `/`), `/cook`, `/cook/dish/:n`, `/shelf`, `/shelf/:id`, others →
+`/kitchen`. `RequireAuth` redirects to `/login` with the requested path and returns there after sign-in
+(`safeReturnPath` only allows in-app paths). `api.js` treats a 401 on a signed-in request as sign-out
+(clears the token, fires `chefspark:signed-out`; `App` navigates to login). Tonight's menu, cuisine and
+difficulty persist in sessionStorage per tab and are cleared on sign-out. Pages still take callbacks as
+props; only `App.jsx` uses router hooks. Verified: 46 client tests (route helpers, guard, dish route,
+401 handling); build; in the browser: `/` → `/kitchen`, menu → `/cook/dish/2`, Back keeps the menu,
+reload on the dish and on `/shelf/12` works, a missing dish falls back to `/cook`. Deployment must serve
+`index.html` for unknown paths (SPA fallback).
+
 ## Next action: migrate the Recipe page, then the Shelf
 
 Follow the Ember Recipe artboard (plate, spec row, order ticket, method, "Light the stove" button that
-will open Cooking Mode in Phase 2). Decide the router question first (back button, refresh losing
-unsaved generated recipes). Real generation has not been exercised in the browser (paid API).
+will open Cooking Mode in Phase 2). Real generation has not been exercised in the browser (paid API).
 
 ## File map
 
 | Area | Files |
 | --- | --- |
-| App shell and navigation | `client/src/App.jsx` (state-based pages) |
+| App shell and navigation | `client/src/App.jsx` (routes, auth guard, sign-out), `client/src/routes.js` (paths and helpers), `client/src/utils/sessionState.js`, `client/src/main.jsx` (`BrowserRouter`) |
 | Screens | `client/src/pages/` — `IngredientsPage`, `RecipeGenerationPage`, `RecipeDetailPage`, `SavedRecipesPage`, `LoginPage`, `RegisterPage` |
 | Legacy styles | `client/src/styles.css` (≈2,400 lines), `client/src/components/zine.css` |
 | API client | `client/src/services/api.js` |

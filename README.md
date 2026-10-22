@@ -43,7 +43,10 @@ Paused, code kept: the One-Page Zine and its optional AI artwork (see
 ## Stack
 
 - Frontend: React, Vite, Tailwind CSS (approved 2026-10-22; migration in Phase 1, legacy
-  `styles.css` until then), lucide-react, motion, vite-plugin-pwa.
+  `styles.css` until then), React Router (URLs: `/kitchen`, `/cook`, `/cook/dish/:n`, `/shelf`,
+  `/shelf/:id`, `/login`, `/register`), lucide-react, motion, vite-plugin-pwa.
+- Hosting note: the built client is a single-page app; the web server must serve `index.html` for
+  unknown paths so deep links and refresh work.
 - Backend: Node.js, Express, JWT, bcrypt, CORS, dotenv.
 - Database: SQLite.
 - AI: DeepSeek (recipes, server-side). OpenAI Images (paused Zine artwork and developer tools).

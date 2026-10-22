@@ -3,9 +3,9 @@
 ## Product and architecture
 
 1. Keep the project beginner-friendly: small, readable changes over new abstraction layers.
-2. Approved stack: React, Vite, Tailwind CSS (approved 2026-10-22), lucide-react, the existing
+2. Approved stack: React, Vite, Tailwind CSS (approved 2026-10-22), React Router (approved 2026-10-23), lucide-react, the existing
    motion and PWA dependencies, Node.js, Express, SQLite, and server-side DeepSeek.
-3. Do not add Next.js, Prisma, PostgreSQL, Docker, Redis, GraphQL, microservices, n8n, a router or
+3. Do not add Next.js, Prisma, PostgreSQL, Docker, Redis, GraphQL, microservices, n8n or
    any other dependency or service without explicit approval.
 4. One scoped feature or phase at a time; do not modify unrelated files.
 5. Inspect current source before changing documented behaviour.

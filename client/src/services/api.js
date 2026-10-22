@@ -1,17 +1,27 @@
 ﻿const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 const TOKEN_KEY = "smartkitchen_token";
+// Fired when the server rejects the stored token, so the app can return to the login screen.
+export const SIGNED_OUT_EVENT = "chefspark:signed-out";
 
 export function saveToken(token) {
   localStorage.setItem(TOKEN_KEY, token);
 }
 
 export function getToken() {
-  return localStorage.getItem(TOKEN_KEY);
+  try {
+    return globalThis.localStorage?.getItem(TOKEN_KEY) ?? null;
+  } catch {
+    return null; // Storage blocked or unavailable (e.g. server-side rendering in tests).
+  }
 }
 
 export function removeToken() {
-  localStorage.removeItem(TOKEN_KEY);
+  try {
+    globalThis.localStorage?.removeItem(TOKEN_KEY);
+  } catch {
+    // Nothing stored to remove.
+  }
 }
 
 async function request(path, options = {}) {
@@ -39,6 +49,13 @@ async function request(path, options = {}) {
 
   // A proxy or crashed server may answer with non-JSON; fall back to a plain message.
   const data = await response.json().catch(() => ({}));
+
+  // A signed-in request rejected with 401 means the session expired or the token is invalid.
+  if (response.status === 401 && token) {
+    removeToken();
+    globalThis.dispatchEvent?.(new Event(SIGNED_OUT_EVENT));
+    throw new Error("Your session has ended. Please sign in again.");
+  }
 
   if (!response.ok) {
     throw new Error(data.message || "Something went wrong. Please try again.");

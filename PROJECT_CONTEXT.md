@@ -33,12 +33,14 @@ Why ChefSpark rather than asking a general chatbot:
 - Auth (JWT/bcrypt), user ingredient inventory (names; quantity/unit columns exist but the UI stores
   names only), categories and autocomplete, saved recipes (full JSON, legacy shapes supported).
 - DeepSeek generation of three structured recipes per request; cuisines limited to Chinese and
-  Western; difficulty Easy/Medium/Hard. Results stay in page state until saved.
+  Western; difficulty Easy/Medium/Hard. Results stay in this tab (sessionStorage) until saved.
 - Match Score V2, server authoritative. Salt, sugar and basic cooking oil satisfy matching without
   being written to inventory or listed in `youHave`; soy sauce is not a pantry default.
 - Recipe Guide (`RecipeDetailPage`) for structured and legacy recipes.
 - Images: Pexels search by recipe image prompt; frequently mismatched.
-- Navigation is state-based (no router): no browser back, no deep links.
+- React Router URLs: `/kitchen`, `/cook`, `/cook/dish/:n` (unsaved dish), `/shelf`, `/shelf/:id`,
+  `/login`, `/register`. Protected routes redirect to login and return afterwards; an API 401 signs
+  the user out. Tonight's unsaved menu and choices are kept in the tab's sessionStorage.
 - PWA via vite-plugin-pwa. Local only; not deployed.
 
 ## Paused (code kept, switched off)
