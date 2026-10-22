@@ -1,26 +1,16 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { ArrowLeft, ChefHat, CheckCircle2, ShoppingCart, ListChecks, Lightbulb, ArrowLeftRight } from "lucide-react";
 import { getSavedRecipe } from "../services/api.js";
 import ZineSamplePreview, { ZineEntry } from "../components/ZineSamplePreview.jsx";
 import { getPreviewStyle, developerStyle } from "../data/zineStyles.js";
 import { developerAssetSample } from "../data/zineAssetSamples.js";
 import { useZineArtwork, ZineArtworkPanel } from "../components/ZineArtwork.jsx";
 import { features } from "../data/features.js";
+import Spark from "../components/Spark.jsx";
+import PlateRing from "../components/PlateRing.jsx";
+import Burners from "../components/Burners.jsx";
 
-function IngredientChips({ title, items, owned }) {
-  const Icon = owned ? CheckCircle2 : ShoppingCart;
-  return (
-    <section className="guide-card">
-      <h2><Icon size={19} aria-hidden="true" />{title}<span className="guide-count">({items.length})</span></h2>
-      {items.length ? (
-        <ul className={owned ? "guide-chips owned" : "guide-chips"}>
-          {items.map((name, index) => <li key={index}>{name}</li>)}
-        </ul>
-      ) : <p className="guide-muted">{owned ? "No matching ingredients in your inventory." : "No additional ingredients needed."}</p>}
-    </section>
-  );
-}
+const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream";
 
 function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, zineEnabled = features.zine }) {
   const [savedRecipe, setSavedRecipe] = useState(null);
@@ -86,93 +76,168 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, zineEnabled 
       onNavigate={navigateZine} onBackToRecipe={closeZine} />;
   }
 
+  const youHave = Array.isArray(recipe?.youHave) ? recipe.youHave : null;
+  const youNeed = Array.isArray(recipe?.youNeed) ? recipe.youNeed : null;
+  const needed = new Set((youNeed || []).map((name) => String(name).trim().toLowerCase()));
+  const firstSwap = recipe?.substitutions?.find((item) => item?.ingredient && item?.substitute);
+  // Compact time for the spec row ("25 minutes" -> "25 min"); the full text stays as its label.
+  const shortTime = typeof recipe?.cookTime === "string"
+    ? recipe.cookTime.replace(/\bminutes?\b/i, "min").replace(/\bhours?\b/i, "h") : recipe?.cookTime;
+
   return (
-    <motion.main className="app-page recipe-detail-screen recipe-guide"
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <header className="recipe-detail-topbar">
-        <button type="button" className="recipe-detail-back-button"
-          aria-label={generatedRecipe ? "Back to generated recipes" : "Back to saved recipes"} onClick={onBack}>
-          <ArrowLeft size={23} aria-hidden="true" />
+    <motion.main data-ds="" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+      className="min-h-screen bg-iron bg-ember-glow px-6 pt-4 pb-[calc(110px+env(safe-area-inset-bottom,0px))]">
+      <header className="flex items-center justify-between">
+        <button type="button" onClick={onBack}
+          aria-label={generatedRecipe ? "Back to generated recipes" : "Back to saved recipes"}
+          className={`min-h-11 px-1 font-mono text-[11px] tracking-[0.18em] text-ash hover:text-flour ${focusRing}`}>
+          {generatedRecipe ? "← MENU" : "← SHELF"}
         </button>
-        <div className="recipe-detail-titlebar"><span>CHEFSPARK</span><p>Recipe Guide</p></div>
-        <div className="recipe-detail-logo" aria-hidden="true"><ChefHat size={21} /></div>
+        <span className="flex items-center gap-2 font-display text-xl italic">
+          <Spark size={13} className="text-cream" />
+          ChefSpark
+        </span>
       </header>
-      {isLoading && <p className="message" role="status">Loading recipe...</p>}
-      {message && <p className="message error" role="alert">{message}</p>}
+
+      {isLoading && <p className="mt-10 font-mono text-xs tracking-[0.16em] text-ash" role="status">LOADING RECIPE…</p>}
+      {message && (
+        <p className="mt-10 flex items-start gap-2 text-[15px] text-flour" role="alert">
+          <Spark size={12} className="mt-1 text-cream" />
+          {message}
+        </p>
+      )}
+
       {recipe && (
-        <article className="guide-content">
-          <header className="guide-heading">
-            <h1>{recipe.title}</h1>
-            <div className="guide-badges">
-              {recipe.cuisine && <span>{recipe.cuisine}</span>}
-              {recipe.difficulty && <span>{recipe.difficulty}</span>}
-              {recipe.cookTime && <span>{recipe.cookTime}</span>}
-              {hasServings && <span>Serves {recipe.servings}</span>}
-            </div>
+        <article className="flex flex-col">
+          <div className="mt-4 flex flex-col items-center">
+            <PlateRing percent={hasScore ? recipe.matchScore : null} size={232} decorative>
+              {hasScore ? (
+                <span role="img" aria-label={`${recipe.matchScore}% ingredient match`} className="flex flex-col items-center">
+                  <span aria-hidden="true" className="font-display text-[60px] leading-none italic">{recipe.matchScore}%</span>
+                  <span aria-hidden="true" className="mt-1 font-mono text-[10px] tracking-[0.2em] text-ash">MATCH</span>
+                </span>
+              ) : <Spark size={34} className="text-cream" />}
+            </PlateRing>
+          </div>
+
+          <header className="mt-6 flex flex-col items-center gap-2 text-center">
+            {recipe.cuisine && <span className="font-mono text-[11px] tracking-[0.3em] text-ash uppercase">{recipe.cuisine}</span>}
+            <h1 className="font-display text-[50px] leading-[0.95] italic">{recipe.title}</h1>
           </header>
 
-          {hasScore && (
-            <section className="guide-card guide-match" aria-label="Match Score">
-              <div className="guide-score" style={{ "--score": `${recipe.matchScore}%` }}
-                role="img" aria-label={`${recipe.matchScore}% ingredient match`}>
-                <span>{recipe.matchScore}%</span>
-              </div>
-              <div><h2>Match Score</h2><p>Ingredient compatibility, including pantry basics.</p></div>
+          {(hasScore || recipe.cookTime || hasServings || recipe.difficulty) && (
+            <dl aria-label={hasScore ? "Match Score and recipe facts" : "Recipe facts"}
+              className="mt-7 grid grid-cols-4 border-y border-flour/16 text-center">
+              {[
+                hasScore && ["Match", <span className="text-cream">{recipe.matchScore}%</span>],
+                recipe.cookTime && ["Time", <span aria-label={recipe.cookTime}>{shortTime}</span>],
+                hasServings && ["Serves", recipe.servings],
+                recipe.difficulty && ["Heat", <span className="flex flex-col items-center gap-1.5 not-italic"><Burners difficulty={recipe.difficulty} size={8} /><span className="font-mono text-[10px] tracking-[0.14em] text-soft uppercase">{recipe.difficulty}</span></span>]
+              ].filter(Boolean).map(([label, value], index) => (
+                <div key={label} className={`flex flex-col items-center gap-1.5 py-3.5 ${index > 0 ? "border-l border-flour/16" : ""}`}>
+                  <dt className="font-mono text-[10px] tracking-[0.16em] text-ash uppercase">{label}</dt>
+                  <dd className="font-display text-[20px] leading-none whitespace-nowrap italic">{value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+
+          {(youHave || youNeed) && (
+            <section className="mt-8 grid grid-cols-2 gap-x-5">
+              {youHave && (
+                <div className="flex flex-col gap-1.5">
+                  <h2 className="font-mono text-[11px] tracking-[0.16em] text-ash">
+                    <span className="uppercase">You Have</span> · {youHave.length}
+                  </h2>
+                  <p className="text-[15px] leading-snug text-soft">
+                    {youHave.length ? youHave.join(", ") : "No matching ingredients in your inventory."}
+                  </p>
+                </div>
+              )}
+              {youNeed && (
+                <div className="flex flex-col gap-1.5 border-l border-flour/16 pl-5">
+                  <h2 className="flex items-center gap-1.5 font-mono text-[11px] tracking-[0.16em] text-ash">
+                    <Spark size={9} className="text-cream" />
+                    <span className="uppercase">You Need</span> · {youNeed.length}
+                  </h2>
+                  <p className="text-[15px] leading-snug text-flour">
+                    {youNeed.length ? youNeed.join(", ") : "No additional ingredients needed."}
+                  </p>
+                </div>
+              )}
             </section>
           )}
 
-          {Array.isArray(recipe.youHave) && <IngredientChips title="You Have" items={recipe.youHave} owned />}
-          {Array.isArray(recipe.youNeed) && <IngredientChips title="You Need" items={recipe.youNeed} />}
-
-          <section className="guide-card">
-            <div className="guide-section-heading">
-              <h2><ListChecks size={19} aria-hidden="true" />Ingredients</h2>
-              {hasServings && <span className="guide-muted">For {recipe.servings} servings</span>}
+          <section aria-labelledby="ticket-heading" className="mt-9 border-y-2 border-dashed border-flour/40 pt-3.5 pb-2.5">
+            <div className="flex justify-between font-mono text-[11px] tracking-[0.18em] text-ash">
+              <h2 id="ticket-heading" className="uppercase">Ingredients</h2>
+              {hasServings && <span>FOR {recipe.servings}</span>}
             </div>
-            <ul className="guide-ingredients">
-              {(recipe.ingredients || []).map((ingredient, index) => (
-                <li key={index}>
-                  <span>{typeof ingredient === "string" ? ingredient : ingredient.name}</span>
-                  {typeof ingredient !== "string" && (
-                    <span className="guide-quantity">{[
-                      Number.isFinite(ingredient.quantity) ? ingredient.quantity : null,
-                      typeof ingredient.unit === "string" ? ingredient.unit : null
-                    ].filter(value => value !== null && value !== "").join(" ")}</span>
-                  )}
-                </li>
-              ))}
+            <ul className="mt-2.5 flex flex-col gap-2.5 font-mono text-[14px]">
+              {(recipe.ingredients || []).map((ingredient, index) => {
+                const name = typeof ingredient === "string" ? ingredient : ingredient.name;
+                const isNeeded = typeof ingredient !== "string" && needed.has(String(name).trim().toLowerCase());
+                const amount = typeof ingredient === "string" ? "" : [
+                  Number.isFinite(ingredient.quantity) ? ingredient.quantity : null,
+                  typeof ingredient.unit === "string" ? ingredient.unit : null
+                ].filter(value => value !== null && value !== "").join(" ");
+                return (
+                  <li key={index} className={`flex justify-between gap-4 ${isNeeded ? "text-cream" : ""}`}>
+                    <span className="flex items-baseline gap-1.5 uppercase">
+                      {isNeeded && <Spark size={9} className="self-center" />}
+                      <span>{name}</span>
+                      {isNeeded && <span className="text-[10px] tracking-[0.16em]"> · NEED</span>}
+                    </span>
+                    {amount && <span className="shrink-0 text-right uppercase">{amount}</span>}
+                  </li>
+                );
+              })}
             </ul>
           </section>
+          {firstSwap && (
+            <p className="mt-3 -rotate-[1.5deg] self-end font-hand text-[22px] text-cream">
+              no {String(firstSwap.ingredient).toLowerCase()}? {String(firstSwap.substitute).toLowerCase()} works
+            </p>
+          )}
 
-          <section className="guide-cooking">
-            <h2><ChefHat size={21} aria-hidden="true" />Cooking Steps</h2>
-            <ol className="guide-timeline">
+          <section aria-labelledby="method-heading" className="mt-9">
+            <h2 id="method-heading" className="mb-3 font-display text-[32px] italic">The method</h2>
+            <ol>
               {(recipe.steps || []).map((step, index) => (
-                <li key={index}>
-                  <span className="guide-step-number" aria-hidden="true">{typeof step === "string" ? index + 1 : step.step}</span>
-                  <p>{typeof step === "string" ? step : step.instruction}</p>
+                <li key={index} className={`grid grid-cols-[40px_1fr] border-t border-flour/16 py-3.5 ${index === (recipe.steps.length - 1) ? "border-b" : ""}`}>
+                  <span aria-hidden="true" className="font-display text-[26px] leading-none text-ash italic">
+                    {typeof step === "string" ? index + 1 : step.step}
+                  </span>
+                  <p className="text-base leading-relaxed text-soft">{typeof step === "string" ? step : step.instruction}</p>
                 </li>
               ))}
             </ol>
           </section>
 
-          {recipe.tips?.length > 0 && (
-            <section className="guide-card">
-              <h2><Lightbulb size={19} aria-hidden="true" />Cooking Tips</h2>
-              <ul className="guide-notes">{recipe.tips.map((tip, index) => <li key={index}>{tip}</li>)}</ul>
+          {(recipe.tips?.length > 0 || recipe.substitutions?.length > 0) && (
+            <section className="mt-8 grid grid-cols-2 gap-x-5">
+              {recipe.tips?.length > 0 && (
+                <div>
+                  <h2 className="mb-2 font-mono text-[11px] tracking-[0.2em] text-ash uppercase">Cooking Tips</h2>
+                  <ul className="flex flex-col gap-2 text-sm leading-relaxed text-soft">
+                    {recipe.tips.map((tip, index) => <li key={index}>{tip}</li>)}
+                  </ul>
+                </div>
+              )}
+              {recipe.substitutions?.length > 0 && (
+                <div className={recipe.tips?.length > 0 ? "border-l border-flour/16 pl-5" : ""}>
+                  <h2 className="mb-2 font-mono text-[11px] tracking-[0.2em] text-ash uppercase">Substitutions</h2>
+                  <dl className="flex flex-col gap-2 text-sm leading-relaxed">
+                    {recipe.substitutions.map((item, index) => (
+                      <div key={index}><dt className="font-semibold text-flour">{item.ingredient}</dt><dd className="text-soft">{item.substitute}</dd></div>
+                    ))}
+                  </dl>
+                </div>
+              )}
             </section>
           )}
-          {recipe.substitutions?.length > 0 && (
-            <section className="guide-card">
-              <h2><ArrowLeftRight size={19} aria-hidden="true" />Substitutions</h2>
-              <dl className="guide-substitutions">
-                {recipe.substitutions.map((item, index) => (
-                  <div key={index}><dt>{item.ingredient}</dt><dd>{item.substitute}</dd></div>
-                ))}
-              </dl>
-            </section>
-          )}
-          {zineEnabled && <ZineEntry onOpen={() => navigateZine("intro")} />}
+
+          {zineEnabled && <div className="mt-8"><ZineEntry onOpen={() => navigateZine("intro")} /></div>}
         </article>
       )}
     </motion.main>

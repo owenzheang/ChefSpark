@@ -70,10 +70,22 @@ props; only `App.jsx` uses router hooks. Verified: 46 client tests (route helper
 reload on the dish and on `/shelf/12` works, a missing dish falls back to `/cook`. Deployment must serve
 `index.html` for unknown paths (SPA fallback).
 
-## Next action: migrate the Recipe page, then the Shelf
+Recipe page in Ember (2026-10-23): `RecipeDetailPage` follows the Recipe artboard — back link
+("← MENU" / "← SHELF"), plate ring with the match score (decorative ring, score announced once; no
+stock photo), cuisine + serif title, spec row (match / time shortened to "25 min" / serves / burners with
+the word), You have / You need columns, order-ticket ingredients with "✦ … · NEED" on missing items, a
+handwritten chef's note only from the recipe's first substitution, serif-numbered method, tips and
+substitutions columns. The mockup's "Light the stove" button is left out until Cooking Mode exists
+(Phase 2). The Zine entry still appears only with `VITE_ZINE_ENABLED=true`. Verified: 47 client tests;
+build; browser at 375px on saved recipe 12 (no overflow; time fits after a fix). A script bug had
+written backspace characters instead of `` in one regex; fixed, and all project files were scanned
+clean.
 
-Follow the Ember Recipe artboard (plate, spec row, order ticket, method, "Light the stove" button that
-will open Cooking Mode in Phase 2). Real generation has not been exercised in the browser (paid API).
+## Next action: migrate the Shelf (saved recipes)
+
+Follow the Ember direction for `SavedRecipesPage` (no cards; plate rings or typographic covers; no stock
+photos; delete action moved away from the primary action with a confirmation). After that Phase 1 ends
+with removing `styles.css` rules no longer used and turning on Tailwind preflight.
 
 ## File map
 

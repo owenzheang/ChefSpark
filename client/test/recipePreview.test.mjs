@@ -138,3 +138,20 @@ test("detail displays supplied tips and substitutions", () => {
   assert.match(html, /Substitutions/);
   assert.match(html, /Firm tofu/);
 });
+
+test("Ember recipe page marks missing items on the ticket and only quotes real substitutions", () => {
+  const html = renderToStaticMarkup(createElement(Detail, {
+    generatedRecipe: { ...recipe, matchScore: 75, youHave: ["Chicken"], youNeed: ["Garlic"],
+      ingredients: [{ name: "Chicken", quantity: 400, unit: "g" }, { name: "garlic", quantity: 2, unit: "cloves" }],
+      substitutions: [{ ingredient: "Chicken", substitute: "Firm tofu" }] }
+  }));
+  assert.match(html, /<main data-ds=""[^>]*bg-iron/);
+  assert.equal((html.match(/· NEED/g) || []).length, 1);
+  assert.match(html, /text-cream[^"]*"><span class="flex items-baseline[^>]*>(?:(?!<\/li>).)*garlic/);
+  assert.match(html, /no chicken\? firm tofu works/);
+  assert.equal((html.match(/aria-label="75% ingredient match"/g) || []).length, 1);
+  assert.doesNotMatch(html, /aria-label="Match 75 percent"/);
+  assert.match(html, />← MENU</);
+  const plain = renderToStaticMarkup(createElement(Detail, { generatedRecipe: { ...recipe, substitutions: [] } }));
+  assert.doesNotMatch(plain, /font-hand/);
+});
