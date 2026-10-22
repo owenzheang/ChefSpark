@@ -10,7 +10,7 @@ Repository: `D:\aproject\SmartKitchen`, branch `main`.
 
 - Direction changed to an AI cooking companion (see `PROJECT_CONTEXT.md`). Phase 0 done in this
   session apart from the open git decision below.
-- Tests: 52 server and 32 client tests pass (mocked; no network or paid calls).
+- Tests: 52 server and 35 client tests pass (mocked; no network or paid calls); production build passes.
 - Zine paused: `client/src/data/features.js` hides the Zine entry unless `VITE_ZINE_ENABLED=true`;
   `RecipeDetailPage` takes a `zineEnabled` prop for tests. Server artwork generation is off unless
   `ZINE_GENERATION_ENABLED=true`.
@@ -27,15 +27,32 @@ security clean-up, docs, generation UI/API config, icons, "UI redesigned") will 
 local `main` (discards those remote commits) or pushing to a new branch. Do not pull, merge or
 force-push without that decision.
 
-## Next action: Phase 1 step 1 — Tailwind foundation
+## Phase 1 progress
 
-1. Propose the setup before coding: Tailwind via its Vite plugin, theme variables for the
-   `DESIGN_SYSTEM.md` tokens (colours, fonts, radii, shadows), Google Fonts loading, and how legacy
-   `styles.css` coexists during migration. Ask whether to add a router (e.g. react-router) now.
-2. After approval, build the app shell (background, bottom navigation, page container) and migrate
-   screens one by one: Login/Register, Kitchen, Plan tonight, Results, Recipe page (Guide and Zine
-   layout merged into one page), Shelf.
-3. For each screen: keep behaviour and tests green, check 375px and desktop in the browser.
+Done (2026-10-22):
+- Tailwind 4.3.3 via `@tailwindcss/vite` (versions pinned). `client/src/index.css` is the style entry:
+  layer order `legacy, theme, base, components, utilities`; `styles.css` is imported into the
+  `legacy` layer so utilities always win; Tailwind preflight is omitted until `styles.css` is removed.
+  Theme tokens mirror `DESIGN_SYSTEM.md` (default Tailwind colours removed), plus `bg-halftone`.
+- Migrated markup carries `data-ds`, which applies a scoped reset of the legacy element rules
+  (buttons, inputs, labels, headings) in the `base` layer.
+- Fonts (Bricolage Grotesque, DM Sans, DM Mono) load from Google Fonts in `client/index.html`;
+  PWA colours updated; paused Zine images excluded from the offline precache.
+- `components/BottomNav.jsx`: ink pill with Kitchen / Cook / Shelf and a temporary log-out icon
+  (moves to the Kitchen header when that screen is migrated). `App.jsx` uses it and wraps the app
+  in `MotionConfig reducedMotion="user"`.
+- `components/AuthCard.jsx` now renders Login and Register (fake "Forgot password" and terms text
+  removed). `client/test/shell.test.mjs` covers auth, nav and token/doc consistency.
+- Browser check at 375px: login, register (throwaway local account `riso-check-7f3a@example.test`),
+  landing on Kitchen, tab switching, no horizontal overflow.
+
+## Next action: migrate the Kitchen screen
+
+`IngredientsPage` → Kitchen artboard of the mockup: headline, add-ingredient field with
+autocomplete, inventory chips, account/log-out control in the header (then drop it from the nav),
+primary action above the nav. The legacy Kitchen's bottom action is currently hidden behind the
+nav; the migration fixes that. Pantry toggles need backend support, so treat them as a separate,
+confirmed step. Router question still open (not added).
 
 ## File map
 

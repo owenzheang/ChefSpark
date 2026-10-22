@@ -1,0 +1,86 @@
+/*
+ * ChefSpark styles entry. Tokens come from DESIGN_SYSTEM.md ("Riso Kitchen").
+ * During the Phase 1 migration the legacy stylesheet sits in a low-priority layer, so
+ * Tailwind utilities on migrated screens always win while unmigrated screens are unchanged.
+ * Tailwind's preflight reset is left out until styles.css is removed.
+ */
+@layer legacy, theme, base, components, utilities;
+
+@import "./styles.css" layer(legacy);
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@theme {
+  /* Only design-system colours are available as utilities. */
+  --color-*: initial;
+  --color-ink: #141414;
+  --color-paper: #f3ede2;
+  --color-card: #fffdf8;
+  --color-muted: #4a4741;
+  --color-tomato: #e8542f;
+  --color-tomato-tint: #fbdccf;
+  --color-cobalt: #2f4fe0;
+  --color-cobalt-tint: #d9dffb;
+  --color-white: #ffffff;
+
+  --font-display: "Bricolage Grotesque", "Arial Narrow", sans-serif;
+  --font-sans: "DM Sans", system-ui, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, monospace;
+
+  --radius-tile: 14px;
+  --radius-card: 18px;
+  --radius-sheet: 22px;
+
+  --shadow-hard-sm: 3px 3px 0 var(--color-ink);
+  --shadow-hard: 4px 4px 0 var(--color-ink);
+  --shadow-hard-lg: 5px 5px 0 var(--color-ink);
+}
+
+/*
+ * Scoped reset for migrated UI: anything inside [data-ds] ignores the legacy element rules
+ * (green buttons, bordered inputs, grid labels). Utilities still win over this layer.
+ */
+@layer base {
+  [data-ds] {
+    font-family: var(--font-sans);
+    color: var(--color-ink);
+  }
+  [data-ds] :where(button, input, select, textarea) {
+    min-height: auto;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    color: inherit;
+    background: none;
+    font: inherit;
+    box-shadow: none;
+  }
+  [data-ds] :where(button):hover {
+    background: none;
+  }
+  [data-ds] :where(input, select, textarea) {
+    width: auto;
+    outline: revert;
+  }
+  [data-ds] :where(label) {
+    display: inline;
+    gap: 0;
+    color: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+  }
+  [data-ds] :where(h1, h2, h3, h4, p) {
+    margin: 0;
+    color: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    line-height: inherit;
+  }
+}
+
+/* Riso halftone texture for paper backgrounds. */
+@utility bg-halftone {
+  background-image: radial-gradient(#14141414 1px, transparent 1.2px);
+  background-size: 14px 14px;
+}
