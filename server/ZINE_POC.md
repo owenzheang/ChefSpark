@@ -1,5 +1,9 @@
 # Discover Zine developer proof of concept
 
+> **Paused (2026-10-22).** ChefSpark has refocused on being a cooking companion; the Zine is
+> switched off. This document is kept as a record. Do not extend this tool; any paid run still
+> needs explicit user authorization.
+
 Frontend-independent CLI; no endpoint, database writes, generation button integration,
 automatic retries, or background generation. Node 18+ native fetch/FormData/Blob and the
 existing dotenv package are used. No new dependencies.

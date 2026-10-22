@@ -1,33 +1,36 @@
 # ChefSpark roadmap
 
-## Completed product work
+Approved 2026-10-22: ChefSpark refocuses from the Zine to an AI cooking companion. One phase at a
+time; each phase ends in a demoable version with passing tests.
 
-| Phase | Status | Outcome |
+## Phases
+
+| Phase | Status | Scope |
 | --- | --- | --- |
-| 1 | Complete | Recommendation-first recipe generation and backend matching foundation. |
-| 2 | Complete | Structured Recipe JSON, validation, matching adaptation, and legacy saved-recipe compatibility. |
-| 3 | Complete | Compact previews and Recipe Guide using the structured fields. |
-| 4 | Complete | Ingredient categories and smart autocomplete. |
-| 5 | Complete historical UI | Discover/Cook/Finish sample Zine UI and sample assets. Those assets remain references; the active format changed. |
-| Match Score V2 | Complete | Conservative equivalence matching while backend matching remains authoritative. |
-| 6A | Complete PoC | Local, safeguarded Discover-image CLI. One real paid reference-edit request was completed; it is not product integration. |
-| 6B.1 | Complete frontend prototype | Responsive One-Page Hybrid Zine with HTML facts, legacy compatibility, and stable random `collage`, `notebook`, or `journal` style assignment. |
-| 6B.2 implementation | Complete | Local, reference-free text-free asset-sheet CLI, quadrants/crops, reports, mocked coverage, and dry-runs. |
-| 6B.2 live test | Complete; reviewed | One paid `collage` sheet (2026-10-15, estimate USD 0.016, not billed cost). Cooking, ingredients and decoration crops usable; hero rejected for unlisted egg. See `server/ZINE_ASSETS_POC.md`. |
-| 6C Zine artwork | Implemented; live test passed locally | User-facing, saved-recipe AI artwork with SQLite storage, background generation, per-user/global daily limits, no retries and illustration-only disclosure. Local only. |
+| 0 · Clean-up and direction | In progress | Pause the Zine behind switches; untrack `client/.env` and `client/dist`; rewrite docs; add `DESIGN_SYSTEM.md`. Open decision: how to reconcile local `main` with `origin/main`. |
+| 1 · UI redesign | Next | Tailwind + design tokens + app shell; migrate Login/Register → Kitchen → Plan tonight → Results → Recipe page → Shelf, following `DESIGN_SYSTEM.md`. Low-cost improvements from the mockup: pantry staples the user toggles, more cuisines with multi-select, "cook now only" filter, typographic covers instead of mismatched stock photos. Router (e.g. react-router) only if approved. |
+| 1.5 · Deployment | Planned | Online demo with persistent storage for SQLite; `CORS_ORIGINS`, secrets and build set up for production. |
+| 2 · Cooking Mode | Planned | One step per screen, large type, timers detected from step text, screen wake lock, progress; serving scaling in code. No AI cost. |
+| 3 · Recipe assistant | Planned | Scoped actions first ("I don't have X", dietary change, adjust taste, explain this step). Changes return a new validated recipe version with a visible diff; questions are answered in the recipe's context; daily limits. |
+| 4 · Food images | Planned | Provider abstraction and reusable image library keyed by dish plus key visible ingredients (not title alone); compare OpenAI and Jimeng on accuracy, cost and terms before choosing; re-check pricing. |
+| 5 · Natural ingredient input | Planned | Free-text parsing to a confirmable list, then voice (browser speech recognition); photo recognition only if justified. |
 
-## Active next step
+## Parked
 
-**Phase 6C live test passed locally (2026-10-19).** Next: merge to `main`, small UX fixes, then deployment with persistent storage. See `PROJECT_HANDOVER.md`.
+n8n automation (e.g. weekly plan email, shopping-list export), Zine share cards ("save as image"),
+exact stock tracking, credits/payments, open-ended chat.
 
-## Later, separately approved only when scoped
+## Completed history (earlier phases)
 
-- Cloud object storage and deployment with persistent data; credits/billing for users.
-- Sharing/export and stronger production operations (monitoring, abuse controls, automated image checks).
+- 1–5: recommendation-first generation, backend matching and validation, structured recipes with
+  legacy compatibility, previews and Recipe Guide, ingredient catalog and autocomplete, Match Score V2.
+- 6A–6B.2: developer image experiments (Discover edit; text-free asset sheet with allow-list prompts).
+- 6B.1, 6B.3, 6C: One-Page Zine prototype and user-facing AI artwork with limits; live-tested
+  2026-10-19; paused 2026-10-22.
 
-## Decisions that remain fixed
+## Decisions that stay fixed
 
-- Recipe JSON is factual; visuals are presentation.
-- One-page Zine is the active format, not a three-page production flow.
-- Users do not choose a visual style manually; the server picks one per Zine and stores it.
-- No fuzzy matching, schema rewrite, or broad platform change without approval.
+- Recipe JSON is factual; AI output never silently changes facts.
+- Deterministic tasks are done in code, not by AI.
+- Paid AI features ship with switches, limits and no automatic retries.
+- Users do not maintain exact stock to use the app.

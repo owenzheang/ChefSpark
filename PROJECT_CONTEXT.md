@@ -1,50 +1,69 @@
 # ChefSpark project context
 
-## Product truth
+Product truth as of 2026-10-22. Inspect source before relying on any detail.
 
-ChefSpark is a beginner-friendly cooking product:
+## Positioning
 
-```text
-Ingredients -> Recommended Dishes -> Recipe Guide -> Optional Personalized One-Page Zine
-```
-
-Available ingredients guide recommendations rather than constraining them. ChefSpark recommends recognizable dishes, permits sensible missing ingredients, and explains compatibility with **Match Score**, **You Have**, and **You Need**.
+ChefSpark is an AI cooking companion for beginner cooks who want to use what they already have.
+Its job: help someone decide what to cook tonight and get it done without stress.
 
 ```text
-Structured Recipe JSON = factual source of truth.
-AI-generated artwork = visual presentation only.
+What I have -> Three dishes I can make tonight -> Cook it step by step -> Save, adjust, repeat
 ```
 
-## Implemented application capabilities
+Why ChefSpark rather than asking a general chatbot:
 
-- React/Vite mobile-first frontend; Express backend; SQLite storage; JWT/bcrypt authentication.
-- User ingredient inventory with category/autocomplete assistance.
-- DeepSeek generation of exactly three structured recipes, validated server-side.
-- Structured recipe fields: title, cuisine, difficulty, servings, cook time, structured ingredients and steps, tips, substitutions, image prompt, and backend-derived matching fields.
-- Saved recipes store full JSON and retain compatibility with older string-ingredient/string-step records.
-- Match Score V2 remains server authoritative. Salt, sugar, and basic cooking oil can satisfy matching but are neither inserted into inventory nor listed in `youHave` unless actually stored; soy sauce remains non-default.
-- Recipe Guide renders structured or reasonable legacy saved data.
-- One-Page Zine frontend prototype renders all factual content in HTML. It has `collage`, `notebook`, and `journal` variants. A new preview receives one randomly selected style, held stable by session storage with a deterministic fallback; development supports `?zineStyle=<id>` overrides.
+1. It remembers the user's kitchen (inventory and pantry staples).
+2. Recipes are structured and validated, so amounts and steps stay trustworthy.
+3. Matching is transparent: Match Score, You Have, You Need.
+4. It accompanies the cooking itself (Cooking Mode, then recipe-aware help).
 
-## Zine artwork (product feature)
+## Principles
 
-- Saved recipes can add optional AI artwork to their One-Page Zine: one server-side `gpt-image-2.5-flare` request makes a text-free 2x2 sheet that is split into hero, cooking, ingredients and decoration images. It is off unless `ZINE_GENERATION_ENABLED=true`, limited per user (default 3/day) and globally (default 30/day), never retried, and labelled as illustration only; recipe facts always remain HTML text.
-- Backend: `server/src/services/zineStore.js` (tables `zines`, `zine_images` with PNG BLOBs, `zine_generations` for limits), `zineGenerationService.js`, `controllers/zineController.js`, authenticated `/api/zines` routes. Each Zine stores its random `styleId` and `prompt_version`; Recipe JSON is unchanged. Deleting a saved recipe removes its Zine; limits count attempts, including failures and deleted Zines.
-- Frontend: `client/src/components/ZineArtwork.jsx` (status polling, blob image URLs, create/regenerate/remove) feeds `ZineSamplePreview`/`OnePageZine`. Unsaved generated recipes are asked to save first; failure keeps the full text Zine with a message.
-- Not yet live-tested end to end; deployed hosting is not set up (local only).
+- Structured Recipe JSON is the only source of facts. AI images are illustrations; AI assistant
+  answers may explain, but any change to a recipe becomes a new validated version shown to the user.
+- Deterministic work stays in code (serving scaling, timers, matching); AI is used where judgement
+  or language is needed.
+- Every paid AI call has a server-side switch, per-user and global limits, no automatic retries,
+  and never exposes keys to the client.
+- Beginner-friendly: low effort to start (names, not exact stock), readable while cooking.
 
-## Image-generation tooling (developer only)
+## What exists
 
-- Phase 6A is a developer-only, local Discover-image editing PoC. One paid request was previously completed successfully using `gpt-image-2.5-flare`, medium, one 1024x1536 PNG, and the historical Discover sample as a reference. The ignored local output/report are under `server/generated-zines/poc/`. Its billed cost is not known exactly.
-- Phase 6B.2 is a separate developer-only, reference-free 1024x1024 asset-sheet PoC. It produces one sheet and, after validation, four 512x512 local crops. One paid `collage` sheet was generated on 2026-10-15 and manually reviewed on 2026-10-19: the cooking, ingredients and decoration crops are usable; the hero was rejected for unlisted egg. Revised prompts then produced fully usable sheets for collage, notebook and journal (see `server/ZINE_ASSETS_POC.md`); the product feature reuses that prompt.
-- Neither CLI tool is exposed as an endpoint; the product feature uses its own service. Existing three-page sample images remain historical assets, not the active Zine experience.
+- Auth (JWT/bcrypt), user ingredient inventory (names; quantity/unit columns exist but the UI stores
+  names only), categories and autocomplete, saved recipes (full JSON, legacy shapes supported).
+- DeepSeek generation of three structured recipes per request; cuisines limited to Chinese and
+  Western; difficulty Easy/Medium/Hard. Results stay in page state until saved.
+- Match Score V2, server authoritative. Salt, sugar and basic cooking oil satisfy matching without
+  being written to inventory or listed in `youHave`; soy sauce is not a pantry default.
+- Recipe Guide (`RecipeDetailPage`) for structured and legacy recipes.
+- Images: Pexels search by recipe image prompt; frequently mismatched.
+- Navigation is state-based (no router): no browser back, no deep links.
+- PWA via vite-plugin-pwa. Local only; not deployed.
 
-## Limits and non-goals today
+## Paused (code kept, switched off)
 
-- No cloud storage, credits, sharing/export, or deployment; images live in local SQLite.
-- Generated artwork is not human-reviewed before users see it; the prompt rules reduce but do not eliminate wrong food or crop defects.
-- Generated recipe results remain page state until saved; navigation is state-based rather than routed URLs.
+- **One-Page Zine** and its **AI artwork**: a saved recipe could get a text-free 2x2 image sheet
+  (`gpt-image-2.5-flare`) split into hero, cooking, ingredients and decoration images, stored in
+  SQLite (`zines`, `zine_images`, `zine_generations`), with daily limits (3 per user, 30 total).
+  Live-tested successfully on 2026-10-19 (prompt allow-lists keep unlisted foods out). Hidden unless
+  `VITE_ZINE_ENABLED=true`; generation off unless `ZINE_GENERATION_ENABLED=true`. Its reviewed pricing
+  profile expires 2026-11-13, after which generation stays off until pricing is rechecked.
+- **Developer image CLIs** (`zine:poc`, `zine:assets`): records of the experiments behind the artwork
+  prompt; not to be extended.
 
-## Immediate approved next action
+The artwork pipeline (allow-list prompts, cropping, limits, cost logging) is the intended starting
+point for Phase 4 food images.
 
-**First live end-to-end Zine artwork test, run locally by the user.** See `PROJECT_HANDOVER.md`.
+## Design
+
+The redesign follows `DESIGN_SYSTEM.md` ("Riso Kitchen": ink outlines, tomato and cobalt spot colours,
+Bricolage Grotesque / DM Sans / DM Mono, hard shadows) and its mockup. Cooking Mode uses the calm,
+high-legibility variant described there.
+
+## Known limits
+
+- Not deployed; the SQLite file path is relative to the server's working directory.
+- Local `main` is 11 commits ahead of and 5 behind `origin/main`; the user decided not to merge the
+  5 remote commits. Pushing will need a decision on overwriting them.
+- AI images and answers are not human-reviewed before users see them.

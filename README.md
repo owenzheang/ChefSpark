@@ -1,49 +1,58 @@
 # ChefSpark
 
-ChefSpark is a beginner-friendly cooking app that moves people from available ingredients to useful, recognizable dishes and practical cooking guidance.
+ChefSpark is an AI cooking companion for beginner cooks: it helps people turn what is already in
+their kitchen into a dish they can actually make tonight, and (from Phase 2) guides them while
+they cook.
 
 ```text
-Ingredients -> Recommended Dishes -> Recipe Guide -> Optional Personalized One-Page Zine
+What I have -> Three dishes I can make tonight -> Cook it step by step -> Save, adjust, repeat
 ```
 
-Ingredients are recommendation signals, not strict recipe constraints. A recipe may include sensible missing items, and ChefSpark explains the result through a backend-calculated Match Score, **You Have**, and **You Need**.
-
-## Current product
-
-Implemented application features include:
-
-- Authentication, user-scoped SQLite ingredient inventory, and saved recipes.
-- DeepSeek-backed generation of exactly three recognizable recipes.
-- Structured Recipe JSON: servings, structured ingredients, structured steps, tips, substitutions, and image prompt.
-- Backend Match Score V2, including matching-only pantry assumptions for salt, sugar, and basic cooking oil. Soy sauce is not a pantry default.
-- A Recipe Guide that renders current structured recipes and reasonable older saved-recipe shapes.
-- Ingredient categories and autocomplete.
-- A local One-Page Zine prototype: factual recipe data remains readable React/HTML text, with three internally available visual variants selected once per preview.
-
-Saved recipes can add optional AI artwork to their One-Page Zine: one server-side `gpt-image-2.5-flare` request makes a text-free 2x2 sheet that is split into hero, cooking, ingredients and decoration images. It is off unless `ZINE_GENERATION_ENABLED=true`, limited per user (default 3/day) and globally (default 30/day), never retried, and labelled as illustration only; recipe facts always remain HTML text. The historical Discover/Cook/Finish sample images remain in the repository for reference only; the active Zine direction is one continuous page.
+Ingredients are recommendation signals, not strict constraints. Each dish explains itself with a
+backend-calculated **Match Score**, **You Have** and **You Need**.
 
 ## Core accuracy rule
 
 ```text
 Structured Recipe JSON = factual source of truth.
-AI-generated artwork = visual presentation only.
+AI output (images, assistant answers) = presentation or proposals, never silent fact changes.
 ```
 
-Artwork must not become the authority for ingredient quantities, steps, cooking times, temperatures, or safety guidance.
+Quantities, steps, times, temperatures and safety guidance come only from validated recipe JSON.
+Any AI change to a recipe must produce a new validated recipe version that the user can see.
+
+## What works today
+
+- Accounts (JWT + bcrypt), a per-user ingredient inventory with categories and autocomplete, and
+  saved recipes in SQLite.
+- DeepSeek generation of exactly three recognisable, structured recipes (servings, ingredients
+  with quantities, numbered steps, tips, substitutions), validated server-side.
+- Match Score V2 with matching-only pantry assumptions (salt, sugar, basic cooking oil).
+- A Recipe Guide for current and older saved recipe shapes.
+- Recipe pictures from Pexels search (often do not match the dish; to be replaced in Phase 1).
+
+Paused, code kept: the One-Page Zine and its optional AI artwork (see
+[PROJECT_CONTEXT.md](PROJECT_CONTEXT.md)). Hidden unless `VITE_ZINE_ENABLED=true` (client) and
+`ZINE_GENERATION_ENABLED=true` (server).
+
+## Current focus
+
+**Phase 1 — full UI redesign** with Tailwind CSS, following [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md)
+("Riso Kitchen") and its mockup. Then Cooking Mode (Phase 2). See [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md).
 
 ## Stack
 
-- Frontend: React, Vite, vanilla CSS, lucide-react, motion, and vite-plugin-pwa.
+- Frontend: React, Vite, Tailwind CSS (approved 2026-10-22; migration in Phase 1, legacy
+  `styles.css` until then), lucide-react, motion, vite-plugin-pwa.
 - Backend: Node.js, Express, JWT, bcrypt, CORS, dotenv.
 - Database: SQLite.
-- Recipe generation: existing server-side DeepSeek integration.
-- Optional developer tooling: server-side OpenAI Images API proof-of-concept scripts.
+- AI: DeepSeek (recipes, server-side). OpenAI Images (paused Zine artwork and developer tools).
 
-Do not introduce a framework or architecture rewrite without explicit approval. See [RULES.md](RULES.md).
+Anything else needs explicit approval. See [RULES.md](RULES.md).
 
 ## Local development
 
-Prerequisites: Node.js 18+, npm, and backend environment values appropriate to the feature being exercised.
+Prerequisites: Node.js 18+ and npm.
 
 ```powershell
 cd D:\aproject\SmartKitchen\server
@@ -59,36 +68,29 @@ npm install
 npm run dev
 ```
 
-The backend normally serves `http://localhost:5000`; Vite normally serves `http://localhost:5173`.
+The backend serves `http://localhost:5000`; Vite serves `http://localhost:5173`.
 
-Keep secrets in ignored `server/.env` and frontend-safe configuration only in `client/.env`. Never commit keys.
+Configuration: copy `server/.env.example` to ignored `server/.env` (secrets: `DEEPSEEK_API_KEY`,
+`JWT_SECRET`, `PEXELS_API_KEY`, optional `OPENAI_API_KEY`, `CORS_ORIGINS`) and
+`client/.env.example` to ignored `client/.env` (`VITE_API_BASE_URL`, `VITE_ZINE_ENABLED`). Never
+commit either `.env` file.
 
-Typical backend values are `DEEPSEEK_API_KEY`, `JWT_SECRET`, `PEXELS_API_KEY`, and `CORS_ORIGINS`. `OPENAI_API_KEY` is used only server-side, by the optional Zine artwork feature and the developer-only image commands; it is never a frontend value. Zine artwork also needs `ZINE_GENERATION_ENABLED=true`, `OPENAI_IMAGE_MODEL=gpt-image-2.5-flare` and `OPENAI_IMAGE_QUALITY=medium`; see `server/.env.example`. It switches itself off when the reviewed pricing profile expires (2026-11-13) until pricing is re-checked.
-
-## Developer-only image experiments
-
-Phase 6A and 6B.2 are local developer tools, not application endpoints and not production UI features. Their paid paths require explicit user approval, interactive confirmation, one image per invocation, and no automatic retry.
-
-- [Phase 6A: Discover-image PoC](server/ZINE_POC.md)
-- [Phase 6B.2: text-free asset-sheet PoC](server/ZINE_ASSETS_POC.md)
-
-The safe default for the asset sheet is:
+Tests (mocked, no network or paid calls):
 
 ```powershell
-cd D:\aproject\SmartKitchen\server
-npm run zine:assets -- --style=collage --dry-run
+cd D:\aproject\SmartKitchen\server; npm test
+cd D:\aproject\SmartKitchen\client; node --test test/*.mjs
 ```
 
-Do not run a paid command merely while setting up or reviewing the project.
+Running the client tests re-optimises Vite's dependency cache; reload or restart a running dev
+server if it then shows "Outdated Optimize Dep".
 
 ## Documentation map
 
-- [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md): concise current product and technical truth.
-- [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md): approved sequence and status.
-- [PROJECT_HANDOVER.md](PROJECT_HANDOVER.md): detailed continuation handover and exact next step.
-- [AGENTS.md](AGENTS.md) and [RULES.md](RULES.md): agent workflow and safeguards.
-- `SMARTKITCHEN_Workflow_v1.md` and `SMARTKITCHEN_Technical_Design_v1.md`: historical v1 references, not current requirements.
-
-## Current next step
-
-**First live end-to-end test of Zine artwork**, run locally by the user with the feature switched on. See `PROJECT_HANDOVER.md`.
+- [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md): product truth — positioning, what exists, what is paused.
+- [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md): approved phases and priorities.
+- [PROJECT_HANDOVER.md](PROJECT_HANDOVER.md): current state, file map and the exact next step.
+- [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md): the Riso Kitchen design system for the redesign.
+- [AGENTS.md](AGENTS.md) and [RULES.md](RULES.md): workflow and safeguards.
+- `server/ZINE_POC.md`, `server/ZINE_ASSETS_POC.md`: records of the paused image experiments.
+- `SMARTKITCHEN_*_v1.md`: historical v1 references only.

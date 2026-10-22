@@ -6,6 +6,7 @@ import ZineSamplePreview, { ZineEntry } from "../components/ZineSamplePreview.js
 import { getPreviewStyle, developerStyle } from "../data/zineStyles.js";
 import { developerAssetSample } from "../data/zineAssetSamples.js";
 import { useZineArtwork, ZineArtworkPanel } from "../components/ZineArtwork.jsx";
+import { features } from "../data/features.js";
 
 function IngredientChips({ title, items, owned }) {
   const Icon = owned ? CheckCircle2 : ShoppingCart;
@@ -21,7 +22,7 @@ function IngredientChips({ title, items, owned }) {
   );
 }
 
-function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack }) {
+function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, zineEnabled = features.zine }) {
   const [savedRecipe, setSavedRecipe] = useState(null);
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -171,7 +172,7 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack }) {
               </dl>
             </section>
           )}
-          <ZineEntry onOpen={() => navigateZine("intro")} />
+          {zineEnabled && <ZineEntry onOpen={() => navigateZine("intro")} />}
         </article>
       )}
     </motion.main>

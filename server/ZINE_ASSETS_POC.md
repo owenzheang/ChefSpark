@@ -1,5 +1,10 @@
 # Phase 6B.2 — Text-free asset sheet experiment
 
+> **Paused (2026-10-22).** The Zine and its AI artwork are switched off while ChefSpark refocuses on
+> being a cooking companion. The prompt lessons recorded here (visible-food allow-lists, ignoring
+> dish-name associations, confining decorations) are the starting point for Phase 4 food images.
+> Any paid run still needs explicit user authorization.
+
 Developer CLI only. No frontend connection, public endpoint, database or paid test during implementation.
 Phase 6A retains its command, portrait edit request, prompt, confirmation and defaults.
 Only two existing file/usage helpers are additionally exported for reuse.
