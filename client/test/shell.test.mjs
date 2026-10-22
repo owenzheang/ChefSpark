@@ -18,7 +18,7 @@ test("auth screens use the design system with labelled fields and no fake links"
   for (const [Page, submit, other] of [[Login, "Sign in", "Create an account"], [Register, "Create account", "Sign in"]]) {
     const html = renderToStaticMarkup(createElement(Page, {}));
     assert.match(html, /data-ds=""/);
-    assert.match(html, /bg-paper/);
+    assert.match(html, /bg-iron/);
     for (const field of ["email", "password"]) {
       const id = html.match(new RegExp(`<label for="([^"]+-${field})"`))?.[1];
       assert.ok(id && html.includes(`id="${id}"`), `${field} label is associated with its input`);
@@ -33,7 +33,7 @@ test("auth screens use the design system with labelled fields and no fake links"
 test("bottom navigation has exactly three labelled tabs and marks the current one", () => {
   const html = renderToStaticMarkup(createElement(BottomNav, { activePage: "recipes", onNavigate() {} }));
   assert.match(html, /<nav aria-label="Main navigation" data-ds=""/);
-  for (const label of ["Kitchen", "Cook", "Shelf"]) assert.match(html, new RegExp(`<span class="relative">${label}</span>`));
+  for (const label of ["Kitchen", "Cook", "Shelf"]) assert.match(html, new RegExp(`<span>${label}</span>`));
   assert.equal((html.match(/aria-current="page"/g) || []).length, 1);
   assert.match(html, /aria-current="page"[^>]*>(?:(?!<\/button>).)*Cook/);
   assert.equal((html.match(/<button /g) || []).length, 3);
@@ -45,8 +45,7 @@ test("Tailwind tokens match DESIGN_SYSTEM.md and legacy CSS sits in a lower laye
   const doc = await readFile(new URL("../../DESIGN_SYSTEM.md", import.meta.url), "utf8");
   assert.match(css, /@layer legacy, theme, base, components, utilities;/);
   assert.match(css, /@import "\.\/styles\.css" layer\(legacy\);/);
-  for (const [token, hex] of [["ink", "#141414"], ["paper", "#F3EDE2"], ["card", "#FFFDF8"], ["muted", "#4A4741"],
-    ["tomato", "#E8542F"], ["tomato-tint", "#FBDCCF"], ["cobalt", "#2F4FE0"], ["cobalt-tint", "#D9DFFB"]]) {
+  for (const [token, hex] of [["iron", "#15120F"], ["flour", "#F7F5F0"], ["soft", "#D8CFC2"], ["ash", "#A39B90"], ["cream", "#EBCD98"]]) {
     assert.ok(doc.includes(`\`${token}\` | \`${hex}\``), `${token} documented`);
     assert.ok(css.toLowerCase().includes(`--color-${token}: ${hex.toLowerCase()};`), `${token} defined`);
   }

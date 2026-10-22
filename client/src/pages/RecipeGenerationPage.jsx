@@ -1,9 +1,10 @@
 ﻿import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowLeft, Sparkles } from "lucide-react";
 import { generateRecipes, getIngredients, saveRecipe } from "../services/api.js";
 import RecipePreviewCard from "../components/RecipePreviewCard.jsx";
 import GenerationProgress from "../components/GenerationProgress.jsx";
+import Spark from "../components/Spark.jsx";
+import Burners from "../components/Burners.jsx";
 
 const pageMotion = {
   initial: { opacity: 0, y: 18 },
@@ -19,7 +20,7 @@ const cuisineOptions = [
 
 const difficultyOptions = ["Easy", "Medium", "Hard"];
 
-const focusRing = "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-cobalt";
+const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream";
 
 function RecipeGenerationPage({ onBack, onViewRecipe, recipes, setRecipes, cuisine, setCuisine, difficulty, setDifficulty }) {
   const [ingredients, setIngredients] = useState([]);
@@ -97,55 +98,57 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, setRecipes, cuisi
 
   return (
     <motion.main data-ds="" {...pageMotion}
-      className="min-h-screen bg-paper bg-halftone px-5 pt-6 pb-[calc(110px+env(safe-area-inset-bottom,0px))]">
-      <header className="flex items-center gap-3">
-        <motion.button type="button" aria-label="Back to kitchen" onClick={onBack} whileTap={{ scale: 0.92 }}
-          className={`flex size-11 shrink-0 items-center justify-center rounded-full border-2 border-ink bg-card hover:bg-cobalt-tint ${focusRing}`}>
-          <ArrowLeft size={20} strokeWidth={2.4} aria-hidden="true" />
+      className="min-h-screen bg-iron bg-ember-glow px-6 pt-4 pb-[calc(110px+env(safe-area-inset-bottom,0px))]">
+      <header className="flex items-center justify-between">
+        <motion.button type="button" onClick={onBack} whileTap={{ scale: 0.95 }} aria-label="Back to kitchen"
+          className={`min-h-11 px-1 font-mono text-[11px] tracking-[0.18em] text-ash hover:text-flour ${focusRing}`}>
+          ← KITCHEN
         </motion.button>
-        <span className="font-mono text-xs tracking-[0.14em]">
+        <span className="font-mono text-[11px] tracking-[0.18em] text-ash">
           STEP 2 OF 2 · {ingredients.length} {ingredients.length === 1 ? "INGREDIENT" : "INGREDIENTS"}
         </span>
       </header>
 
-      <h1 className="mt-5 font-display text-[46px] leading-[0.92] font-extrabold tracking-[-0.045em]">Plan<br />tonight.</h1>
+      <h1 className="mt-8 font-display text-[56px] leading-[0.95] tracking-[-0.01em] italic">Plan tonight.</h1>
 
       {hasIngredients ? (
-        <p className="mt-3 text-[15px] text-muted">
+        <p className="mt-3 text-[15px] text-soft">
           Using {ingredients.slice(0, 4).map((item) => item.name).join(", ")}
           {ingredients.length > 4 ? ` and ${ingredients.length - 4} more` : ""}.
         </p>
       ) : (
-        <p className="mt-3 rounded-tile border-2 border-ink bg-tomato-tint px-3.5 py-2.5 text-[15px]">
+        <p className="mt-3 flex items-center gap-2 text-[15px] text-flour">
+          <Spark size={12} className="text-cream" />
           Add ingredients in your kitchen first.
         </p>
       )}
 
-      <fieldset className="mt-6 flex flex-col gap-2.5" disabled={isLoading}>
-        <legend className="mb-2.5 font-display text-xl font-extrabold">Cuisine</legend>
-        <div className="grid grid-cols-2 gap-2.5">
+      <fieldset className="mt-9" disabled={isLoading}>
+        <legend className="mb-3 font-mono text-[11px] tracking-[0.2em] text-ash">CUISINE</legend>
+        <div className="grid grid-cols-2 gap-3">
           {cuisineOptions.map((option) => {
             const selected = cuisine === option.name;
             return (
               <motion.button key={option.name} type="button" aria-pressed={selected} onClick={() => setCuisine(option.name)}
                 whileTap={{ scale: 0.97 }}
-                className={`flex min-h-20 flex-col items-start justify-center gap-0.5 rounded-tile border-2 border-ink px-3.5 py-2.5 text-left disabled:opacity-60 ${selected ? "bg-tomato shadow-hard-sm" : "bg-card hover:bg-cobalt-tint"} ${focusRing}`}>
-                <span className="text-base font-bold">{option.name}</span>
-                <span className="text-[13px] leading-tight">{option.description}</span>
+                className={`flex min-h-20 flex-col items-start justify-center gap-0.5 rounded-[20px] px-4 py-3 text-left disabled:cursor-not-allowed disabled:opacity-60 ${selected ? "bg-cream text-iron" : "text-flour ring-1 ring-flour/40 hover:ring-flour"} ${focusRing}`}>
+                <span className="font-display text-[26px] leading-none italic">{option.name}</span>
+                <span className={`text-[13px] leading-tight ${selected ? "text-iron/80" : "text-ash"}`}>{option.description}</span>
               </motion.button>
             );
           })}
         </div>
       </fieldset>
 
-      <fieldset className="mt-5" disabled={isLoading}>
-        <legend className="mb-2.5 font-display text-xl font-extrabold">How hard?</legend>
-        <div className="grid grid-cols-3 gap-1 rounded-full border-2 border-ink bg-card p-1">
+      <fieldset className="mt-7" disabled={isLoading}>
+        <legend className="mb-3 font-mono text-[11px] tracking-[0.2em] text-ash">HOW HARD</legend>
+        <div className="grid grid-cols-3 gap-2">
           {difficultyOptions.map((option) => {
             const selected = difficulty === option;
             return (
               <button key={option} type="button" aria-pressed={selected} onClick={() => setDifficulty(option)}
-                className={`min-h-11 rounded-full text-[15px] font-bold disabled:opacity-60 ${selected ? "bg-ink text-paper hover:bg-ink" : "hover:bg-cobalt-tint"} ${focusRing}`}>
+                className={`flex min-h-12 items-center justify-center gap-2 rounded-full text-[15px] font-medium disabled:cursor-not-allowed disabled:opacity-60 ${selected ? "bg-cream text-iron" : "text-flour ring-1 ring-flour/40 hover:ring-flour"} ${focusRing}`}>
+                <Burners difficulty={option} size={7} onCream={selected} />
                 {option}
               </button>
             );
@@ -154,42 +157,52 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, setRecipes, cuisi
       </fieldset>
 
       <motion.button type="button" onClick={handleGenerate} disabled={isLoading || !hasIngredients} whileTap={{ scale: 0.97 }}
-        className={`mt-6 flex min-h-15 w-full items-center justify-between rounded-full border-2 border-ink bg-tomato px-6 font-display text-xl font-extrabold text-ink shadow-hard-lg transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:translate-y-0 ${isLoading ? "" : "disabled:bg-card"} ${focusRing}`}>
+        className={`mt-9 flex min-h-[58px] w-full items-center justify-between rounded-full bg-cream px-6 text-lg font-semibold text-iron shadow-glow disabled:cursor-not-allowed ${isLoading ? "disabled:opacity-70" : "disabled:bg-transparent disabled:text-ash disabled:shadow-none disabled:ring-1 disabled:ring-flour/40"} ${focusRing}`}>
         {isLoading ? "Cooking up 3 dishes…" : recipes.length ? "Try 3 new dishes" : "Cook up 3 dishes"}
-        <Sparkles size={24} strokeWidth={2.4} aria-hidden="true" className={isLoading ? "motion-safe:animate-spin" : ""} />
+        <Spark size={20} className={isLoading ? "motion-safe:animate-spin" : ""} />
       </motion.button>
 
       {message && (
-        <p role={message.tone === "error" ? "alert" : "status"}
-          className={`mt-4 rounded-tile border-2 border-ink px-3.5 py-2.5 text-[15px] ${message.tone === "error" ? "bg-tomato-tint" : "bg-card"}`}>
+        <p role={message.tone === "error" ? "alert" : "status"} className="mt-5 flex items-start gap-2 text-[15px] text-flour">
+          <Spark size={12} className="mt-1 text-cream" />
           {message.text}
         </p>
       )}
 
-      <div className="mt-6">
+      <div className="mt-10">
         {isLoading && (
           <GenerationProgress ingredientCount={ingredients.length} cuisine={cuisine} onCancel={handleCancel} />
         )}
 
         <AnimatePresence>
           {!isLoading && recipes.length > 0 && (
-            <motion.section aria-labelledby="results-heading" className="flex flex-col gap-4"
+            <motion.section aria-labelledby="results-heading" className="flex flex-col items-center gap-10 text-center"
               initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-              <h2 id="results-heading" ref={resultsHeading} tabIndex={-1}
-                className="font-display text-[32px] leading-none font-extrabold tracking-[-0.03em] focus:outline-none">
-                {recipes.length} dishes for tonight
-              </h2>
+              <div className="flex flex-col items-center gap-2">
+                <span className="font-mono text-[11px] tracking-[0.3em] text-ash">FROM YOUR KITCHEN</span>
+                <h2 id="results-heading" ref={resultsHeading} tabIndex={-1}
+                  className="font-display text-[50px] leading-none italic focus:outline-none">
+                  Tonight's menu
+                </h2>
+                <p className="sr-only">{recipes.length} dishes for tonight</p>
+              </div>
               {recipes.map((recipe, index) => (
-                <RecipePreviewCard
-                  key={`${recipe.title}-${index}`}
-                  index={index}
-                  recipe={recipe}
-                  onViewRecipe={onViewRecipe}
-                  onSave={handleSave}
-                  isSaving={savingTitle === recipe.title}
-                />
+                <div key={`${recipe.title}-${index}`} className="flex w-full flex-col items-center gap-10">
+                  {index > 0 && (
+                    <div aria-hidden="true" className="flex w-full items-center gap-3.5">
+                      <span className="h-px flex-1 bg-flour/16" /><Spark size={11} className="text-cream" /><span className="h-px flex-1 bg-flour/16" />
+                    </div>
+                  )}
+                  <RecipePreviewCard
+                    index={index}
+                    recipe={recipe}
+                    onViewRecipe={onViewRecipe}
+                    onSave={handleSave}
+                    isSaving={savingTitle === recipe.title}
+                  />
+                </div>
               ))}
-              <p className="text-[13px] text-muted">Covers show the dish name. Every ingredient, amount and step comes from the recipe itself.</p>
+              <p className="text-[13px] text-ash">Every ingredient, amount and step comes from the recipe itself.</p>
             </motion.section>
           )}
         </AnimatePresence>

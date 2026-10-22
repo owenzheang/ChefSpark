@@ -29,58 +29,41 @@ force-push without that decision.
 
 ## Phase 1 progress
 
-Done (2026-10-22):
-- Tailwind 4.3.3 via `@tailwindcss/vite` (versions pinned). `client/src/index.css` is the style entry:
-  layer order `legacy, theme, base, components, utilities`; `styles.css` is imported into the
-  `legacy` layer so utilities always win; Tailwind preflight is omitted until `styles.css` is removed.
-  Theme tokens mirror `DESIGN_SYSTEM.md` (default Tailwind colours removed), plus `bg-halftone`.
-- Migrated markup carries `data-ds`, which applies a scoped reset of the legacy element rules
-  (buttons, inputs, labels, headings) in the `base` layer.
-- Fonts (Bricolage Grotesque, DM Sans, DM Mono) load from Google Fonts in `client/index.html`;
-  PWA colours updated; paused Zine images excluded from the offline precache.
-- `components/BottomNav.jsx`: ink pill with Kitchen / Cook / Shelf and a temporary log-out icon
-  (moves to the Kitchen header when that screen is migrated). `App.jsx` uses it and wraps the app
-  in `MotionConfig reducedMotion="user"`.
-- `components/AuthCard.jsx` now renders Login and Register (fake "Forgot password" and terms text
-  removed). `client/test/shell.test.mjs` covers auth, nav and token/doc consistency.
-- Browser check at 375px: login, register (throwaway local account `riso-check-7f3a@example.test`),
-  landing on Kitchen, tab switching, no horizontal overflow.
+Design direction: **Ember (cream)**, chosen by the user on 2026-10-23 after comparing three explorations
+on the design canvas (A · Riso Kitchen, B · Mono, C · Ember). Riso Kitchen was implemented first and then
+replaced; see `DESIGN_SYSTEM.md` for the current rules.
 
-Kitchen screen migrated (2026-10-22): `IngredientsPage` follows the Kitchen artboard — weekday
-label, Log out in the header (removed from `BottomNav`, which now has exactly three tabs), "What's in
-your fridge?" headline, labelled add field with restyled suggestions, tilted cobalt chips with 36px
-delete buttons, dashed "Quick add" chips, and a fixed "Find tonight's dishes" button above the nav
-(disabled with a hint while the kitchen is empty) over a paper fade. Removed: fake notification bell,
-step indicator, saved/ingredient stat cards (and their extra API call). The scoped `data-ds` reset now
-also clears list padding. Data functions are unchanged. Browser-checked at 375px with the test account:
-suggestion → add → delete, last quick-add chip reachable above the button, no overflow.
+Foundation:
+- Tailwind 4.3.3 via `@tailwindcss/vite` (pinned). `client/src/index.css`: layer order
+  `legacy, theme, base, components, utilities`; legacy `styles.css` in the `legacy` layer; no global
+  preflight. Ember tokens only (`iron`, `flour`, `soft`, `ash`, `cream`; display/sans/mono/hand
+  fonts; `shadow-glow`; `animate-shimmer`; `bg-ember-glow`).
+- `[data-ds]` scoped reset (base layer): legacy element rules, default border widths, lists, fieldsets,
+  headings, disabled opacity. `body` and the page container are `iron` so no light legacy background
+  shows behind migrated screens.
+- Fonts (Instrument Serif, Hanken Grotesk, IBM Plex Mono, Caveat) in `client/index.html`; theme/PWA
+  colours `#15120f`.
+- Shared pieces: `Spark`, `PlateRing` (match ring), `Burners` (difficulty, with an `onCream` variant).
 
-Plan tonight + generation feedback (2026-10-22, option A approved by the user):
-- `RecipeGenerationPage` follows the Plan tonight artboard (cuisine tiles and segmented difficulty with
-  `aria-pressed`, ingredient summary, primary action in the page flow). Backend contract unchanged:
-  one cuisine, Chinese or Western.
-- `components/GenerationProgress.jsx`: honest loading state while the single request runs — rotating
-  status lines by elapsed time (no percentage), elapsed clock, indeterminate striped bar
-  (`role="progressbar"` without a value), three placeholder cards, "taking longer" note after 25 s,
-  Cancel. Animations are `motion-safe` only. Its props can later be fed real events (option B,
-  streaming progress, deferred; needs one authorised DeepSeek test call first).
-- Cancel aborts the browser request (`generateRecipes(options, { signal })`); leaving the page also
-  aborts; the server aborts its DeepSeek call when the client disconnects.
-- Server: DeepSeek calls time out after 60 s; `RecipeGenerationError` carries user-safe messages and
-  statuses (504 timeout, 503 busy/unavailable, 502 bad answer); raw service bodies are never returned or
-  logged (status only). Pexels search times out after 5 s. `api.js` turns network failures and
-  non-JSON error responses into readable messages.
-- `RecipePreviewCard`: typographic tomato/cobalt cover with the dish name instead of the Pexels photo,
-  match stamp, have/need panels, uniquely labelled Open/Save buttons.
-- Verified: 41 client and 58 server tests; build. Browser at 375px with an in-page stub of the generate
-  request (no API call): stages and clock, long-wait note, placeholders, Cancel message, result cards,
-  focus moves to the results heading. Real generation was not exercised (paid API).
-- Scoped reset now also covers `fieldset`/`legend`.
+Screens in Ember: `BottomNav` (three text tabs, cream spark on the active one), `AuthCard` (login and
+register), Kitchen (`IngredientsPage`, order-ticket list, cream add button, quick add with sparks, Log out
+in the header), Plan tonight (`RecipeGenerationPage`: cuisine and difficulty pills, honest
+`GenerationProgress` with Cancel), results as "Tonight's menu" (`RecipePreviewCard`: course numeral,
+plate ring with the match score, no stock photo, computed chef's note when nothing is missing).
 
-## Next action: migrate the Recipe page
+Server-side generation changes from this phase (still current): 60 s DeepSeek timeout, cancel on client
+disconnect, user-safe `RecipeGenerationError` messages, 5 s Pexels timeout.
 
-Merge the Recipe Guide and paused Zine layout into one page following the Recipe artboard. Decide the
-router question first (back button, refresh losing unsaved generated recipes).
+Verified 2026-10-23: 41 client and 58 server tests; production build; browser at 375px for Kitchen, Plan
+tonight, progress + Cancel and the results menu (generate request stubbed in-page, no API call), and the
+login component rendered on its own. Saved recipes and the recipe page are still legacy (light green) and
+look inconsistent until migrated.
+
+## Next action: migrate the Recipe page, then the Shelf
+
+Follow the Ember Recipe artboard (plate, spec row, order ticket, method, "Light the stove" button that
+will open Cooking Mode in Phase 2). Decide the router question first (back button, refresh losing
+unsaved generated recipes). Real generation has not been exercised in the browser (paid API).
 
 ## File map
 

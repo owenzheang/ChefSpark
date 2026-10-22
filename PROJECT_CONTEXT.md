@@ -57,13 +57,14 @@ point for Phase 4 food images.
 
 ## Design
 
-The redesign follows `DESIGN_SYSTEM.md` ("Riso Kitchen": ink outlines, tomato and cobalt spot colours,
-Bricolage Grotesque / DM Sans / DM Mono, hard shadows) and its mockup. Cooking Mode uses the calm,
+The redesign follows `DESIGN_SYSTEM.md` ("Ember": card-free, cast-iron black, flour-white type, one
+butter-cream accent; Instrument Serif / Hanken Grotesk / IBM Plex Mono; spark, plate ring, burners, dial,
+order ticket and chef's notes as signature elements) and its mockup. Cooking Mode uses the calm,
 high-legibility variant described there.
 
 ## Known limits
 
 - Not deployed; the SQLite file path is relative to the server's working directory.
-- Local `main` is 11 commits ahead of and 5 behind `origin/main`; the user decided not to merge the
-  5 remote commits. Pushing will need a decision on overwriting them.
+- Local `main` has many commits not on `origin/main` and lacks 5 remote July commits that the user
+  decided not to merge. Pushing needs a decision (new branch, or overwriting the remote `main`).
 - AI images and answers are not human-reviewed before users see them.

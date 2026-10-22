@@ -1,5 +1,7 @@
 import { motion } from "motion/react";
-import { ArrowRight, Bookmark } from "lucide-react";
+import Burners from "./Burners.jsx";
+import PlateRing from "./PlateRing.jsx";
+import Spark from "./Spark.jsx";
 
 function summarizeIngredients(ingredients = []) {
   if (ingredients.length === 0) return "None";
@@ -7,13 +9,11 @@ function summarizeIngredients(ingredients = []) {
   return ingredients.length > 2 ? `${summary} + ${ingredients.length - 2} more` : summary;
 }
 
-// Typographic covers stand in for photos until dish-accurate images exist (DESIGN_SYSTEM.md),
-// so a card never shows a stock picture of a different dish.
-const covers = [
-  "bg-cobalt text-white",
-  "bg-tomato text-ink"
-];
+const courses = ["I", "II", "III", "IV", "V"];
+const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream";
 
+// One course of "Tonight's menu" (DESIGN_SYSTEM.md): no card, a plate ring with the match score
+// instead of a stock photo, the dish named like a menu item, and ticket-style facts.
 export default function RecipePreviewCard({ recipe, onViewRecipe, onSave, isSaving, index = 0 }) {
   const youHave = recipe.youHave || [];
   const youNeed = recipe.youNeed || [];
@@ -21,43 +21,45 @@ export default function RecipePreviewCard({ recipe, onViewRecipe, onSave, isSavi
 
   return (
     <motion.article initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.08 }}
-      className="relative overflow-hidden rounded-card border-2 border-ink bg-card shadow-hard-lg">
-      <div className={`flex min-h-28 items-end border-b-2 border-ink p-4 pr-24 ${covers[index % covers.length]}`}>
-        <h3 className="font-display text-[26px] leading-none font-extrabold tracking-[-0.02em]">{recipe.title}</h3>
-      </div>
-      {hasScore && (
-        <div className="absolute top-3 right-3 flex size-18 rotate-[-8deg] flex-col items-center justify-center rounded-full border-2 border-ink bg-card shadow-hard-sm">
-          <span className="font-display text-2xl leading-none font-extrabold">{recipe.matchScore}%</span>
-          <span className="font-mono text-[9px]">MATCH</span>
-        </div>
-      )}
-      <div className="flex flex-col gap-3 p-4">
-        <p className="flex flex-wrap gap-x-2 font-mono text-[13px] uppercase">
-          <span>{recipe.cuisine}</span><span aria-hidden="true">·</span>
-          <span>{recipe.difficulty}</span><span aria-hidden="true">·</span>
-          <span>{recipe.cookTime}</span><span aria-hidden="true">·</span>
-          <span>Serves {recipe.servings}</span>
+      transition={{ duration: 0.35, delay: index * 0.1 }}
+      className="flex flex-col items-center gap-3 text-center">
+      <span className="font-display text-[22px] text-cream" aria-hidden="true">{courses[index] || index + 1}</span>
+      <PlateRing percent={hasScore ? recipe.matchScore : null} size={168}>
+        {hasScore ? (
+          <>
+            <span className="font-display text-[44px] leading-none italic">{recipe.matchScore}%</span>
+            <span className="mt-1 font-mono text-[10px] tracking-[0.2em] text-ash">MATCH</span>
+          </>
+        ) : <Spark size={28} className="text-cream" />}
+      </PlateRing>
+      <h3 className="mt-1 font-display text-[38px] leading-none italic">{recipe.title}</h3>
+      <p className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 font-mono text-[12px] tracking-[0.12em] text-soft uppercase">
+        <Burners difficulty={recipe.difficulty} />
+        <span>{recipe.difficulty}</span><span aria-hidden="true">·</span>
+        <span>{recipe.cuisine}</span><span aria-hidden="true">·</span>
+        <span>{recipe.cookTime}</span><span aria-hidden="true">·</span>
+        <span>Serves {recipe.servings}</span>
+      </p>
+      <p className="text-[15px] text-ash">
+        You have {youHave.length}: {summarizeIngredients(youHave)}
+      </p>
+      {youNeed.length > 0 ? (
+        <p className="flex items-center gap-1.5 text-[15px] text-flour">
+          <Spark size={10} className="text-cream" />
+          <span>You need {youNeed.length}: {summarizeIngredients(youNeed)}</span>
         </p>
-        <div className="flex flex-col gap-1.5 text-sm">
-          <p className="rounded-tile border-2 border-ink bg-cobalt-tint px-3 py-1.5">
-            <strong>You have {youHave.length}:</strong> {summarizeIngredients(youHave)}
-          </p>
-          <p className="rounded-tile border-2 border-ink bg-tomato-tint px-3 py-1.5">
-            <strong>You need {youNeed.length}:</strong> {summarizeIngredients(youNeed)}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <button type="button" onClick={() => onViewRecipe(recipe)} aria-label={`Open recipe: ${recipe.title}`}
-            className="flex min-h-12 flex-1 items-center justify-center gap-1.5 rounded-full bg-ink font-bold text-paper hover:bg-ink focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-cobalt">
-            Open recipe <ArrowRight size={18} strokeWidth={2.4} aria-hidden="true" />
-          </button>
-          <button type="button" disabled={isSaving} onClick={() => onSave(recipe)} aria-label={`Save ${recipe.title}`}
-            className="flex min-h-12 items-center gap-1.5 rounded-full border-2 border-ink bg-card px-4 font-bold hover:bg-cobalt-tint focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-cobalt disabled:cursor-wait disabled:opacity-60">
-            <Bookmark size={18} strokeWidth={2.4} aria-hidden="true" />
-            {isSaving ? "Saving…" : "Save"}
-          </button>
-        </div>
+      ) : (
+        <p className="-rotate-[1.5deg] font-hand text-[22px] text-cream">you have everything for this one</p>
+      )}
+      <div className="flex items-center gap-6">
+        <button type="button" onClick={() => onViewRecipe(recipe)} aria-label={`Open recipe: ${recipe.title}`}
+          className={`min-h-11 border-b border-cream font-semibold text-flour hover:text-cream ${focusRing}`}>
+          Open recipe →
+        </button>
+        <button type="button" disabled={isSaving} onClick={() => onSave(recipe)} aria-label={`Save ${recipe.title}`}
+          className={`min-h-11 px-1 text-ash hover:text-flour disabled:cursor-wait ${focusRing}`}>
+          {isSaving ? "Saving…" : "Save"}
+        </button>
       </div>
     </motion.article>
   );

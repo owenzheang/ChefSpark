@@ -43,8 +43,8 @@ function AppPages() {
 
   function renderWithNavigation(content) {
     return (
-      <div className="app-shell bg-paper bg-halftone">
-        <div className="phone-container">
+      <div className="app-shell bg-iron">
+        <div className="phone-container bg-iron">
           {content}
           <BottomNav activePage={activePage} onNavigate={setPage} />
         </div>

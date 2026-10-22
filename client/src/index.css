@@ -1,5 +1,5 @@
 /*
- * ChefSpark styles entry. Tokens come from DESIGN_SYSTEM.md ("Riso Kitchen").
+ * ChefSpark styles entry. Tokens come from DESIGN_SYSTEM.md ("Ember").
  * During the Phase 1 migration the legacy stylesheet sits in a low-priority layer, so
  * Tailwind utilities on migrated screens always win while unmigrated screens are unchanged.
  * Tailwind's preflight reset is left out until styles.css is removed.
@@ -11,42 +11,37 @@
 @import "tailwindcss/utilities.css" layer(utilities);
 
 @theme {
-  /* Only design-system colours are available as utilities. */
+  /* Only design-system colours are available as utilities (DESIGN_SYSTEM.md, "Ember"). */
   --color-*: initial;
-  --color-ink: #141414;
-  --color-paper: #f3ede2;
-  --color-card: #fffdf8;
-  --color-muted: #4a4741;
-  --color-tomato: #e8542f;
-  --color-tomato-tint: #fbdccf;
-  --color-cobalt: #2f4fe0;
-  --color-cobalt-tint: #d9dffb;
-  --color-white: #ffffff;
+  --color-iron: #15120f;
+  --color-flour: #f7f5f0;
+  --color-soft: #d8cfc2;
+  --color-ash: #a39b90;
+  --color-cream: #ebcd98;
 
-  --font-display: "Bricolage Grotesque", "Arial Narrow", sans-serif;
-  --font-sans: "DM Sans", system-ui, sans-serif;
-  --font-mono: "DM Mono", ui-monospace, monospace;
+  --font-display: "Instrument Serif", Georgia, serif;
+  --font-sans: "Hanken Grotesk", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-hand: "Caveat", cursive;
 
-  --radius-tile: 14px;
-  --radius-card: 18px;
-  --radius-sheet: 22px;
+  /* The single primary action on a screen glows softly; nothing else casts a shadow. */
+  --shadow-glow: 0 0 32px #ebcd9855;
 
-  --shadow-hard-sm: 3px 3px 0 var(--color-ink);
-  --shadow-hard: 4px 4px 0 var(--color-ink);
-  --shadow-hard-lg: 5px 5px 0 var(--color-ink);
-
-  /* Moving diagonal stripes for "working on it" states (no fake progress percentage). */
-  --animate-stripes: stripes 0.9s linear infinite;
-  @keyframes stripes {
+  /* Indeterminate "working on it" shimmer along a hairline (no fake progress percentage). */
+  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
+  @keyframes shimmer {
+    from {
+      transform: translateX(-100%);
+    }
     to {
-      background-position: 28px 0;
+      transform: translateX(250%);
     }
   }
 }
 
-@utility bg-stripes {
-  background-image: repeating-linear-gradient(-45deg, #2f4fe026 0 10px, transparent 10px 20px);
-  background-size: 28px 28px;
+/* Faint cream glow at the top of the cast-iron background. */
+@utility bg-ember-glow {
+  background-image: radial-gradient(ellipse 90% 32% at 50% -4%, #ebcd982e, transparent 72%);
 }
 
 /*
@@ -54,9 +49,22 @@
  * (green buttons, bordered inputs, grid labels). Utilities still win over this layer.
  */
 @layer base {
+  /* The app is dark everywhere; no light legacy background may show around or behind screens. */
+  body {
+    background-color: var(--color-iron);
+  }
+  /* Preflight's border defaults, scoped: a border style alone never draws default-width borders. */
+  [data-ds],
+  [data-ds] *,
+  [data-ds] ::before,
+  [data-ds] ::after {
+    border-width: 0;
+    border-style: solid;
+    border-color: currentColor;
+  }
   [data-ds] {
     font-family: var(--font-sans);
-    color: var(--color-ink);
+    color: var(--color-flour);
   }
   [data-ds] :where(button, input, select, textarea) {
     min-height: auto;
@@ -70,6 +78,9 @@
   }
   [data-ds] :where(button):hover {
     background: none;
+  }
+  [data-ds] :where(button):disabled {
+    opacity: 1;
   }
   [data-ds] :where(input, select, textarea) {
     width: auto;
@@ -106,8 +117,3 @@
   }
 }
 
-/* Riso halftone texture for paper backgrounds. */
-@utility bg-halftone {
-  background-image: radial-gradient(#14141414 1px, transparent 1.2px);
-  background-size: 14px 14px;
-}

@@ -65,8 +65,10 @@ test("generation renders three previews and preserves supplied selections", () =
   assert.equal((html.match(/>Open recipe/g) || []).length, 3);
   assert.equal((html.match(/aria-label="Save /g) || []).length, 3);
   assert.match(html, /aria-pressed="true"[^>]*><span[^>]*>Western</);
-  assert.match(html, /aria-pressed="true"[^>]*>Hard</);
+  assert.match(html, /aria-pressed="true"[^>]*>(?:(?!<\/button>).)*Hard<\/button>/);
+  assert.match(html, /Tonight&#x27;s menu/);
   assert.match(html, /3 dishes for tonight/);
+  assert.equal((html.match(/role="img" aria-label="Match 80 percent"/g) || []).length, 3);
   assert.match(html, /data-ds=""/);
   assert.doesNotMatch(html, /<img /);
   assert.doesNotMatch(html, /Cook the chicken thoroughly/);

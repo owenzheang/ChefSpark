@@ -13,6 +13,6 @@ export const categoryIcons = {
 
 export default function IngredientCategoryIcon({ name, size = 14 }) {
   const Icon = categoryIcons[getIngredientCategory(name)];
-  return <Icon className="ingredient-category-icon shrink-0" size={size} strokeWidth={2} aria-hidden="true" />;
+  return <Icon className="ingredient-category-icon shrink-0 text-ash" size={size} strokeWidth={2} aria-hidden="true" />;
 }
 

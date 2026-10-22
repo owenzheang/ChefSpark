@@ -115,7 +115,7 @@ test("ingredient page preserves manual submit and add/delete API wiring", async 
   const html = renderToStaticMarkup(createElement(IngredientsPage, { onGenerateRecipes: () => {} }));
   assert.match(html, /aria-label="Ingredient name"/);
   assert.match(html, /aria-label="Add ingredient"/);
-  assert.equal((html.match(/ingredient-category-icon/g) || []).length, 8);
+  assert.equal((html.match(/aria-label="Add [A-Z]/g) || []).length, 8);
   assert.doesNotMatch(html, /Did you mean this\?/);
 });
 
@@ -125,7 +125,8 @@ test("Kitchen screen uses the design system, owns log out and guards the main ac
   assert.match(html, /<main data-ds=""/);
   assert.match(html, /<label for="ingredient-name"/);
   assert.match(html, /id="ingredient-name"/);
-  assert.match(html, />Log out<\/button>/);
+  assert.match(html, />LOG OUT<\/button>/);
+  assert.match(html, /bg-iron/);
   assert.match(html, /<button type="button" disabled=""[^>]*aria-describedby="find-dishes-hint"/);
   assert.match(html, /ADD AT LEAST ONE INGREDIENT/);
   assert.equal((html.match(/aria-label="Add [A-Z]/g) || []).length, 8);

@@ -39,7 +39,7 @@ test("progress is indeterminate, announced politely, cancellable and has three p
   assert.match(html, /role="progressbar"[^>]*aria-valuetext="In progress"/);
   assert.doesNotMatch(html, /aria-valuenow/);
   assert.match(html, /<button type="button"[^>]*>.*Cancel<\/button>/);
-  assert.equal((html.match(/DISH \d OF 3/g) || []).length, 3);
+  assert.equal((html.match(/COURSE (I|II|III) · PLATING/g) || []).length, 3);
   assert.doesNotMatch(html, /Taking longer than usual/);
   const late = renderToStaticMarkup(createElement(Progress, { ingredientCount: 6, cuisine: "Chinese", onCancel() {}, initialSeconds: LONG_WAIT_SECONDS }));
   assert.match(late, /Taking longer than usual/);

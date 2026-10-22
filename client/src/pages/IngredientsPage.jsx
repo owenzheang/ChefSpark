@@ -4,7 +4,8 @@ import { useRef } from "react";
 import IngredientCategoryIcon from "../components/IngredientCategoryIcon.jsx";
 import IngredientSuggestions from "../components/IngredientSuggestions.jsx";
 import { searchIngredients } from "../utils/ingredientSearch.js";
-import { ArrowRight, LogOut, Plus, X } from "lucide-react";
+import { ArrowRight, Plus, X } from "lucide-react";
+import Spark from "../components/Spark.jsx";
 import { addIngredient, deleteIngredient, getIngredients } from "../services/api.js";
 
 const emptyForm = {
@@ -23,9 +24,6 @@ const chipMotion = {
   exit: { opacity: 0, scale: 0.74, y: -4 },
   transition: { duration: 0.18 }
 };
-
-// Small, alternating tilts give the chips a hand-placed sticker feel (DESIGN_SYSTEM.md).
-const chipTilts = ["-rotate-2", "rotate-1", "rotate-0", "-rotate-1", "rotate-2", "rotate-0"];
 
 const popularIngredients = [
   "Eggs",
@@ -130,27 +128,31 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
     .filter((ingredient) => !ingredientNames.includes(ingredient))
     .slice(0, 8);
   const hasIngredients = ingredients.length > 0;
+  const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream";
 
   return (
     <motion.main data-ds="" {...pageMotion}
-      className="min-h-screen bg-paper bg-halftone px-5 pt-7 pb-[calc(190px+env(safe-area-inset-bottom,0px))]">
+      className="min-h-screen bg-iron bg-ember-glow px-6 pt-5 pb-[calc(170px+env(safe-area-inset-bottom,0px))]">
       <header className="flex items-center justify-between">
-        <span className="font-mono text-xs tracking-[0.14em]">CHEFSPARK · {weekday}</span>
+        <span className="flex items-center gap-2 font-display text-2xl italic">
+          <Spark size={16} className="text-cream" />
+          ChefSpark
+        </span>
         <button type="button" onClick={onLogout}
-          className="flex min-h-11 items-center gap-1.5 rounded-full border-2 border-ink bg-card px-3.5 text-sm font-bold hover:bg-cobalt-tint focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-cobalt">
-          <LogOut size={16} strokeWidth={2.2} aria-hidden="true" />
-          Log out
+          className={`min-h-11 px-1 font-mono text-[11px] tracking-[0.18em] text-ash hover:text-flour ${focusRing}`}>
+          LOG OUT
         </button>
       </header>
 
-      <h1 className="mt-5 font-display text-[50px] leading-[0.92] font-extrabold tracking-[-0.045em]">
-        What's in<br />your fridge?
+      <p className="mt-7 font-mono text-[11px] tracking-[0.2em] text-ash">{weekday}</p>
+      <h1 className="mt-2 font-display text-[52px] leading-[0.95] tracking-[-0.01em] italic">
+        What's in your kitchen tonight?
       </h1>
 
-      <section className="mt-6" aria-label="Add an ingredient">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-1.5">
-          <label htmlFor="ingredient-name" className="font-mono text-xs tracking-[0.12em] uppercase">Add an ingredient</label>
-          <div className="flex gap-2">
+      <section className="mt-7" aria-label="Add an ingredient">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-1">
+          <label htmlFor="ingredient-name" className="font-mono text-[11px] tracking-[0.2em] text-ash uppercase">Add an ingredient</label>
+          <div className="flex items-center border-b border-flour focus-within:border-cream">
             <input
               id="ingredient-name"
               type="text"
@@ -166,44 +168,45 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
               onKeyDown={(event) => {
                 if (event.key === "Escape") setShowSuggestions(false);
               }}
-              placeholder="e.g. spinach"
+              placeholder="spinach, chicken thighs…"
               required
-              className="min-h-13 min-w-0 flex-1 rounded-tile border-2 border-ink bg-card px-4 text-base font-medium placeholder:text-muted focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-cobalt"
+              className="min-h-12 min-w-0 flex-1 bg-transparent text-lg text-flour outline-none placeholder:text-ash"
             />
             <motion.button type="submit" aria-label="Add ingredient" whileTap={{ scale: 0.9 }}
-              className="flex size-13 shrink-0 items-center justify-center rounded-tile border-2 border-ink bg-ink text-paper hover:bg-ink focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-cobalt">
-              <Plus size={22} strokeWidth={2.5} aria-hidden="true" />
+              className={`mb-1 flex size-11 shrink-0 items-center justify-center rounded-full bg-cream text-iron ${focusRing}`}>
+              <Plus size={22} strokeWidth={2.4} aria-hidden="true" />
             </motion.button>
           </div>
         </form>
         <IngredientSuggestions suggestions={suggestions} onSelect={selectSuggestion} />
       </section>
 
-      <section aria-labelledby="kitchen-heading"
-        className="mt-6 flex flex-col gap-3 rounded-card border-2 border-ink bg-card p-4 shadow-hard">
-        <div className="flex items-baseline justify-between">
-          <h2 id="kitchen-heading" className="font-display text-[22px] font-extrabold">In my kitchen</h2>
-          <span className="font-mono text-[13px]">{ingredients.length} {ingredients.length === 1 ? "ITEM" : "ITEMS"}</span>
+      <section aria-labelledby="kitchen-heading" className="mt-7 border-y-2 border-dashed border-flour/40 pt-3 pb-1.5">
+        <div className="flex items-baseline justify-between font-mono text-[11px] tracking-[0.18em] text-ash">
+          <h2 id="kitchen-heading">IN MY KITCHEN</h2>
+          <span>{ingredients.length} {ingredients.length === 1 ? "ITEM" : "ITEMS"}</span>
         </div>
 
-        {isLoading && <p role="status" className="font-mono text-xs text-muted">LOADING…</p>}
-        {message && <p role="status" className="font-mono text-xs text-muted">{message}</p>}
+        {isLoading && <p role="status" className="py-3 font-mono text-xs text-ash">LOADING…</p>}
+        {message && <p role="status" className="pt-2 font-mono text-xs text-ash">{message}</p>}
 
-        <ul className="flex flex-wrap gap-2" aria-label="Ingredients in my kitchen">
+        <ul className="mt-1.5 grid grid-cols-2 gap-x-5 font-mono text-[14px] uppercase" aria-label="Ingredients in my kitchen">
           <AnimatePresence initial={false}>
-            {ingredients.map((ingredient, index) => (
+            {ingredients.map((ingredient) => (
               <motion.li key={ingredient.id} layout {...chipMotion}
-                className={`flex min-h-11 items-center gap-1.5 rounded-full border-2 border-ink bg-cobalt-tint py-0.5 pr-0.5 pl-3 text-[15px] font-bold ${chipTilts[index % chipTilts.length]}`}>
-                <IngredientCategoryIcon name={ingredient.name} size={16} />
-                <span>{ingredient.name}</span>
+                className="flex min-h-11 items-center justify-between gap-2">
+                <span className="flex min-w-0 items-center gap-2">
+                  <IngredientCategoryIcon name={ingredient.name} size={14} />
+                  <span className="truncate">{ingredient.name}</span>
+                </span>
                 <motion.button
                   type="button"
                   aria-label={`Delete ${ingredient.name}`}
                   onClick={() => handleDelete(ingredient.id)}
                   whileTap={{ scale: 0.86 }}
-                  className="flex size-9 items-center justify-center rounded-full hover:bg-card focus-visible:outline-3 focus-visible:outline-cobalt"
+                  className={`-mr-2 flex size-10 shrink-0 items-center justify-center rounded-full text-ash hover:text-flour ${focusRing}`}
                 >
-                  <X size={16} strokeWidth={2.5} aria-hidden="true" />
+                  <X size={16} strokeWidth={2} aria-hidden="true" />
                 </motion.button>
               </motion.li>
             ))}
@@ -211,14 +214,14 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
         </ul>
 
         {!isLoading && !hasIngredients && (
-          <p className="text-[15px] text-muted">Nothing here yet. Add what you have, or tap a quick add below.</p>
+          <p className="py-3 text-[15px] text-soft">Nothing here yet. Add what you have, or use quick add below.</p>
         )}
       </section>
 
       {visiblePopularIngredients.length > 0 && (
-        <section aria-labelledby="quick-add-heading" className="mt-6 flex flex-col gap-2.5">
-          <h2 id="quick-add-heading" className="font-display text-xl font-extrabold">Quick add</h2>
-          <div className="flex flex-wrap gap-2">
+        <section aria-labelledby="quick-add-heading" className="mt-6 flex flex-col gap-2">
+          <h2 id="quick-add-heading" className="font-mono text-[11px] tracking-[0.18em] text-ash">QUICK ADD</h2>
+          <div className="flex flex-wrap gap-x-5">
             {visiblePopularIngredients.map((ingredient) => (
               <motion.button
                 key={ingredient}
@@ -226,9 +229,9 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
                 onClick={() => addIngredientByName(ingredient)}
                 whileTap={{ scale: 0.93 }}
                 aria-label={`Add ${ingredient}`}
-                className="flex min-h-11 items-center gap-1.5 rounded-full border-2 border-dashed border-ink px-3.5 text-[15px] font-bold hover:border-solid hover:bg-card focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-cobalt"
+                className={`flex min-h-11 items-center gap-1.5 text-[15px] text-flour hover:text-cream ${focusRing}`}
               >
-                <IngredientCategoryIcon name={ingredient} size={16} />
+                <Spark size={9} className="text-cream" />
                 {ingredient}
               </motion.button>
             ))}
@@ -237,10 +240,10 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
       )}
 
       <div aria-hidden="true"
-        className="pointer-events-none fixed inset-x-0 bottom-0 z-[5] mx-auto h-[calc(190px+env(safe-area-inset-bottom,0px))] max-w-[430px] bg-linear-to-t from-paper from-60% to-transparent" />
-      <div className="fixed inset-x-4 bottom-[calc(92px+env(safe-area-inset-bottom,0px))] z-10 mx-auto flex max-w-[398px] flex-col gap-1.5">
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-[5] mx-auto h-[calc(170px+env(safe-area-inset-bottom,0px))] max-w-[430px] bg-linear-to-t from-iron from-60% to-transparent" />
+      <div className="fixed inset-x-6 bottom-[calc(84px+env(safe-area-inset-bottom,0px))] z-10 mx-auto flex max-w-[382px] flex-col gap-1.5">
         {!hasIngredients && !isLoading && (
-          <p id="find-dishes-hint" className="text-center font-mono text-xs text-muted">ADD AT LEAST ONE INGREDIENT</p>
+          <p id="find-dishes-hint" className="text-center font-mono text-[11px] tracking-[0.16em] text-ash">ADD AT LEAST ONE INGREDIENT</p>
         )}
         <motion.button
           type="button"
@@ -248,10 +251,10 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
           disabled={!hasIngredients}
           aria-describedby={!hasIngredients ? "find-dishes-hint" : undefined}
           whileTap={{ scale: 0.97 }}
-          className="flex min-h-15 items-center justify-between rounded-full border-2 border-ink bg-tomato px-6 font-display text-xl font-extrabold text-ink shadow-hard-lg transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-cobalt disabled:cursor-not-allowed disabled:bg-card disabled:shadow-none disabled:hover:translate-y-0"
+          className={`flex min-h-[58px] items-center justify-between rounded-full bg-cream px-6 text-lg font-semibold text-iron shadow-glow disabled:cursor-not-allowed disabled:bg-transparent disabled:text-ash disabled:shadow-none disabled:ring-1 disabled:ring-flour/40 ${focusRing}`}
         >
           Find tonight's dishes
-          <ArrowRight size={24} strokeWidth={2.5} aria-hidden="true" />
+          <ArrowRight size={22} strokeWidth={2.2} aria-hidden="true" />
         </motion.button>
       </div>
     </motion.main>

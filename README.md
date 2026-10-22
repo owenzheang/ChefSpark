@@ -38,7 +38,7 @@ Paused, code kept: the One-Page Zine and its optional AI artwork (see
 ## Current focus
 
 **Phase 1 — full UI redesign** with Tailwind CSS, following [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md)
-("Riso Kitchen") and its mockup. Then Cooking Mode (Phase 2). See [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md).
+("Ember": cast-iron black, flour-white type, one butter-cream accent) and its mockup. Then Cooking Mode (Phase 2). See [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md).
 
 ## Stack
 
@@ -90,7 +90,7 @@ server if it then shows "Outdated Optimize Dep".
 - [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md): product truth — positioning, what exists, what is paused.
 - [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md): approved phases and priorities.
 - [PROJECT_HANDOVER.md](PROJECT_HANDOVER.md): current state, file map and the exact next step.
-- [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md): the Riso Kitchen design system for the redesign.
+- [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md): the Ember design system for the redesign.
 - [AGENTS.md](AGENTS.md) and [RULES.md](RULES.md): workflow and safeguards.
 - `server/ZINE_POC.md`, `server/ZINE_ASSETS_POC.md`: records of the paused image experiments.
 - `SMARTKITCHEN_*_v1.md`: historical v1 references only.
