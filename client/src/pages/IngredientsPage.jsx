@@ -4,24 +4,8 @@ import { useRef } from "react";
 import IngredientCategoryIcon from "../components/IngredientCategoryIcon.jsx";
 import IngredientSuggestions from "../components/IngredientSuggestions.jsx";
 import { searchIngredients } from "../utils/ingredientSearch.js";
-import {
-  ArrowRight,
-  Bell,
-  ChefHat,
-  Leaf,
-  Plus,
-  Search,
-  Sparkles,
-  X
-} from "lucide-react";
-import {
-  addIngredient,
-  deleteIngredient,
-  getIngredients,
-  getSavedRecipes
-} from "../services/api.js";
-
-const hi = {emoji: "👋", label: "waving hand"};
+import { ArrowRight, LogOut, Plus, X } from "lucide-react";
+import { addIngredient, deleteIngredient, getIngredients } from "../services/api.js";
 
 const emptyForm = {
   name: ""
@@ -39,6 +23,9 @@ const chipMotion = {
   exit: { opacity: 0, scale: 0.74, y: -4 },
   transition: { duration: 0.18 }
 };
+
+// Small, alternating tilts give the chips a hand-placed sticker feel (DESIGN_SYSTEM.md).
+const chipTilts = ["-rotate-2", "rotate-1", "rotate-0", "-rotate-1", "rotate-2", "rotate-0"];
 
 const popularIngredients = [
   "Eggs",
@@ -58,9 +45,8 @@ const popularIngredients = [
   "Ginger"
 ];
 
-function IngredientsPage({ onGenerateRecipes }) {
+function IngredientsPage({ onGenerateRecipes, onLogout }) {
   const [ingredients, setIngredients] = useState([]);
-  const [savedRecipeCount, setSavedRecipeCount] = useState(0);
   const [form, setForm] = useState(emptyForm);
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -90,17 +76,7 @@ function IngredientsPage({ onGenerateRecipes }) {
 
   useEffect(() => {
     loadIngredients();
-    loadSavedRecipeCount();
   }, []);
-
-  async function loadSavedRecipeCount() {
-    try {
-      const data = await getSavedRecipes();
-      setSavedRecipeCount(data.length);
-    } catch {
-      setSavedRecipeCount(0);
-    }
-  }
 
   function resetForm() {
     setForm(emptyForm);
@@ -148,203 +124,136 @@ function IngredientsPage({ onGenerateRecipes }) {
     }
   }
 
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const weekday = new Date().toLocaleDateString("en", { weekday: "long" }).toUpperCase();
   const ingredientNames = ingredients.map((ingredient) => ingredient.name);
   const visiblePopularIngredients = popularIngredients
     .filter((ingredient) => !ingredientNames.includes(ingredient))
     .slice(0, 8);
+  const hasIngredients = ingredients.length > 0;
 
   return (
-    <motion.main className="app-page ingredients-screen" {...pageMotion}>
-      <div className="ingredients-bg-blob top" aria-hidden="true"></div>
-      <div className="ingredients-bg-blob bottom" aria-hidden="true"></div>
+    <motion.main data-ds="" {...pageMotion}
+      className="min-h-screen bg-paper bg-halftone px-5 pt-7 pb-[calc(190px+env(safe-area-inset-bottom,0px))]">
+      <header className="flex items-center justify-between">
+        <span className="font-mono text-xs tracking-[0.14em]">CHEFSPARK · {weekday}</span>
+        <button type="button" onClick={onLogout}
+          className="flex min-h-11 items-center gap-1.5 rounded-full border-2 border-ink bg-card px-3.5 text-sm font-bold hover:bg-cobalt-tint focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-cobalt">
+          <LogOut size={16} strokeWidth={2.2} aria-hidden="true" />
+          Log out
+        </button>
+      </header>
 
-      <motion.header
-        className="ingredients-topbar"
-        initial={{ opacity: 0, y: -14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.38 }}
-      >
-        <div className="ingredients-logo" aria-hidden="true">
-          <ChefHat size={18} strokeWidth={1.8} />
+      <h1 className="mt-5 font-display text-[50px] leading-[0.92] font-extrabold tracking-[-0.045em]">
+        What's in<br />your fridge?
+      </h1>
+
+      <section className="mt-6" aria-label="Add an ingredient">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-1.5">
+          <label htmlFor="ingredient-name" className="font-mono text-xs tracking-[0.12em] uppercase">Add an ingredient</label>
+          <div className="flex gap-2">
+            <input
+              id="ingredient-name"
+              type="text"
+              ref={ingredientInput}
+              aria-label="Ingredient name"
+              aria-controls={suggestions.length ? "ingredient-suggestions" : undefined}
+              autoComplete="off"
+              value={form.name}
+              onChange={(event) => {
+                setForm({ name: event.target.value });
+                setShowSuggestions(true);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Escape") setShowSuggestions(false);
+              }}
+              placeholder="e.g. spinach"
+              required
+              className="min-h-13 min-w-0 flex-1 rounded-tile border-2 border-ink bg-card px-4 text-base font-medium placeholder:text-muted focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-cobalt"
+            />
+            <motion.button type="submit" aria-label="Add ingredient" whileTap={{ scale: 0.9 }}
+              className="flex size-13 shrink-0 items-center justify-center rounded-tile border-2 border-ink bg-ink text-paper hover:bg-ink focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-cobalt">
+              <Plus size={22} strokeWidth={2.5} aria-hidden="true" />
+            </motion.button>
+          </div>
+        </form>
+        <IngredientSuggestions suggestions={suggestions} onSelect={selectSuggestion} />
+      </section>
+
+      <section aria-labelledby="kitchen-heading"
+        className="mt-6 flex flex-col gap-3 rounded-card border-2 border-ink bg-card p-4 shadow-hard">
+        <div className="flex items-baseline justify-between">
+          <h2 id="kitchen-heading" className="font-display text-[22px] font-extrabold">In my kitchen</h2>
+          <span className="font-mono text-[13px]">{ingredients.length} {ingredients.length === 1 ? "ITEM" : "ITEMS"}</span>
         </div>
 
-        <div className="ingredients-greeting">
-          <span>CHEFSPARK</span>
-          <h1>{greeting}, Chef! {hi.emoji}</h1>
-        </div>
+        {isLoading && <p role="status" className="font-mono text-xs text-muted">LOADING…</p>}
+        {message && <p role="status" className="font-mono text-xs text-muted">{message}</p>}
 
-        <motion.button
-          className="notification-button"
-          type="button"
-          aria-label="Notifications"
-          whileTap={{ scale: 0.92 }}
-        >
-          <Bell size={17} strokeWidth={1.8} aria-hidden="true" />
-          <span></span>
-        </motion.button>
-      </motion.header>
-
-      <motion.section
-        className="ingredient-steps"
-        aria-label="Recipe creation steps"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.08, duration: 0.34 }}
-      >
-        <div className="step-item active">
-          <span>1</span>
-          <strong>Ingredients</strong>
-        </div>
-        <div className="step-line"></div>
-        <div className="step-item">
-          <span>2</span>
-          <strong>Generate</strong>
-        </div>
-      </motion.section>
-
-      <motion.section
-        className="ingredients-hero"
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.13, duration: 0.42 }}
-      >
-        <div className="hero-icon" aria-hidden="true">
-          <Sparkles size={20} strokeWidth={1.8} />
-        </div>
-        <div>
-          <h2>What's in your kitchen?</h2>
-          <p>Add your ingredients and I'll find recipes</p>
-        </div>
-      </motion.section>
-
-      <motion.section
-        className="ingredients-card"
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.42 }}
-      >
-        <div className="ingredients-card-title">
-          <span className="leaf-icon" aria-hidden="true">
-            <Leaf size={14} strokeWidth={2} />
-          </span>
-          <h2>My Ingredients</h2>
-          <strong>{ingredients.length}</strong>
-        </div>
-
-        {isLoading && <p className="message">Loading ingredients...</p>}
-        {message && <p className="message">{message}</p>}
-
-        <ul className="ingredient-chip-list">
+        <ul className="flex flex-wrap gap-2" aria-label="Ingredients in my kitchen">
           <AnimatePresence initial={false}>
-            {ingredients.map((ingredient) => (
-              <motion.li key={ingredient.id} layout {...chipMotion}>
-                <IngredientCategoryIcon name={ingredient.name} />
+            {ingredients.map((ingredient, index) => (
+              <motion.li key={ingredient.id} layout {...chipMotion}
+                className={`flex min-h-11 items-center gap-1.5 rounded-full border-2 border-ink bg-cobalt-tint py-0.5 pr-0.5 pl-3 text-[15px] font-bold ${chipTilts[index % chipTilts.length]}`}>
+                <IngredientCategoryIcon name={ingredient.name} size={16} />
                 <span>{ingredient.name}</span>
                 <motion.button
                   type="button"
                   aria-label={`Delete ${ingredient.name}`}
                   onClick={() => handleDelete(ingredient.id)}
                   whileTap={{ scale: 0.86 }}
+                  className="flex size-9 items-center justify-center rounded-full hover:bg-card focus-visible:outline-3 focus-visible:outline-cobalt"
                 >
-                  <X size={9} strokeWidth={2.5} aria-hidden="true" />
+                  <X size={16} strokeWidth={2.5} aria-hidden="true" />
                 </motion.button>
               </motion.li>
             ))}
           </AnimatePresence>
         </ul>
 
-        <AnimatePresence>
-          {!isLoading && ingredients.length === 0 && (
-            <motion.p
-              className="empty-state ingredients-empty-state"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              No ingredients yet.
-            </motion.p>
-          )}
-        </AnimatePresence>
+        {!isLoading && !hasIngredients && (
+          <p className="text-[15px] text-muted">Nothing here yet. Add what you have, or tap a quick add below.</p>
+        )}
+      </section>
 
-        <motion.form className="ingredient-search-form" onSubmit={handleSubmit} layout>
-          <Search size={15} strokeWidth={1.8} aria-hidden="true" />
-          <input
-            type="text"
-            ref={ingredientInput}
-            aria-label="Ingredient name"
-            aria-controls={suggestions.length ? "ingredient-suggestions" : undefined}
-            autoComplete="off"
-            value={form.name}
-            onChange={(event) => {
-              setForm({ name: event.target.value });
-              setShowSuggestions(true);
-            }}
-            onKeyDown={(event) => {
-              if (event.key === "Escape") setShowSuggestions(false);
-            }}
-            placeholder="Search or type an ingredient..."
-            required
-          />
-          <motion.button type="submit" aria-label="Add ingredient" whileTap={{ scale: 0.9 }}>
-            <Plus size={16} strokeWidth={2.5} aria-hidden="true" />
-          </motion.button>
-        </motion.form>
-        <IngredientSuggestions suggestions={suggestions} onSelect={selectSuggestion} />
-      </motion.section>
+      {visiblePopularIngredients.length > 0 && (
+        <section aria-labelledby="quick-add-heading" className="mt-6 flex flex-col gap-2.5">
+          <h2 id="quick-add-heading" className="font-display text-xl font-extrabold">Quick add</h2>
+          <div className="flex flex-wrap gap-2">
+            {visiblePopularIngredients.map((ingredient) => (
+              <motion.button
+                key={ingredient}
+                type="button"
+                onClick={() => addIngredientByName(ingredient)}
+                whileTap={{ scale: 0.93 }}
+                aria-label={`Add ${ingredient}`}
+                className="flex min-h-11 items-center gap-1.5 rounded-full border-2 border-dashed border-ink px-3.5 text-[15px] font-bold hover:border-solid hover:bg-card focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-cobalt"
+              >
+                <IngredientCategoryIcon name={ingredient} size={16} />
+                {ingredient}
+              </motion.button>
+            ))}
+          </div>
+        </section>
+      )}
 
-      <motion.section
-        className="popular-section"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3, duration: 0.36 }}
-      >
-        <h2>Popular</h2>
-        <div className="popular-chip-list">
-          {visiblePopularIngredients.map((ingredient) => (
-            <motion.button
-              key={ingredient}
-              type="button"
-              onClick={() => addIngredientByName(ingredient)}
-              whileTap={{ scale: 0.93 }}
-            >
-              <IngredientCategoryIcon name={ingredient} />
-              {ingredient}
-            </motion.button>
-          ))}
-        </div>
-      </motion.section>
-
-      <motion.section
-        className="ingredient-stats"
-        aria-label="Kitchen statistics"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.35, duration: 0.36 }}
-      >
-        <motion.article whileTap={{ scale: 0.98 }}>
-          <strong>{savedRecipeCount}</strong>
-          <span>Recipes saved</span>
-        </motion.article>
-        <motion.article whileTap={{ scale: 0.98 }}>
-          <strong>{ingredients.length}</strong>
-          <span>Ingredients</span>
-        </motion.article>
-      </motion.section>
-
-      <motion.button
-        className="choose-cuisine-button"
-        type="button"
-        onClick={onGenerateRecipes}
-        whileTap={{ scale: 0.97 }}
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4, duration: 0.36 }}
-      >
-        Choose Cuisine
-        <ArrowRight size={18} strokeWidth={2.5} aria-hidden="true" />
-      </motion.button>
+      <div aria-hidden="true"
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-[5] mx-auto h-[calc(190px+env(safe-area-inset-bottom,0px))] max-w-[430px] bg-linear-to-t from-paper from-60% to-transparent" />
+      <div className="fixed inset-x-4 bottom-[calc(92px+env(safe-area-inset-bottom,0px))] z-10 mx-auto flex max-w-[398px] flex-col gap-1.5">
+        {!hasIngredients && !isLoading && (
+          <p id="find-dishes-hint" className="text-center font-mono text-xs text-muted">ADD AT LEAST ONE INGREDIENT</p>
+        )}
+        <motion.button
+          type="button"
+          onClick={onGenerateRecipes}
+          disabled={!hasIngredients}
+          aria-describedby={!hasIngredients ? "find-dishes-hint" : undefined}
+          whileTap={{ scale: 0.97 }}
+          className="flex min-h-15 items-center justify-between rounded-full border-2 border-ink bg-tomato px-6 font-display text-xl font-extrabold text-ink shadow-hard-lg transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-cobalt disabled:cursor-not-allowed disabled:bg-card disabled:shadow-none disabled:hover:translate-y-0"
+        >
+          Find tonight's dishes
+          <ArrowRight size={24} strokeWidth={2.5} aria-hidden="true" />
+        </motion.button>
+      </div>
     </motion.main>
   );
 }

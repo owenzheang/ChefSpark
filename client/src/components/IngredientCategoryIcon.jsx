@@ -11,8 +11,8 @@ export const categoryIcons = {
   herb: Sprout, sweetener: Candy, liquid: GlassWater, other: CircleHelp
 };
 
-export default function IngredientCategoryIcon({ name }) {
+export default function IngredientCategoryIcon({ name, size = 14 }) {
   const Icon = categoryIcons[getIngredientCategory(name)];
-  return <Icon className="ingredient-category-icon" size={14} strokeWidth={1.8} aria-hidden="true" />;
+  return <Icon className="ingredient-category-icon shrink-0" size={size} strokeWidth={2} aria-hidden="true" />;
 }
 

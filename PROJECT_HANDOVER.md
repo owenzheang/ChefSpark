@@ -10,7 +10,7 @@ Repository: `D:\aproject\SmartKitchen`, branch `main`.
 
 - Direction changed to an AI cooking companion (see `PROJECT_CONTEXT.md`). Phase 0 done in this
   session apart from the open git decision below.
-- Tests: 52 server and 35 client tests pass (mocked; no network or paid calls); production build passes.
+- Tests: 52 server and 36 client tests pass (mocked; no network or paid calls); production build passes.
 - Zine paused: `client/src/data/features.js` hides the Zine entry unless `VITE_ZINE_ENABLED=true`;
   `RecipeDetailPage` takes a `zineEnabled` prop for tests. Server artwork generation is off unless
   `ZINE_GENERATION_ENABLED=true`.
@@ -46,13 +46,21 @@ Done (2026-10-22):
 - Browser check at 375px: login, register (throwaway local account `riso-check-7f3a@example.test`),
   landing on Kitchen, tab switching, no horizontal overflow.
 
-## Next action: migrate the Kitchen screen
+Kitchen screen migrated (2026-10-22): `IngredientsPage` follows the Kitchen artboard — weekday
+label, Log out in the header (removed from `BottomNav`, which now has exactly three tabs), "What's in
+your fridge?" headline, labelled add field with restyled suggestions, tilted cobalt chips with 36px
+delete buttons, dashed "Quick add" chips, and a fixed "Find tonight's dishes" button above the nav
+(disabled with a hint while the kitchen is empty) over a paper fade. Removed: fake notification bell,
+step indicator, saved/ingredient stat cards (and their extra API call). The scoped `data-ds` reset now
+also clears list padding. Data functions are unchanged. Browser-checked at 375px with the test account:
+suggestion → add → delete, last quick-add chip reachable above the button, no overflow.
 
-`IngredientsPage` → Kitchen artboard of the mockup: headline, add-ingredient field with
-autocomplete, inventory chips, account/log-out control in the header (then drop it from the nav),
-primary action above the nav. The legacy Kitchen's bottom action is currently hidden behind the
-nav; the migration fixes that. Pantry toggles need backend support, so treat them as a separate,
-confirmed step. Router question still open (not added).
+## Next action: migrate "Plan tonight" (RecipeGenerationPage)
+
+Follow the Plan tonight artboard: cuisine tiles, segmented difficulty, primary action above the nav,
+then the Results cards. Keep the current backend contract (one cuisine, Chinese or Western) unless the
+user approves the multi-cuisine / "cook now only" backend changes as a separate step. Router question
+still open.
 
 ## File map
 

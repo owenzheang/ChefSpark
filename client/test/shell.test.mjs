@@ -30,13 +30,14 @@ test("auth screens use the design system with labelled fields and no fake links"
   }
 });
 
-test("bottom navigation has three labelled tabs, marks the current one and keeps log out", () => {
-  const html = renderToStaticMarkup(createElement(BottomNav, { activePage: "recipes", onNavigate() {}, onLogout() {} }));
+test("bottom navigation has exactly three labelled tabs and marks the current one", () => {
+  const html = renderToStaticMarkup(createElement(BottomNav, { activePage: "recipes", onNavigate() {} }));
   assert.match(html, /<nav aria-label="Main navigation" data-ds=""/);
   for (const label of ["Kitchen", "Cook", "Shelf"]) assert.match(html, new RegExp(`<span class="relative">${label}</span>`));
   assert.equal((html.match(/aria-current="page"/g) || []).length, 1);
   assert.match(html, /aria-current="page"[^>]*>(?:(?!<\/button>).)*Cook/);
-  assert.match(html, /aria-label="Log out"/);
+  assert.equal((html.match(/<button /g) || []).length, 3);
+  assert.doesNotMatch(html, /Log out/);
 });
 
 test("Tailwind tokens match DESIGN_SYSTEM.md and legacy CSS sits in a lower layer", async () => {

@@ -118,3 +118,17 @@ test("ingredient page preserves manual submit and add/delete API wiring", async 
   assert.equal((html.match(/ingredient-category-icon/g) || []).length, 8);
   assert.doesNotMatch(html, /Did you mean this\?/);
 });
+
+test("Kitchen screen uses the design system, owns log out and guards the main action", () => {
+  let loggedOut = false;
+  const html = renderToStaticMarkup(createElement(IngredientsPage, { onGenerateRecipes: () => {}, onLogout: () => { loggedOut = true; } }));
+  assert.match(html, /<main data-ds=""/);
+  assert.match(html, /<label for="ingredient-name"/);
+  assert.match(html, /id="ingredient-name"/);
+  assert.match(html, />Log out<\/button>/);
+  assert.match(html, /<button type="button" disabled=""[^>]*aria-describedby="find-dishes-hint"/);
+  assert.match(html, /ADD AT LEAST ONE INGREDIENT/);
+  assert.equal((html.match(/aria-label="Add [A-Z]/g) || []).length, 8);
+  assert.doesNotMatch(html, /Notifications|Recipes saved|Choose Cuisine/);
+  assert.equal(loggedOut, false);
+});

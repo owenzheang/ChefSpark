@@ -46,7 +46,7 @@ function AppPages() {
       <div className="app-shell bg-paper bg-halftone">
         <div className="phone-container">
           {content}
-          <BottomNav activePage={activePage} onNavigate={setPage} onLogout={handleLogout} />
+          <BottomNav activePage={activePage} onNavigate={setPage} />
         </div>
       </div>
     );
