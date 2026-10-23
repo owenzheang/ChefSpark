@@ -86,7 +86,7 @@ export function createAssistantController({ db, env = process.env, requestJson =
 
   async function edit(req, res) {
     if (!readAssistantConfig(env).enabled) return res.status(503).json({ message: "The recipe assistant is not available right now." });
-    const { recipe, action, ingredient, diet } = req.body || {};
+    const { recipe, action, ingredient } = req.body || {};
     if (!isValidStructuredRecipe(recipe)) {
       return res.status(422).json({ message: "The assistant only works with recipes that have structured ingredients and steps." });
     }
@@ -99,20 +99,14 @@ export function createAssistantController({ db, env = process.env, requestJson =
     if (action === "missing" && !recipe.ingredients.some((item) => normalizeIngredientName(item.name) === missingName)) {
       return res.status(400).json({ message: "Choose an ingredient from this recipe." });
     }
-    if (action === "diet" && !editDiets.includes(diet)) return res.status(400).json({ message: "Choose vegetarian or vegan." });
-    if (action === "diet" && findDietConflicts(recipe, diet).length === 0) {
-      // Already fits: label it in code, no AI request and nothing counted.
-      const labelled = applyDiet(recipe, diet);
-      return res.json({ status: "proposed", tier: "minor", recipe: labelled, diff: recipeDiff(recipe, labelled), free: true,
-        remainingToday: await remainingToday(req.user.userId, readAssistantConfig(env)) });
-    }
 
     const inventory = await q.all("SELECT name FROM ingredients WHERE user_id = ?", [req.user.userId]);
-    const targetDiet = action === "diet" ? diet : (editDiets.includes(recipe.diet) ? recipe.diet : null);
+    // A vegetarian or vegan recipe must stay so after any edit.
+    const targetDiet = editDiets.includes(recipe.diet) ? recipe.diet : null;
 
     await paidRequest(req, res, {
       kind: `edit:${action}`, maxTokens: EDIT_MAX_TOKENS, temperature: 0.4, failureMessage: unusableEdit,
-      prompt: buildEditPrompt({ recipe, action, ingredient, diet, inventory }),
+      prompt: buildEditPrompt({ recipe, action, ingredient, inventory }),
       async handle(data) {
         const proposal = data?.recipe;
         if (!proposal || typeof proposal !== "object" || proposal.servings !== recipe.servings) return { result: "failure" };

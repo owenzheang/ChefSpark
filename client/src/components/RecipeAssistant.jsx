@@ -66,7 +66,6 @@ function RecipeAssistant({ recipe, isSaved, onAdopt, initialStatus = null }) {
 
   const editsLeft = 3 - (Number.isInteger(recipe.editCount) ? recipe.editCount : 0);
   const busy = Boolean(pending) || adopting;
-  const diets = recipe.diet === "Vegan" ? [] : recipe.diet === "Vegetarian" ? ["Vegan"] : ["Vegetarian", "Vegan"];
   const missingChoices = recipe.ingredients.map((item) => item.name).filter((name) => !notWorthAsking.test(name));
 
   async function ask(change, label) {
@@ -119,12 +118,6 @@ function RecipeAssistant({ recipe, isSaved, onAdopt, initialStatus = null }) {
           <button type="button" aria-expanded={choosing} disabled={busy} onClick={() => setChoosing(!choosing)} className={ringButton}>
             I don't have…
           </button>
-          {diets.map((diet) => (
-            <button key={diet} type="button" disabled={busy} className={ringButton}
-              onClick={() => ask({ action: "diet", diet }, `Making it ${diet.toLowerCase()}…`)}>
-              Make it {diet.toLowerCase()}
-            </button>
-          ))}
           <button type="button" disabled={busy} className={ringButton}
             onClick={() => ask({ action: "simpler" }, "Making it simpler…")}>
             Simpler &amp; quicker
@@ -173,7 +166,7 @@ function RecipeAssistant({ recipe, isSaved, onAdopt, initialStatus = null }) {
         <div className="mt-6 flex flex-col gap-4 border-y-2 border-dashed border-flour/40 py-4">
           <h3 ref={resultHeading} tabIndex={-1} className="flex flex-col gap-1 focus:outline-none">
             <span className="font-mono text-[11px] tracking-[0.16em] text-ash uppercase">
-              {result.free ? "Already fits · no AI needed" : tierText[result.tier]}
+              {tierText[result.tier]}
             </span>
             <span className="font-display text-[28px] leading-none italic">{result.recipe.title}</span>
           </h3>

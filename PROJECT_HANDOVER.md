@@ -135,8 +135,7 @@ is tested with mocks, then live-checked once with the user's authorisation (belo
 - Assistant: `services/assistantService.js` (config, prompts), `services/assistantStore.js` (tables
   `assistant_requests`, `assistant_explanations`), `controllers/assistantController.js`,
   `routes/assistantRoutes.js` (`GET /api/assistant/status`, `POST /edit`, `POST /explain`),
-  `utils/recipeEdits.js` (core protein/staple detection, tiers, diff). A recipe that already fits a
-  requested diet is labelled in code with no AI request. Rejected and failed requests still count
+  `utils/recipeEdits.js` (core protein/staple detection, tiers, diff). Rejected and failed requests still count
   toward the limits (they cost a call).
 - Client: `components/RecipeAssistant.jsx` (recipe page, hidden unless the server reports it enabled),
   `components/StepHelp.jsx` (Cooking Mode, below the timers), API calls in `services/api.js`.
@@ -159,6 +158,12 @@ ignored `server/.env`; server restarted; exactly 5 paid requests from a throwawa
   `EDIT_MAX_TOKENS` was raised from 3,000 to 4,000.
 - Generated ingredient names came back lower-case with units like "cups (cooked)"; harmless (the UI
   upper-cases) but worth a prompt tweak later.
+
+Diet edit removed (2026-10-23, user decision): diet is chosen only on Plan tonight. The
+"Make it vegetarian/vegan" assistant action, its free "already fits" shortcut and its buttons are gone;
+edits of a vegetarian or vegan recipe must still stay so (prompt rule plus code check). For an older
+meat dish, "I don't have <meat>" usually yields a swap, but hidden animal ingredients (e.g. oyster
+sauce) are not replaced unless asked one at a time.
 
 ## Next action
 

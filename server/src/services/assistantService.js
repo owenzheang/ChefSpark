@@ -1,14 +1,14 @@
 // Recipe assistant (Phase 3): a few fixed recipe changes and step explanations, all through DeepSeek.
 // Off unless ASSISTANT_ENABLED=true. One request per action, no retries, capped answer length.
 import { recipeFieldRules, recipeObjectShape } from "./deepseekService.js";
-import { dietPromptRule } from "../utils/dietRules.js";
 
 export const ASSISTANT_TIMEOUT_MS = 30_000;
 export const EDIT_MAX_TOKENS = 4000; // a full recipe edit used up to ~2,500 output tokens in the live check
 export const EXPLAIN_MAX_TOKENS = 250;
 export const MAX_ANSWER_LENGTH = 700;
 
-export const editActions = ["missing", "diet", "simpler"];
+// Diet is chosen when planning (Plan tonight), not as an edit; edits keep a recipe's diet.
+export const editActions = ["missing", "simpler"];
 export const explainQuestions = {
   meaning: "What does this step mean, and how do I do it?",
   doneness: "How do I know this step is done?"
@@ -36,17 +36,14 @@ function recipeForPrompt(recipe) {
   return { title, cuisine, difficulty, servings, cookTime, ingredients, steps, tips, substitutions, imagePrompt };
 }
 
-function editInstruction({ action, ingredient, diet }) {
+function editInstruction({ action, ingredient }) {
   if (action === "missing") {
     return `The cook does not have "${ingredient}". Rework the recipe so it no longer uses it: use a sensible substitute (prefer something from the inventory) or leave it out if the dish still works without it. Update every step that mentions it.`;
-  }
-  if (action === "diet") {
-    return `Make this recipe ${diet.toLowerCase()}. Replace only the ingredients that break the diet with sensible ones and keep the dish recognisable. ${dietPromptRule(diet)}`;
   }
   return "Make this recipe simpler and quicker for a beginner: combine or remove steps and optional ingredients where it does not hurt the dish, and update cookTime honestly. Keep the main ingredients.";
 }
 
-export function buildEditPrompt({ recipe, action, ingredient, diet, inventory }) {
+export function buildEditPrompt({ recipe, action, ingredient, inventory }) {
   const inventoryList = inventory.length ? inventory.map((item) => `- ${item.name}`).join("\n") : "- (empty)";
   return {
     system: `You are ChefSpark's recipe assistant. You change one existing recipe in one specific way and return the complete updated recipe.
@@ -62,7 +59,8 @@ ${recipeObjectShape}
 Rules:
 - Make only the change requested. Keep everything else as it is: other ingredients and amounts, steps, tips and wording.
 - Keep the same dish whenever possible. Keep the title unless the main ingredient changes; then give an honest new title.
-- Keep servings at ${recipe.servings} and cuisine "${recipe.cuisine}".
+- Keep servings at ${recipe.servings} and cuisine "${recipe.cuisine}".${recipe.diet === "Vegetarian" || recipe.diet === "Vegan" ? `
+- The recipe is ${recipe.diet.toLowerCase()} and must stay ${recipe.diet.toLowerCase()}.` : ""}
 - Steps must match the ingredient list: never mention an ingredient that is no longer in it.
 - Return 4-8 cooking steps, numbered from 1.
 ${recipeFieldRules}
@@ -74,7 +72,7 @@ Cook's inventory:
 ${inventoryList}
 
 Requested change:
-${editInstruction({ action, ingredient, diet })}
+${editInstruction({ action, ingredient })}
 
 Return JSON only.`
   };

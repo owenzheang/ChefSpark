@@ -73,39 +73,28 @@ test("disabled, invalid or pointless requests never reach DeepSeek", async () =>
   assert.equal((await call(on.controller.edit, { body: { recipe: legacy, action: "simpler" } })).status, 422);
   assert.equal((await call(on.controller.edit, { body: { recipe, action: "rewrite everything" } })).status, 400);
   assert.equal((await call(on.controller.edit, { body: { recipe, action: "missing", ingredient: "Beef" } })).status, 400);
-  assert.equal((await call(on.controller.edit, { body: { recipe, action: "diet", diet: "Keto" } })).status, 400);
+  assert.equal((await call(on.controller.edit, { body: { recipe, action: "diet", diet: "Vegetarian" } })).status, 400, "diet is chosen when planning, not as an edit");
   assert.match((await call(on.controller.edit, { body: { recipe: { ...recipe, editCount: 3 }, action: "simpler" } })).body.message, /3 times/);
   assert.equal((await call(on.controller.explain, { body: { recipe, stepIndex: 9, question: "meaning" } })).status, 400);
   assert.equal((await call(on.controller.explain, { body: { recipe, stepIndex: 0, question: "anything" } })).status, 400);
   assert.equal(on.calls.length, 0);
 });
 
-test("a recipe that already fits a diet is labelled in code for free", async () => {
-  const { controller, calls, q } = await setup({ answer: {} });
-  const tofu = withIngredients(swap("Chicken", ingredient("Tofu", 200, "g")), { title: "Tofu Fried Rice" });
-  const result = await call(controller.edit, { body: { recipe: tofu, action: "diet", diet: "Vegetarian" } });
-  assert.equal(result.body.tier, "minor");
-  assert.equal(result.body.free, true);
-  assert.equal(result.body.recipe.diet, "Vegetarian");
-  assert.equal(calls.length, 0);
-  assert.equal((await q.get("SELECT COUNT(*) AS n FROM assistant_requests")).n, 0);
-});
-
-test("a core swap becomes a variant with a code-computed diff, recalculated match and the diet kept", async () => {
+test("a core swap becomes a variant with a code-computed diff and a recalculated match", async () => {
   const proposal = withIngredients(swap("Chicken", ingredient("Firm Tofu", 200, "g")), {
     title: "Tofu Fried Rice", matchScore: 99, youHave: ["everything"], imageUrl: "https://example.test/x.jpg",
     ingredientMatches: [], steps: steps(["Dice the tofu and carrot.", "Fry the tofu for 5 minutes.", "Add the eggs and scramble.",
       "Add the rice, peas and carrot and stir-fry for 4 minutes.", "Season with soy sauce and salt; top with spring onion."])
   });
   const { controller, calls, q } = await setup({ answer: { recipe: proposal } });
-  const result = await call(controller.edit, { body: { recipe, action: "diet", diet: "Vegetarian" } });
+  const result = await call(controller.edit, { body: { recipe, action: "missing", ingredient: "Chicken" } });
   assert.equal(result.status, 200);
   assert.equal(result.body.status, "proposed");
   assert.equal(result.body.tier, "variant");
   const edited = result.body.recipe;
   assert.equal(edited.title, "Tofu Fried Rice");
   assert.equal(edited.variantOf, "Chicken Fried Rice");
-  assert.equal(edited.diet, "Vegetarian");
+  assert.equal(edited.diet, undefined, "an edit never adds a diet label");
   assert.equal(edited.editCount, 1);
   assert.equal(edited.imageUrl, undefined, "a variant never inherits a picture");
   assert.notEqual(edited.matchScore, 99, "match is recalculated by the server");
@@ -116,9 +105,10 @@ test("a core swap becomes a variant with a code-computed diff, recalculated matc
   assert.equal(result.body.remainingToday, 19);
   assert.equal(calls[0].maxTokens, 4000);
   assert.equal(calls[0].timeoutMs, 30_000);
-  assert.match(calls[0].user, /Make this recipe vegetarian/);
+  assert.match(calls[0].user, /does not have "Chicken"/);
+  assert.doesNotMatch(calls[0].system, /must stay/);
   const row = await q.get("SELECT kind, result, prompt_tokens, completion_tokens FROM assistant_requests");
-  assert.deepEqual({ ...row }, { kind: "edit:diet", result: "success", prompt_tokens: 900, completion_tokens: 700 });
+  assert.deepEqual({ ...row }, { kind: "edit:missing", result: "success", prompt_tokens: 900, completion_tokens: 700 });
 });
 
 test("a small change keeps the title; the AI cannot rename or break the diet", async () => {
@@ -132,6 +122,7 @@ test("a small change keeps the title; the AI cannot rename or break the diet", a
   assert.equal(minor.body.tier, "minor");
   assert.equal(minor.body.recipe.title, "Tofu Fried Rice");
   assert.equal(minor.body.recipe.diet, "Vegetarian");
+  assert.equal(minor.body.diff.removed.length, 1);
   assert.deepEqual(minor.body.diff.removed, ["Peas"]);
 
   // The original was vegetarian; a proposal with chicken is rejected rather than shown.
@@ -220,6 +211,8 @@ test("prompts carry the request as data and the safety rules", () => {
   assert.match(edit.user, /does not have "Peas"/);
   assert.match(edit.user, /- Tofu/);
   assert.doesNotMatch(edit.user, /youHave|matchScore/);
+  const kept = buildEditPrompt({ recipe: { ...recipe, diet: "Vegan" }, action: "simpler", inventory: [] });
+  assert.match(kept.system, /is vegan and must stay vegan/);
   const explain = buildExplainPrompt({ recipe, stepIndex: 1, question: "doneness" });
   assert.match(explain.system, /safe internal temperature/);
   assert.match(explain.user, /Step 2 of 5: Fry the chicken for 5 minutes\./);

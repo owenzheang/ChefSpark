@@ -34,7 +34,7 @@ Any AI change to a recipe must produce a new validated recipe version that the u
 - Diet choice on Plan tonight (Any / Vegetarian / Vegan): in the prompt and checked in code against an
   ingredient keyword list; dishes that break it are dropped (no retry) and the user is told.
 - Recipe assistant (Phase 3, off unless `ASSISTANT_ENABLED=true`): fixed changes on the recipe page
-  ("I don't have…", make it vegetarian/vegan, simpler & quicker) shown as a before/after preview the
+  ("I don't have…", simpler & quicker; diet is chosen on Plan tonight, not as an edit) shown as a before/after preview the
   cook accepts or not, and two questions per step in Cooking Mode ("What does this mean?", "How do I
   know it's done?").
 - Recipe pictures: Pexels URLs are still returned by the server but no longer shown (plate rings and

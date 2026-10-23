@@ -27,17 +27,13 @@ test("the assistant stays hidden until the server says it is on, and for older r
   assert.equal(render(StepHelp, { recipe, stepIndex: 0 }), "");
 });
 
-test("the fixed actions, the remaining count and the diet buttons follow the recipe", () => {
+test("the fixed actions and the remaining count; diet is chosen when planning, not here", () => {
   const html = render(Assistant, { recipe, onAdopt() {}, initialStatus: on });
   assert.match(html, /Adjust this dish/);
   assert.match(html, /17 LEFT TODAY/);
   assert.match(html, /aria-expanded="false"[^>]*>I don(&#x27;|')t have…/);
-  assert.match(html, />Make it vegetarian</);
-  assert.match(html, />Make it vegan</);
   assert.match(html, />Simpler &amp; quicker</);
-  const vegetarian = render(Assistant, { recipe: { ...recipe, diet: "Vegetarian" }, onAdopt() {}, initialStatus: on });
-  assert.doesNotMatch(vegetarian, /Make it vegetarian/);
-  assert.match(vegetarian, /Make it vegan/);
+  assert.doesNotMatch(html, /Make it veg/);
   const worn = render(Assistant, { recipe: { ...recipe, editCount: 3 }, onAdopt() {}, initialStatus: on });
   assert.match(worn, /adjusted 3 times/);
   assert.doesNotMatch(worn, /Simpler/);
