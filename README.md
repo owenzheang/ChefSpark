@@ -47,7 +47,7 @@ Paused, code kept: the One-Page Zine and its optional AI artwork (see
 ## Current focus
 
 **Phase 1 — full UI redesign: done (2026-10-23).** Built with Tailwind CSS, following [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md)
-("Ember": cast-iron black, flour-white type, one butter-cream accent) and its mockup. **Phase 2 — Cooking Mode: done (2026-10-23).** Deployment (1.5) was deferred. **Phase 3 — recipe assistant: built (2026-10-23)**, mocked tests only; live check pending the user's go-ahead. See [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md).
+("Ember": cast-iron black, flour-white type, one butter-cream accent) and its mockup. **Phase 2 — Cooking Mode: done (2026-10-23).** Deployment (1.5) was deferred. **Phase 3 — recipe assistant: done (2026-10-23)**, live-checked with `deepseek-flash`. See [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md).
 
 ## Stack
 

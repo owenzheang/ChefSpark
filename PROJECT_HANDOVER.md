@@ -123,7 +123,7 @@ scaling included.
 
 The user approved, in order: a diet choice on Plan tonight, then the assistant with `deepseek-flash`,
 saved-recipe edits saved as new recipes, 20/300 daily limits and code-decided edit sizes. Everything
-is tested with mocks; no DeepSeek request has been made for this work.
+is tested with mocks, then live-checked once with the user's authorisation (below).
 
 - Diet: `server/src/utils/dietRules.js` (allowed diets, keyword check with plant-based exceptions,
   prompt rule). `recipeController` validates `diet`, drops dishes that break it and returns
@@ -145,13 +145,26 @@ is tested with mocks; no DeepSeek request has been made for this work.
   vegetarian; rejected "I don't have" message; minor change preview; Cooking Mode doneness answer;
   Plan tonight diet pills and caution text.
 
+Live check (2026-10-23, authorised by the user, budget USD 0.02): `ASSISTANT_ENABLED=true` added to the
+ignored `server/.env`; server restarted; exactly 5 paid requests from a throwaway local account
+`assistant-test-…@example.test` (inventory Rice, Eggs, Tofu, Broccoli, Garlic, Soy Sauce, Chicken Breast).
+- `deepseek-flash` works. Vegetarian generation (34.6 s): Egg Fried Rice, Broccoli and Tofu Stir-fry,
+  Tomato and Egg Stir-fry; nothing dropped; the chicken in the inventory was ignored.
+- "I don't have spring onion" → minor, removed and two steps updated (5.4 s). "Simpler" → minor,
+  6 → 4 steps, 20 → 15 minutes, garnish dropped (4.7 s). Chicken Fried Rice → vegetarian → variant
+  "Tofu Fried Rice", oyster sauce → vegetarian oyster sauce (14.1 s). Chicken doneness answer gave
+  visual cues and 74°C / 165°F (1.8 s).
+- Assistant tokens: 4,183 in / 4,523 out ≈ USD 0.007 at peak prices; generation not token-logged,
+  estimated ≈ USD 0.004. Total ≈ USD 0.011. The vegetarian edit used 2,463 output tokens, so
+  `EDIT_MAX_TOKENS` was raised from 3,000 to 4,000.
+- Generated ingredient names came back lower-case with units like "cups (cooked)"; harmless (the UI
+  upper-cases) but worth a prompt tweak later.
+
 ## Next action
 
-1. With the user's authorisation only: set `ASSISTANT_ENABLED=true` in `server/.env`, restart the
-   server (the one already running may be older code), and make about five live requests (one
-   generation with a diet, one of each edit, one explanation). Estimated total under USD 0.02 at
-   `deepseek-flash` prices; confirm the model name works.
-2. Then Phase 4 (food images) or deployment (1.5).
+Phase 4 (food images: compare OpenAI and Jimeng, image library keyed by dish plus visible core
+ingredients; variants never inherit a picture) or deployment (1.5). The assistant switch stays on in
+the local `server/.env`.
 
 ## File map
 

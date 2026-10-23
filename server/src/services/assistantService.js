@@ -4,7 +4,7 @@ import { recipeFieldRules, recipeObjectShape } from "./deepseekService.js";
 import { dietPromptRule } from "../utils/dietRules.js";
 
 export const ASSISTANT_TIMEOUT_MS = 30_000;
-export const EDIT_MAX_TOKENS = 3000;
+export const EDIT_MAX_TOKENS = 4000; // a full recipe edit used up to ~2,500 output tokens in the live check
 export const EXPLAIN_MAX_TOKENS = 250;
 export const MAX_ANSWER_LENGTH = 700;
 

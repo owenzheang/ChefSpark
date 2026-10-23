@@ -114,7 +114,7 @@ test("a core swap becomes a variant with a code-computed diff, recalculated matc
   assert.deepEqual(result.body.diff.added, [{ name: "Firm Tofu", amount: "200 g" }]);
   assert.equal(result.body.diff.steps.changed, 2);
   assert.equal(result.body.remainingToday, 19);
-  assert.equal(calls[0].maxTokens, 3000);
+  assert.equal(calls[0].maxTokens, 4000);
   assert.equal(calls[0].timeoutMs, 30_000);
   assert.match(calls[0].user, /Make this recipe vegetarian/);
   const row = await q.get("SELECT kind, result, prompt_tokens, completion_tokens FROM assistant_requests");
