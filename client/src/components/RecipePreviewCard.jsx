@@ -37,6 +37,7 @@ export default function RecipePreviewCard({ recipe, onViewRecipe, onSave, isSavi
         <Burners difficulty={recipe.difficulty} />
         <span>{recipe.difficulty}</span><span aria-hidden="true">·</span>
         <span>{recipe.cuisine}</span><span aria-hidden="true">·</span>
+        {recipe.diet && <><span>{recipe.diet}</span><span aria-hidden="true">·</span></>}
         <span>{recipe.cookTime}</span><span aria-hidden="true">·</span>
         <span>Serves {recipe.servings}</span>
       </p>

@@ -20,9 +20,16 @@ const cuisineOptions = [
 
 const difficultyOptions = ["Easy", "Medium", "Hard"];
 
+// Must match the server's allowedDiets (server/src/utils/dietRules.js).
+const dietOptions = ["Any", "Vegetarian", "Vegan"];
+const dietNotes = {
+  Vegetarian: "No meat or fish. Eggs and dairy are fine.",
+  Vegan: "No meat, fish, eggs, dairy or honey."
+};
+
 const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream";
 
-function RecipeGenerationPage({ onBack, onViewRecipe, recipes, setRecipes, cuisine, setCuisine, difficulty, setDifficulty }) {
+function RecipeGenerationPage({ onBack, onViewRecipe, recipes, setRecipes, cuisine, setCuisine, difficulty, setDifficulty, diet = "Any", setDiet = () => {} }) {
   const [ingredients, setIngredients] = useState([]);
   const [message, setMessage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -57,13 +64,17 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, setRecipes, cuisi
     setIsLoading(true);
 
     try {
-      const data = await generateRecipes({ cuisine, difficulty }, { signal: controller.signal });
+      const data = await generateRecipes({ cuisine, difficulty, diet }, { signal: controller.signal });
       if (!isMounted.current) return;
       if (!data.recipes?.length) {
         setMessage({ tone: "error", text: "No dishes came back this time. Please try again." });
         return;
       }
       setRecipes(data.recipes);
+      if (data.droppedForDiet > 0) {
+        const count = data.droppedForDiet === 1 ? "1 dish" : `${data.droppedForDiet} dishes`;
+        setMessage({ tone: "info", text: `Left out ${count} that wasn't ${diet.toLowerCase()}.` });
+      }
       requestAnimationFrame(() => resultsHeading.current?.focus());
     } catch (error) {
       if (!isMounted.current) return;
@@ -154,6 +165,26 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, setRecipes, cuisi
             );
           })}
         </div>
+      </fieldset>
+
+      <fieldset className="mt-7" disabled={isLoading}>
+        <legend className="mb-3 font-mono text-[11px] tracking-[0.2em] text-ash">DIET</legend>
+        <div className="grid grid-cols-3 gap-2">
+          {dietOptions.map((option) => {
+            const selected = diet === option;
+            return (
+              <button key={option} type="button" aria-pressed={selected} onClick={() => setDiet(option)}
+                className={`flex min-h-12 items-center justify-center rounded-full text-[15px] font-medium disabled:cursor-not-allowed disabled:opacity-60 ${selected ? "bg-cream text-iron" : "text-flour ring-1 ring-flour/40 hover:ring-flour"} ${focusRing}`}>
+                {option}
+              </button>
+            );
+          })}
+        </div>
+        {dietNotes[diet] && (
+          <p className="mt-3 text-[13px] leading-snug text-ash">
+            {dietNotes[diet]} ChefSpark checks every ingredient, but check labels on packaged sauces and cheese.
+          </p>
+        )}
       </fieldset>
 
       <motion.button type="button" onClick={handleGenerate} disabled={isLoading || !hasIngredients} whileTap={{ scale: 0.97 }}

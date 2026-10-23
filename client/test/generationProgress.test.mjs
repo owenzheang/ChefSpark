@@ -56,8 +56,29 @@ test("animations only run when the user allows motion", async () => {
 
 test("the generation page wires cancel to an AbortController and aborts on leave", async () => {
   const source = await readFile(new URL("../src/pages/RecipeGenerationPage.jsx", import.meta.url), "utf8");
-  assert.match(source, /generateRecipes\(\{ cuisine, difficulty \}, \{ signal: controller\.signal \}\)/);
+  assert.match(source, /generateRecipes\(\{ cuisine, difficulty, diet \}, \{ signal: controller\.signal \}\)/);
   assert.match(source, /function handleCancel\(\) \{\s+request\.current\?\.abort\(\);/);
   assert.match(source, /request\.current\?\.abort\(\); \/\/ Leaving the page/);
   assert.match(source, /error\.name === "AbortError"/);
+});
+
+test("the diet choice is a pressed-state group with a label caution for vegetarian and vegan", async () => {
+  const { default: Page } = await server.ssrLoadModule("/src/pages/RecipeGenerationPage.jsx");
+  const props = { recipes: [], setRecipes() {}, cuisine: "Chinese", setCuisine() {}, difficulty: "Easy", setDifficulty() {}, setDiet() {} };
+  const any = renderToStaticMarkup(createElement(Page, { ...props, diet: "Any" }));
+  assert.match(any, />DIET<\/legend>/);
+  assert.match(any, /aria-pressed="true"[^>]*>Any</);
+  assert.doesNotMatch(any, /check labels/);
+  const veg = renderToStaticMarkup(createElement(Page, { ...props, diet: "Vegetarian" }));
+  assert.match(veg, /aria-pressed="true"[^>]*>Vegetarian</);
+  assert.match(veg, /Eggs and dairy are fine\..*check labels/);
+});
+
+test("recipe cards and the recipe page show a server-set diet", async () => {
+  const { default: Card } = await server.ssrLoadModule("/src/components/RecipePreviewCard.jsx");
+  const recipe = { title: "Mapo Tofu", cuisine: "Chinese", difficulty: "Easy", cookTime: "20 minutes", servings: 2, matchScore: 80,
+    diet: "Vegan", youHave: ["Tofu"], youNeed: [], ingredients: [{ name: "Tofu", quantity: 300, unit: "g" }], steps: [] };
+  assert.match(renderToStaticMarkup(createElement(Card, { index: 0, recipe, onViewRecipe() {}, onSave() {} })), /<span>Vegan<\/span>/);
+  const { default: Detail } = await server.ssrLoadModule("/src/pages/RecipeDetailPage.jsx");
+  assert.match(renderToStaticMarkup(createElement(Detail, { generatedRecipe: recipe })), />Chinese · Vegan</);
 });

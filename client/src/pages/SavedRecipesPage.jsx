@@ -134,6 +134,7 @@ function SavedRecipesPage({ onViewRecipe, onCook }) {
                       <span className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[11px] tracking-[0.12em] text-ash uppercase">
                         {recipe.difficulty && <><Burners difficulty={recipe.difficulty} size={7} /><span>{recipe.difficulty}</span></>}
                         {recipe.cuisine && <><span aria-hidden="true">·</span><span>{recipe.cuisine}</span></>}
+                        {recipe.diet && <><span aria-hidden="true">·</span><span>{recipe.diet}</span></>}
                         {recipe.cookTime && <><span aria-hidden="true">·</span><span>{formatCookTime(recipe.cookTime)}</span></>}
                         <span aria-hidden="true">·</span><span>{formatSavedDate(savedRecipe.savedAt)}</span>
                       </span>

@@ -16,7 +16,8 @@ import { clearSessionKeys, clearSessionPrefix, useSessionState } from "./utils/s
 const sessionKeys = {
   recipes: "chefspark:tonight:recipes",
   cuisine: "chefspark:tonight:cuisine",
-  difficulty: "chefspark:tonight:difficulty"
+  difficulty: "chefspark:tonight:difficulty",
+  diet: "chefspark:tonight:diet"
 };
 
 // Protected pages: without a token, go to login and come back afterwards.
@@ -116,6 +117,7 @@ export function AppRoutes() {
   const [generatedRecipes, setGeneratedRecipes] = useSessionState(sessionKeys.recipes, []);
   const [cuisine, setCuisine] = useSessionState(sessionKeys.cuisine, "Chinese");
   const [difficulty, setDifficulty] = useSessionState(sessionKeys.difficulty, "Easy");
+  const [diet, setDiet] = useSessionState(sessionKeys.diet, "Any");
 
   function signOut() {
     removeToken();
@@ -124,6 +126,7 @@ export function AppRoutes() {
     setGeneratedRecipes([]);
     setCuisine("Chinese");
     setDifficulty("Easy");
+    setDiet("Any");
     navigate(paths.login, { replace: true });
   }
 
@@ -161,6 +164,8 @@ export function AppRoutes() {
           setCuisine={setCuisine}
           difficulty={difficulty}
           setDifficulty={setDifficulty}
+          diet={diet}
+          setDiet={setDiet}
           onViewRecipe={(recipe) => navigate(paths.generatedDish(Math.max(0, generatedRecipes.indexOf(recipe))))}
           onBack={() => navigate(paths.kitchen)}
         />

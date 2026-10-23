@@ -129,7 +129,11 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, onStartCooki
           </div>
 
           <header className="mt-6 flex flex-col items-center gap-2 text-center">
-            {recipe.cuisine && <span className="font-mono text-[11px] tracking-[0.3em] text-ash uppercase">{recipe.cuisine}</span>}
+            {(recipe.cuisine || recipe.diet) && (
+              <span className="font-mono text-[11px] tracking-[0.3em] text-ash uppercase">
+                {[recipe.cuisine, recipe.diet].filter(Boolean).join(" · ")}
+              </span>
+            )}
             <h1 className="font-display text-[50px] leading-[0.95] italic">{recipe.title}</h1>
           </header>
 
