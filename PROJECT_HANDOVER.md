@@ -119,10 +119,39 @@ scaling included.
   the browser: the save button on the finish screen for an unsaved dish, the chime and vibration
   (pane), and wake lock (the embedded pane does not grant it).
 
+## Diet choice and Phase 3 — recipe assistant (built 2026-10-23)
+
+The user approved, in order: a diet choice on Plan tonight, then the assistant with `deepseek-flash`,
+saved-recipe edits saved as new recipes, 20/300 daily limits and code-decided edit sizes. Everything
+is tested with mocks; no DeepSeek request has been made for this work.
+
+- Diet: `server/src/utils/dietRules.js` (allowed diets, keyword check with plant-based exceptions,
+  prompt rule). `recipeController` validates `diet`, drops dishes that break it and returns
+  `droppedForDiet`; fitting dishes get a server-set `diet` shown on the menu, recipe page and shelf.
+- `deepseekService.js`: `requestDeepSeekJson` (shared request, errors, timeout, cancel, `max_tokens`),
+  `recipeObjectShape`/`recipeFieldRules` shared with the assistant prompt (generation prompt has the
+  same lines; two rules changed order), `DEEPSEEK_MODEL` (default `deepseek-flash`; `deepseek-chat` is
+  no longer on DeepSeek's price list, so recipe generation now uses the same default).
+- Assistant: `services/assistantService.js` (config, prompts), `services/assistantStore.js` (tables
+  `assistant_requests`, `assistant_explanations`), `controllers/assistantController.js`,
+  `routes/assistantRoutes.js` (`GET /api/assistant/status`, `POST /edit`, `POST /explain`),
+  `utils/recipeEdits.js` (core protein/staple detection, tiers, diff). A recipe that already fits a
+  requested diet is labelled in code with no AI request. Rejected and failed requests still count
+  toward the limits (they cost a call).
+- Client: `components/RecipeAssistant.jsx` (recipe page, hidden unless the server reports it enabled),
+  `components/StepHelp.jsx` (Cooking Mode, below the timers), API calls in `services/api.js`.
+- Verified: 73 server and 66 client tests; build; browser at 375px with the API stubbed in the page
+  (no server or AI calls): vegetarian variant preview → "Save as new recipe" → `/shelf/99` labelled
+  vegetarian; rejected "I don't have" message; minor change preview; Cooking Mode doneness answer;
+  Plan tonight diet pills and caution text.
+
 ## Next action
 
-Choose between Phase 3 (scoped recipe assistant) and deployment (1.5, deferred). Deployment needs
-hosting with persistent SQLite storage, SPA fallback, host secrets, and the open git decision above.
+1. With the user's authorisation only: set `ASSISTANT_ENABLED=true` in `server/.env`, restart the
+   server (the one already running may be older code), and make about five live requests (one
+   generation with a diet, one of each edit, one explanation). Estimated total under USD 0.02 at
+   `deepseek-flash` prices; confirm the model name works.
+2. Then Phase 4 (food images) or deployment (1.5).
 
 ## File map
 
@@ -132,7 +161,8 @@ hosting with persistent SQLite storage, SPA fallback, host secrets, and the open
 | Screens | `client/src/pages/` — `IngredientsPage`, `RecipeGenerationPage`, `RecipeDetailPage`, `CookingModePage`, `SavedRecipesPage`, `LoginPage`, `RegisterPage` |
 | Styles | `client/src/index.css` (Tailwind theme tokens), `client/src/components/zine.css` (paused Zine only) |
 | API client | `client/src/services/api.js` |
-| Recipe generation | `server/src/services/deepseekService.js`, `server/src/controllers/recipeController.js` (cuisine allow-list: Chinese, Western) |
+| Recipe generation | `server/src/services/deepseekService.js`, `server/src/controllers/recipeController.js` (cuisine allow-list: Chinese, Western; diet: Any, Vegetarian, Vegan), `server/src/utils/dietRules.js` |
+| Recipe assistant | `server/src/services/assistantService.js`, `assistantStore.js`, `controllers/assistantController.js`, `routes/assistantRoutes.js`, `utils/recipeEdits.js`; client `components/RecipeAssistant.jsx`, `StepHelp.jsx` |
 | Validation and matching | `server/src/utils/recipeValidation.js`, `server/src/utils/recipeMatching.js` |
 | Images | `server/src/services/pexelsService.js` |
 | Paused Zine | `client/src/components/OnePageZine.jsx`, `ZineSamplePreview.jsx`, `ZineArtwork.jsx`, `client/src/data/zineStyles.js`, `zineAssetSamples.js`; server `zineStore.js`, `zineGenerationService.js`, `zineController.js`, `zineRoutes.js`, `utils/zineAssets.js` |

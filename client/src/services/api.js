@@ -111,6 +111,19 @@ export function generateRecipes(options, { signal } = {}) {
   });
 }
 
+// Recipe assistant (Phase 3). Each edit or uncached explanation is one paid DeepSeek request on the server.
+export function getAssistantStatus() {
+  return request("/assistant/status");
+}
+
+export function proposeRecipeEdit(change, { signal } = {}) {
+  return request("/assistant/edit", { method: "POST", body: JSON.stringify(change), signal });
+}
+
+export function explainStep(question, { signal } = {}) {
+  return request("/assistant/explain", { method: "POST", body: JSON.stringify(question), signal });
+}
+
 export function saveRecipe(recipe) {
   return request("/saved-recipes", {
     method: "POST",

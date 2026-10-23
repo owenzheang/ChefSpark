@@ -9,12 +9,14 @@ import { features } from "../data/features.js";
 import Spark from "../components/Spark.jsx";
 import PlateRing from "../components/PlateRing.jsx";
 import Burners from "../components/Burners.jsx";
+import RecipeAssistant from "../components/RecipeAssistant.jsx";
 import { scaleIngredients } from "../utils/scaleRecipe.js";
 import { useSessionState } from "../utils/sessionState.js";
 
 const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream";
 
-function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, onStartCooking, servingsKey, zineEnabled = features.zine }) {
+function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, onStartCooking, onAdopt, servingsKey,
+  zineEnabled = features.zine, assistantStatus = null }) {
   const [savedRecipe, setSavedRecipe] = useState(null);
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -264,6 +266,8 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, onStartCooki
               )}
             </section>
           )}
+
+          {onAdopt && <RecipeAssistant recipe={recipe} isSaved={!generatedRecipe} onAdopt={onAdopt} initialStatus={assistantStatus} />}
 
           {zineEnabled && <div className="mt-8"><ZineEntry onOpen={() => navigateZine("intro")} /></div>}
         </article>

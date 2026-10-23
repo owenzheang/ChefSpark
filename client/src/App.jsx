@@ -60,22 +60,29 @@ function FullScreen({ children }) {
   );
 }
 
-function GeneratedDishRoute({ recipes }) {
+function GeneratedDishRoute({ recipes, setRecipes }) {
   const { dish } = useParams();
   const navigate = useNavigate();
   const index = dishIndexFromParam(dish);
   const recipe = recipes[index];
   // The unsaved menu lives in this tab only; if it is gone, return to planning.
   if (!recipe) return <Navigate to={paths.cook} replace />;
+  // An accepted assistant version replaces this unsaved dish in tonight's menu.
+  const adopt = (edited) => setRecipes((list) => list.map((item, position) => position === index ? edited : item));
   return <RecipeDetailPage key={`generated-${dish}`} generatedRecipe={recipe} onBack={() => navigate(paths.cook)}
-    servingsKey={generatedKey(dish, recipe)} onStartCooking={() => navigate(paths.generatedDishCooking(index))} />;
+    servingsKey={generatedKey(dish, recipe)} onStartCooking={() => navigate(paths.generatedDishCooking(index))} onAdopt={adopt} />;
 }
 
 function SavedRecipeRoute() {
   const { id } = useParams();
   const navigate = useNavigate();
+  // An accepted assistant version of a saved recipe is saved as a new recipe; the original stays.
+  async function adopt(edited) {
+    const data = await saveRecipe(edited);
+    navigate(paths.savedRecipe(data.savedRecipe.id));
+  }
   return <RecipeDetailPage key={`saved-${id}`} savedRecipeId={id} onBack={() => navigate(paths.shelf)}
-    servingsKey={`saved-${id}`} onStartCooking={() => navigate(paths.savedRecipeCooking(id))} />;
+    servingsKey={`saved-${id}`} onStartCooking={() => navigate(paths.savedRecipeCooking(id))} onAdopt={adopt} />;
 }
 
 function GeneratedCookingRoute({ recipes }) {
@@ -170,7 +177,7 @@ export function AppRoutes() {
           onBack={() => navigate(paths.kitchen)}
         />
       </WithNavigation>} />
-      <Route path={`${paths.cook}/dish/:dish`} element={<WithNavigation><GeneratedDishRoute recipes={generatedRecipes} /></WithNavigation>} />
+      <Route path={`${paths.cook}/dish/:dish`} element={<WithNavigation><GeneratedDishRoute recipes={generatedRecipes} setRecipes={setGeneratedRecipes} /></WithNavigation>} />
       {/* Cooking Mode is full screen: signed in, but without the bottom navigation. */}
       <Route path={`${paths.cook}/dish/:dish/cooking`} element={<FullScreen><GeneratedCookingRoute recipes={generatedRecipes} /></FullScreen>} />
 

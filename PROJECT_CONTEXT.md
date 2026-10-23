@@ -43,6 +43,19 @@ Why ChefSpark rather than asking a general chatbot:
   announcement on finish (sound toggle), timers keep running across steps and survive refresh, step
   ingredients at the chosen servings, Screen Wake Lock where supported, "Done" screen with save for
   unsaved dishes. Per-tab state; cleared on sign-out.
+- Diet choice on Plan tonight (Any / Vegetarian / Vegan): in the prompt and checked in code against an
+  ingredient keyword list; dishes that break it are dropped (no retry) and the user is told.
+- Recipe assistant ( off unless `ASSISTANT_ENABLED=true`): fixed changes on the recipe page
+  ("I don't have…", make it vegetarian/vegan, simpler & quicker) shown as a before/after preview the
+  cook accepts or not, and two questions per step in Cooking Mode ("What does this mean?", "How do I
+  know it's done?").
+  Code decides the edit's size: `minor` (same dish, keeps title and picture), `variant` (main protein or
+  staple swapped, or over 30% of ingredients changed: own title, `variantOf`, no picture) or rejected
+  (main protein or staple lost, or over 50% changed: "plan a new dish"). At most 3 chained edits
+  (`editCount`). The server recalculates the match and the diff and keeps a recipe's diet. Accepting
+  replaces an unsaved dish in tonight's menu or saves a saved recipe's version as a new recipe.
+  Limits: 20 requests per user and 300 in total per day, one at a time, 30 s, no retries, capped
+  answers; step answers are cached for everyone and cache hits are free.
 - Images: Pexels search by recipe image prompt; frequently mismatched.
 - React Router URLs: `/kitchen`, `/cook`, `/cook/dish/:n` (unsaved dish), `/shelf`, `/shelf/:id`,
   `/login`, `/register`. Protected routes redirect to login and return afterwards; an API 401 signs

@@ -1,5 +1,6 @@
 ﻿import sqlite3 from "sqlite3";
 import { initZineTables } from "./services/zineStore.js";
+import { initAssistantTables } from "./services/assistantStore.js";
 
 const database = new sqlite3.Database("smartkitchen.db");
 
@@ -37,5 +38,6 @@ database.serialize(() => {
 });
 
 initZineTables(database).catch(error => console.error("Zine tables could not be initialised:", error.message));
+initAssistantTables(database).catch(error => console.error("Assistant tables could not be initialised:", error.message));
 
 export default database;

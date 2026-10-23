@@ -6,6 +6,7 @@ import ingredientRoutes from "./routes/ingredientRoutes.js";
 import recipeRoutes from "./routes/recipeRoutes.js";
 import savedRecipeRoutes from "./routes/savedRecipeRoutes.js";
 import zineRoutes from "./routes/zineRoutes.js";
+import assistantRoutes from "./routes/assistantRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -48,6 +49,7 @@ app.use("/api/ingredients", ingredientRoutes);
 app.use("/api/recipes", recipeRoutes);
 app.use("/api/saved-recipes", savedRecipeRoutes);
 app.use("/api/zines", zineRoutes);
+app.use("/api/assistant", assistantRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });

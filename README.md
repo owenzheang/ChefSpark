@@ -31,6 +31,12 @@ Any AI change to a recipe must produce a new validated recipe version that the u
 - A Recipe Guide for current and older saved recipe shapes.
 - Cooking Mode: one step per screen, stove-dial timers read from step text (ranges start at the
   lower bound), the step's ingredients, screen wake lock, resume after refresh, servings scaling.
+- Diet choice on Plan tonight (Any / Vegetarian / Vegan): in the prompt and checked in code against an
+  ingredient keyword list; dishes that break it are dropped (no retry) and the user is told.
+- Recipe assistant (Phase 3, off unless `ASSISTANT_ENABLED=true`): fixed changes on the recipe page
+  ("I don't have…", make it vegetarian/vegan, simpler & quicker) shown as a before/after preview the
+  cook accepts or not, and two questions per step in Cooking Mode ("What does this mean?", "How do I
+  know it's done?").
 - Recipe pictures: Pexels URLs are still returned by the server but no longer shown (plate rings and
   typographic covers instead).
 
@@ -41,7 +47,7 @@ Paused, code kept: the One-Page Zine and its optional AI artwork (see
 ## Current focus
 
 **Phase 1 — full UI redesign: done (2026-10-23).** Built with Tailwind CSS, following [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md)
-("Ember": cast-iron black, flour-white type, one butter-cream accent) and its mockup. **Phase 2 — Cooking Mode: done (2026-10-23).** Deployment (1.5) was deferred; next is Phase 3 or deployment. See [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md).
+("Ember": cast-iron black, flour-white type, one butter-cream accent) and its mockup. **Phase 2 — Cooking Mode: done (2026-10-23).** Deployment (1.5) was deferred. **Phase 3 — recipe assistant: built (2026-10-23)**, mocked tests only; live check pending the user's go-ahead. See [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md).
 
 ## Stack
 
@@ -52,7 +58,7 @@ Paused, code kept: the One-Page Zine and its optional AI artwork (see
   unknown paths so deep links and refresh work.
 - Backend: Node.js, Express, JWT, bcrypt, CORS, dotenv.
 - Database: SQLite.
-- AI: DeepSeek (recipes, server-side). OpenAI Images (paused Zine artwork and developer tools).
+- AI: DeepSeek (recipes and the recipe assistant, server-side; model from `DEEPSEEK_MODEL`, default `deepseek-flash`). OpenAI Images (paused Zine artwork and developer tools).
 
 Anything else needs explicit approval. See [RULES.md](RULES.md).
 

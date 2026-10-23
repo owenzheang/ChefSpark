@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
 import Spark from "../components/Spark.jsx";
 import StoveDial from "../components/StoveDial.jsx";
+import StepHelp from "../components/StepHelp.jsx";
 import { findStepTimers, formatClock } from "../utils/cookingTimers.js";
 import { ingredientsInStep, scaleIngredients } from "../utils/scaleRecipe.js";
 import { useSessionState } from "../utils/sessionState.js";
@@ -13,8 +14,9 @@ const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-
 const stepText = (step) => typeof step === "string" ? step : step?.instruction || "";
 
 // Cooking Mode (DESIGN_SYSTEM.md): one step per screen in large type, timers read from the step
-// text, the step's ingredients at the chosen servings, screen kept awake. No AI involved.
-function CookingModePage({ recipe, recipeKey, onExit, onSave }) {
+// text, the step's ingredients at the chosen servings, screen kept awake. Optional AI step help
+// (StepHelp) only explains; it never changes the recipe.
+function CookingModePage({ recipe, recipeKey, onExit, onSave, assistantStatus = null }) {
   const steps = Array.isArray(recipe?.steps) ? recipe.steps : [];
   const originalServings = Number.isFinite(recipe?.servings) && recipe.servings > 0 ? recipe.servings : null;
   const [stepIndex, setStepIndex] = useSessionState(`chefspark:cooking:${recipeKey}:step`, 0);
@@ -179,6 +181,8 @@ function CookingModePage({ recipe, recipeKey, onExit, onSave }) {
               </section>
             );
           })}
+
+          <StepHelp recipe={recipe} stepIndex={current} initialStatus={assistantStatus} />
 
           {current + 1 < steps.length && (
             <p className="mt-8 text-[15px] leading-relaxed text-ash">
