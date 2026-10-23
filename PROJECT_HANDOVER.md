@@ -1,203 +1,139 @@
 # ChefSpark handover
 
-Immediate continuation point. Read `README.md`, `AGENTS.md`, `RULES.md`, `PROJECT_CONTEXT.md`,
-`PROJECT_ROADMAP.md`, `DESIGN_SYSTEM.md` and this file before changing anything. Inspect source
-before treating prose as proof.
+Immediate continuation point, rewritten 2026-10-24 for a fresh session. Read `README.md`,
+`AGENTS.md`, `RULES.md`, `PROJECT_CONTEXT.md`, `PROJECT_ROADMAP.md`, `DESIGN_SYSTEM.md` (UI work) and
+this file before changing anything. Inspect source before treating prose as proof.
 
-Repository: `D:\aproject\SmartKitchen`, branch `main`.
+Repository: `D:\aproject\SmartKitchen`, branch `main`. Owner: a career switcher (digital media art,
+Deakin MIT) building ChefSpark as a portfolio product; prefers plans explained before building,
+answers in Chinese or English, and explicit approval before any paid API request.
 
-## State at 2026-10-22
+## Where things stand (2026-10-24)
 
-- Direction changed to an AI cooking companion (see `PROJECT_CONTEXT.md`). Phase 0 done in this
-  session apart from the open git decision below.
-- Tests: 58 server and 41 client tests pass (mocked; no network or paid calls); production build passes.
-- Zine paused: `client/src/data/features.js` hides the Zine entry unless `VITE_ZINE_ENABLED=true`;
-  `RecipeDetailPage` takes a `zineEnabled` prop for tests. Server artwork generation is off unless
-  `ZINE_GENERATION_ENABLED=true`.
-- `client/.env` and `client/dist/` are no longer tracked (both already ignored); `client/.env.example`
-  lists the client settings.
-- Not deployed. A throwaway local account `zine-test-…@example.test` with one saved recipe exists in
-  the local database from earlier testing.
+| Phase | Status |
+| --- | --- |
+| 0 · Clean-up and direction | Done. Zine paused behind switches; docs rewritten. |
+| 1 · UI redesign (Tailwind, "Ember" cream) | Done 2026-10-23. Every screen; React Router; legacy CSS deleted. |
+| 1.5 · Deployment | Deferred by the user. |
+| 2 · Cooking Mode | Done 2026-10-23. |
+| 3 · Recipe assistant | Done 2026-10-23, live-checked. |
+| Diet choice on Plan tonight | Done 2026-10-23, live-checked. |
+| 4 · Food images | **Next candidate** (or deployment). Not started. |
+| 5 · Natural ingredient input | Planned. |
 
-## Open decision: git remote
+Tests: 72 server + 66 client, all mocked (no network, no paid calls); production build passes.
+Working tree clean at `b46cfe6`.
 
-Local `main` is 11 commits ahead of and 5 behind `origin/main`. The 5 remote commits (July 2026:
-security clean-up, docs, generation UI/API config, icons, "UI redesigned") will not be merged
-(user decision 2026-10-20). Pushing therefore needs the user to choose, for example force-pushing
-local `main` (discards those remote commits) or pushing to a new branch. Do not pull, merge or
-force-push without that decision.
+## Git and remote (open decision, needs the user)
 
-## Phase 1 progress
+- Local `main` is 25 commits ahead of `origin/main` and 5 behind. The 5 remote commits (July 2026) are
+  **not** to be merged (user decision 2026-10-20).
+- Agreed approach: the user pushes local `main` to a new remote branch, leaving remote `main` intact:
+  `git push origin main:refs/heads/companion` (the agent's push was blocked by permissions; the user
+  runs it). After that, decide whether to make `companion` the GitHub default branch or replace
+  remote `main`. Never pull, merge or force-push without the user's explicit decision.
+- Local branch `phase-6b3-zine-assets` is already merged into `main` and can be deleted.
 
-Design direction: **Ember (cream)**, chosen by the user on 2026-10-23 after comparing three explorations
-on the design canvas (A · Riso Kitchen, B · Mono, C · Ember). Riso Kitchen was implemented first and then
-replaced; see `DESIGN_SYSTEM.md` for the current rules.
+## What the app does now
 
-Foundation:
-- Tailwind 4.3.3 via `@tailwindcss/vite` (pinned). `client/src/index.css`: layer order
-  `legacy, theme, base, components, utilities` during migration (superseded: see the cleanup below); no global
-  preflight. Ember tokens only (`iron`, `flour`, `soft`, `ash`, `cream`; display/sans/mono/hand
-  fonts; `shadow-glow`; `animate-shimmer`; `bg-ember-glow`).
-- `[data-ds]` scoped reset (base layer): legacy element rules, default border widths, lists, fieldsets,
-  headings, disabled opacity. `body` and the page container are `iron` so no light legacy background
-  shows behind migrated screens.
-- Fonts (Instrument Serif, Hanken Grotesk, IBM Plex Mono, Caveat) in `client/index.html`; theme/PWA
-  colours `#15120f`.
-- Shared pieces: `Spark`, `PlateRing` (match ring), `Burners` (difficulty, with an `onCream` variant).
+`Kitchen → Plan tonight → Tonight's menu (3 dishes) → Recipe → Cooking Mode → Shelf`
 
-Screens in Ember: `BottomNav` (three text tabs, cream spark on the active one), `AuthCard` (login and
-register), Kitchen (`IngredientsPage`, order-ticket list, cream add button, quick add with sparks, Log out
-in the header), Plan tonight (`RecipeGenerationPage`: cuisine and difficulty pills, honest
-`GenerationProgress` with Cancel), results as "Tonight's menu" (`RecipePreviewCard`: course numeral,
-plate ring with the match score, no stock photo, computed chef's note when nothing is missing).
+- **Plan tonight** (`RecipeGenerationPage`): cuisine (Chinese/Western), difficulty, and **diet** (Any /
+  Vegetarian / Vegan). The diet goes into the DeepSeek prompt and the server checks every ingredient
+  with a keyword list (`server/src/utils/dietRules.js`, plant-based exceptions like coconut milk,
+  peanut butter, vegetarian oyster sauce). A dish that breaks the diet is dropped, not retried; the
+  response carries `droppedForDiet` and the page says so. Fitting dishes get a server-set `diet` label
+  (menu, recipe page, shelf). The page tells users to check labels (keywords are not a guarantee).
+- **Recipe page**: Ember layout (plate ring, order ticket, method), servings scaling, "Light the stove"
+  → Cooking Mode, and **Adjust this dish** (recipe assistant, below).
+- **Cooking Mode**: one step per screen, timers parsed from step text (ranges start at the lower
+  bound), wake lock, chime, servings; **two step questions** ("What does this mean?", "How do I know
+  it's done?") below the timers.
+- **Shelf**: saved recipes as rows with remove confirmation.
 
-Server-side generation changes from this phase (still current): 60 s DeepSeek timeout, cancel on client
-disconnect, user-safe `RecipeGenerationError` messages, 5 s Pexels timeout.
+## Recipe assistant (Phase 3) — how it works
 
-Verified 2026-10-23: 41 client and 58 server tests; production build; browser at 375px for Kitchen, Plan
-tonight, progress + Cancel and the results menu (generate request stubbed in-page, no API call), and the
-login component rendered on its own. Saved recipes and the recipe page are still legacy (light green) and
-look inconsistent until migrated.
+- Server switch `ASSISTANT_ENABLED=true` (off by default; currently **on** in the local, ignored
+  `server/.env`). Limits: 20 requests per user and 300 total per day (`ASSISTANT_USER_DAILY_LIMIT`,
+  `ASSISTANT_GLOBAL_DAILY_LIMIT`), one request per user at a time, 30 s timeout, no retries,
+  `max_tokens` 4000 for edits and 250 for explanations. Every paid request is logged in
+  `assistant_requests` (tokens included); rejected and failed requests still count.
+- Endpoints (`/api/assistant`, auth required): `GET /status`, `POST /edit`, `POST /explain`.
+- Edit actions: **"I don't have …"** (one ingredient) and **"Simpler & quicker"**. There is no
+  diet edit: diet is chosen only on Plan tonight (user decision 2026-10-23); an edit of a vegetarian or
+  vegan recipe must stay so (prompt rule plus code check, otherwise rejected).
+- Code, not AI, decides the result (`server/src/utils/recipeEdits.js`): main protein / staple
+  detection; **minor** (same dish, keeps title and picture), **variant** (core swap or >30% of
+  ingredients changed: own title, `variantOf`, no picture), **rejected** (core protein or staple lost,
+  or >50% changed: "plan a new dish"). Max 3 chained edits (`editCount`). The server recalculates
+  Match Score and computes the before/after diff.
+- Accepting: an unsaved dish is replaced in tonight's menu; a saved recipe's version is saved as a
+  **new** shelf recipe (the original stays).
+- Step explanations are cached for everyone in `assistant_explanations` (key: model + prompt); cache
+  hits are free and not counted.
+- DeepSeek: one helper `requestDeepSeekJson` in `deepseekService.js` for generation and assistant.
+  Model from `DEEPSEEK_MODEL`, default `deepseek-flash` (`deepseek-chat` is no longer on DeepSeek's price
+  list). Prices checked 2026-10-23: input $0.30/M, output $1.20/M at peak (half off-peak).
 
-Router (2026-10-23, approved by the user): `react-router` 8.4.0 (pinned; 8.5.0 was only days old).
-Routes `/login`, `/register`, `/kitchen` (and `/`), `/cook`, `/cook/dish/:n`, `/shelf`, `/shelf/:id`, others →
-`/kitchen`. `RequireAuth` redirects to `/login` with the requested path and returns there after sign-in
-(`safeReturnPath` only allows in-app paths). `api.js` treats a 401 on a signed-in request as sign-out
-(clears the token, fires `chefspark:signed-out`; `App` navigates to login). Tonight's menu, cuisine and
-difficulty persist in sessionStorage per tab and are cleared on sign-out. Pages still take callbacks as
-props; only `App.jsx` uses router hooks. Verified: 46 client tests (route helpers, guard, dish route,
-401 handling); build; in the browser: `/` → `/kitchen`, menu → `/cook/dish/2`, Back keeps the menu,
-reload on the dish and on `/shelf/12` works, a missing dish falls back to `/cook`. Deployment must serve
-`index.html` for unknown paths (SPA fallback).
+Live check 2026-10-23 (user-authorised, 5 requests, ≈ USD 0.011 total): vegetarian generation gave
+three sensible dishes and ignored chicken in the inventory (34.6 s); "I don't have spring onion" →
+minor; "simpler" → minor, 6 → 4 steps; a (since removed) vegetarian edit → variant Tofu Fried Rice; a
+doneness answer included 74°C / 165°F. A throwaway local account `assistant-test-…@example.test`
+exists in the local database. Known nit: generated ingredient names came back lower-case with units
+like "cups (cooked)" (UI upper-cases; a prompt tweak later is optional).
 
-Recipe page in Ember (2026-10-23): `RecipeDetailPage` follows the Recipe artboard — back link
-("← MENU" / "← SHELF"), plate ring with the match score (decorative ring, score announced once; no
-stock photo), cuisine + serif title, spec row (match / time shortened to "25 min" / serves / burners with
-the word), You have / You need columns, order-ticket ingredients with "✦ … · NEED" on missing items, a
-handwritten chef's note only from the recipe's first substitution, serif-numbered method, tips and
-substitutions columns. The mockup's "Light the stove" button is left out until Cooking Mode exists
-(Phase 2). The Zine entry still appears only with `VITE_ZINE_ENABLED=true`. Verified: 47 client tests;
-build; browser at 375px on saved recipe 12 (no overflow; time fits after a fix). A script bug had
-written backspace characters instead of `\b` in one regex; fixed, and all project files were scanned
-clean.
+## Next action — ask the user which
 
-Shelf + cleanup (2026-10-23) — **Phase 1 complete**:
-- `SavedRecipesPage` in Ember: rows instead of cards (small plate ring, serif title, burners · cuisine ·
-  time · saved date), the whole row opens the recipe, "Remove" asks "Remove from your shelf? Keep /
-  Yes, remove" before deleting, empty state only after loading ("Nothing on the shelf yet" + Plan
-  tonight link). The old bug where the empty message and a count could show together is gone.
-- `client/src/styles.css` (≈2,400 lines) deleted; Tailwind preflight enabled; `index.css` is only
-  theme + preflight + utilities + `html`/`body` defaults. App layout uses utilities; `phone-container`
-  remains only as a hook for the paused Zine's wider layout; the Zine screen carries its old font and
-  text colour in `zine.css`. Built CSS is about 34 KB.
-- Verified: 48 client and 58 server tests; build; browser at 375px for Kitchen, Plan tonight, recipe
-  12 and the Shelf (remove confirmation shown then cancelled; nothing deleted).
+1. **Phase 4 food images** (the user's stated next idea): compare OpenAI and Jimeng (即梦) on accuracy,
+   cost and terms before choosing; provider abstraction; a reusable image library keyed by dish plus
+   visible core ingredients (not title alone); variants never inherit a picture; never auto-generate.
+   Start from the paused Zine artwork pipeline (allow-list prompts, cropping, limits, cost logging;
+   `server/ZINE_ASSETS_POC.md`). Explain the plan and costs first; the user needs a Jimeng API key; no
+   paid request without explicit authorisation.
+2. **Deployment (1.5)**: hosting with persistent SQLite storage, SPA fallback (`index.html` for unknown
+   paths), `CORS_ORIGINS`, host secrets; depends on the git decision above.
 
-## Phase 2 — Cooking Mode (done 2026-10-23)
+## Local running
 
-The user deferred deployment and approved the Cooking Mode plan with: ranged times start at the lower
-bound ("check early rather than overcook"), finish chime on by default with a sound toggle, servings
-scaling included.
-
-- `utils/cookingTimers.js`: finds durations in step text (digits, ½-style fractions, number words,
-  seconds/minutes/hours, ranges "5 to 6", "2-3", "8–10", adjectives like "10-minute"); no time → no
-  timer; `formatClock`.
-- `utils/scaleRecipe.js`: `scaleQuantity` (metric rounded to 5/10/50, spoons/cups/pieces to ¼ or ⅓),
-  `formatQuantity` (½ ¼ ¾ ⅓ ⅔), `scaleIngredients` (null quantity unchanged, legacy strings marked not
-  scaled), `ingredientsInStep` (name matching in step text).
-- `utils/useCookingTimers.js`: pure start/pause/reset/tick transitions on absolute end times; the hook
-  stores timers in sessionStorage per recipe so they survive refresh and keep running across steps.
-- `utils/useWakeLock.js` (re-acquired on return to the tab), `utils/chime.js` (Web Audio, prepared on
-  the Start gesture), `components/StoveDial.jsx`, `pages/CookingModePage.jsx`.
-- Routes `/cook/dish/:n/cooking` and `/shelf/:id/cooking` inside `FullScreen` (auth, no bottom nav).
-  Recipe page: "Light the stove — start cooking" button and a servings stepper shared with Cooking
-  Mode (`chefspark:servings:<key>`). Sign-out clears every `chefspark:` session key.
-- Verified: 60 client tests (timer parsing, scaling, timer state, page render, routes, recipe page)
-  and 58 server tests; build; browser at 375px on saved recipe 12: servings 2→3 rescales the ticket,
-  start → `/shelf/12/cooking`, step 3 timer runs and keeps running on step 4, refresh resumes the step
-  and the timer, step 4 shows "Check at 5 min, up to 6 min", finish screen and exit. Not verified in
-  the browser: the save button on the finish screen for an unsaved dish, the chime and vibration
-  (pane), and wake lock (the embedded pane does not grant it).
-
-## Diet choice and Phase 3 — recipe assistant (built 2026-10-23)
-
-The user approved, in order: a diet choice on Plan tonight, then the assistant with `deepseek-flash`,
-saved-recipe edits saved as new recipes, 20/300 daily limits and code-decided edit sizes. Everything
-is tested with mocks, then live-checked once with the user's authorisation (below).
-
-- Diet: `server/src/utils/dietRules.js` (allowed diets, keyword check with plant-based exceptions,
-  prompt rule). `recipeController` validates `diet`, drops dishes that break it and returns
-  `droppedForDiet`; fitting dishes get a server-set `diet` shown on the menu, recipe page and shelf.
-- `deepseekService.js`: `requestDeepSeekJson` (shared request, errors, timeout, cancel, `max_tokens`),
-  `recipeObjectShape`/`recipeFieldRules` shared with the assistant prompt (generation prompt has the
-  same lines; two rules changed order), `DEEPSEEK_MODEL` (default `deepseek-flash`; `deepseek-chat` is
-  no longer on DeepSeek's price list, so recipe generation now uses the same default).
-- Assistant: `services/assistantService.js` (config, prompts), `services/assistantStore.js` (tables
-  `assistant_requests`, `assistant_explanations`), `controllers/assistantController.js`,
-  `routes/assistantRoutes.js` (`GET /api/assistant/status`, `POST /edit`, `POST /explain`),
-  `utils/recipeEdits.js` (core protein/staple detection, tiers, diff). Rejected and failed requests still count
-  toward the limits (they cost a call).
-- Client: `components/RecipeAssistant.jsx` (recipe page, hidden unless the server reports it enabled),
-  `components/StepHelp.jsx` (Cooking Mode, below the timers), API calls in `services/api.js`.
-- Verified: 73 server and 66 client tests; build; browser at 375px with the API stubbed in the page
-  (no server or AI calls): vegetarian variant preview → "Save as new recipe" → `/shelf/99` labelled
-  vegetarian; rejected "I don't have" message; minor change preview; Cooking Mode doneness answer;
-  Plan tonight diet pills and caution text.
-
-Live check (2026-10-23, authorised by the user, budget USD 0.02): `ASSISTANT_ENABLED=true` added to the
-ignored `server/.env`; server restarted; exactly 5 paid requests from a throwaway local account
-`assistant-test-…@example.test` (inventory Rice, Eggs, Tofu, Broccoli, Garlic, Soy Sauce, Chicken Breast).
-- `deepseek-flash` works. Vegetarian generation (34.6 s): Egg Fried Rice, Broccoli and Tofu Stir-fry,
-  Tomato and Egg Stir-fry; nothing dropped; the chicken in the inventory was ignored.
-- "I don't have spring onion" → minor, removed and two steps updated (5.4 s). "Simpler" → minor,
-  6 → 4 steps, 20 → 15 minutes, garnish dropped (4.7 s). Chicken Fried Rice → vegetarian → variant
-  "Tofu Fried Rice", oyster sauce → vegetarian oyster sauce (14.1 s). Chicken doneness answer gave
-  visual cues and 74°C / 165°F (1.8 s).
-- Assistant tokens: 4,183 in / 4,523 out ≈ USD 0.007 at peak prices; generation not token-logged,
-  estimated ≈ USD 0.004. Total ≈ USD 0.011. The vegetarian edit used 2,463 output tokens, so
-  `EDIT_MAX_TOKENS` was raised from 3,000 to 4,000.
-- Generated ingredient names came back lower-case with units like "cups (cooked)"; harmless (the UI
-  upper-cases) but worth a prompt tweak later.
-
-Diet edit removed (2026-10-23, user decision): diet is chosen only on Plan tonight. The
-"Make it vegetarian/vegan" assistant action, its free "already fits" shortcut and its buttons are gone;
-edits of a vegetarian or vegan recipe must still stay so (prompt rule plus code check). For an older
-meat dish, "I don't have <meat>" usually yields a swap, but hidden animal ingredients (e.g. oyster
-sauce) are not replaced unless asked one at a time.
-
-## Next action
-
-Phase 4 (food images: compare OpenAI and Jimeng, image library keyed by dish plus visible core
-ingredients; variants never inherit a picture) or deployment (1.5). The assistant switch stays on in
-the local `server/.env`.
+- `.claude/launch.json` defines `server` (port 5000, `npm --prefix server run start`, no file watching:
+  restart after server changes) and `client` (Vite, port 5173).
+- Running the client tests re-optimises Vite deps; a running dev server may then show "Outdated
+  Optimize Dep" until the page is reloaded.
+- For browser checks without paid calls, stub `window.fetch` in the page (fake token in
+  `localStorage.smartkitchen_token`, stubbed `/saved-recipes/:id` and `/assistant/*`), then navigate
+  with `history.pushState` + `popstate`; remove the token and `chefspark:` session keys afterwards.
 
 ## File map
 
 | Area | Files |
 | --- | --- |
-| App shell and navigation | `client/src/App.jsx` (routes, auth guard, sign-out), `client/src/routes.js` (paths and helpers), `client/src/utils/sessionState.js`, `client/src/main.jsx` (`BrowserRouter`) |
+| App shell and navigation | `client/src/App.jsx` (routes, auth guard, sign-out, assistant adopt handlers), `client/src/routes.js`, `client/src/utils/sessionState.js`, `client/src/main.jsx` |
 | Screens | `client/src/pages/` — `IngredientsPage`, `RecipeGenerationPage`, `RecipeDetailPage`, `CookingModePage`, `SavedRecipesPage`, `LoginPage`, `RegisterPage` |
+| Ember components | `client/src/components/` — `Spark`, `PlateRing`, `Burners`, `BottomNav`, `RecipePreviewCard`, `GenerationProgress`, `StoveDial`, `RecipeAssistant`, `StepHelp`, `IngredientSuggestions`, `IngredientCategoryIcon` |
+| Cooking utilities | `client/src/utils/` — `cookingTimers.js`, `scaleRecipe.js`, `useCookingTimers.js`, `useWakeLock.js`, `chime.js` |
 | Styles | `client/src/index.css` (Tailwind theme tokens), `client/src/components/zine.css` (paused Zine only) |
 | API client | `client/src/services/api.js` |
-| Recipe generation | `server/src/services/deepseekService.js`, `server/src/controllers/recipeController.js` (cuisine allow-list: Chinese, Western; diet: Any, Vegetarian, Vegan), `server/src/utils/dietRules.js` |
-| Recipe assistant | `server/src/services/assistantService.js`, `assistantStore.js`, `controllers/assistantController.js`, `routes/assistantRoutes.js`, `utils/recipeEdits.js`; client `components/RecipeAssistant.jsx`, `StepHelp.jsx` |
+| Recipe generation | `server/src/services/deepseekService.js`, `server/src/controllers/recipeController.js`, `server/src/utils/dietRules.js` |
+| Recipe assistant | `server/src/services/assistantService.js` (config, prompts), `assistantStore.js` (tables), `controllers/assistantController.js`, `routes/assistantRoutes.js`, `utils/recipeEdits.js` |
 | Validation and matching | `server/src/utils/recipeValidation.js`, `server/src/utils/recipeMatching.js` |
-| Images | `server/src/services/pexelsService.js` |
-| Paused Zine | `client/src/components/OnePageZine.jsx`, `ZineSamplePreview.jsx`, `ZineArtwork.jsx`, `client/src/data/zineStyles.js`, `zineAssetSamples.js`; server `zineStore.js`, `zineGenerationService.js`, `zineController.js`, `zineRoutes.js`, `utils/zineAssets.js` |
+| Images | `server/src/services/pexelsService.js` (URLs still returned, not shown) |
+| Paused Zine | `client/src/components/OnePageZine.jsx`, `ZineSamplePreview.jsx`, `ZineArtwork.jsx`, `client/src/data/zineStyles.js`, `zineAssetSamples.js`, `features.js`; server `zineStore.js`, `zineGenerationService.js`, `zineController.js`, `zineRoutes.js`, `utils/zineAssets.js` |
 | Developer image CLIs | `server/scripts/zine-poc.js`, `zine-assets.js` with `server/ZINE_POC.md`, `server/ZINE_ASSETS_POC.md` |
 | Tests | `server/test/*.test.js`, `client/test/*.test.mjs` |
 
 ## Lessons worth keeping
 
-- Image prompts need explicit allow-lists of visible foods and an instruction to ignore what the
-  dish name usually implies; otherwise models add egg, sauces or garnish. Style decorations must be
-  confined away from food. Details: `server/ZINE_ASSETS_POC.md`.
-- Usage-based cost estimates are not bills (about USD 0.017–0.019 per 1024x1024 medium image).
-- Never run paid generation, read or print secrets, or expose developer CLIs over HTTP.
+- Files in this repo are mostly CRLF; scripted edits must normalise `\r\n` first, and template
+  literals in scripts must not turn `\b` into a backspace character (scan for `\x08` after edits).
+- Keep deterministic work in code (diet checks, match, diff, edit size, scaling, timers); AI proposes.
+- Image prompts need explicit allow-lists of visible foods; style decorations away from food
+  (`server/ZINE_ASSETS_POC.md`). Usage-based cost estimates are not bills.
+- Never run paid generation, read or print secrets, commit `.env`, or expose developer CLIs over HTTP.
 
 ## Session checklist
 
 1. Read the documents above; run `git status --short` and preserve unrelated work.
 2. Inspect the relevant source and tests before changing behaviour.
-3. Make focused changes; report what was inspected, changed and run.
+3. Explain significant plans (and costs) before building; make focused changes; report what was
+   inspected, changed and run.
 4. Ask before paid API calls, new dependencies, pushes or other hard-to-undo actions.
