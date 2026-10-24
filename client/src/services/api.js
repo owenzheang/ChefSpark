@@ -124,6 +124,22 @@ export function explainStep(question, { signal } = {}) {
   return request("/assistant/explain", { method: "POST", body: JSON.stringify(question), signal });
 }
 
+// Food pictures (Phase 4). A dish already in the shared library is free; otherwise one paid OpenAI request
+// on the server, within daily limits. purpose is "menu" (planned dishes) or "variant" (accepted variation).
+export function requestFoodImage(recipe, purpose) {
+  return request("/food-images", { method: "POST", body: JSON.stringify({ recipe, purpose }) });
+}
+
+// Only ChefSpark's own pictures are shown; anything else (e.g. old stock photo links) gets the empty plate.
+export function foodImageSrc(imageUrl) {
+  if (typeof imageUrl !== "string" || !/^\/api\/food-images\/[0-9a-f-]{36}\.webp$/.test(imageUrl)) return null;
+  try {
+    return new URL(imageUrl, new URL(API_BASE_URL, globalThis.location?.href)).href;
+  } catch {
+    return null;
+  }
+}
+
 export function saveRecipe(recipe) {
   return request("/saved-recipes", {
     method: "POST",

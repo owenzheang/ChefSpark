@@ -18,20 +18,18 @@ answers in Chinese or English, and explicit approval before any paid API request
 | 2 · Cooking Mode | Done 2026-10-23. |
 | 3 · Recipe assistant | Done 2026-10-23, live-checked. |
 | Diet choice on Plan tonight | Done 2026-10-23, live-checked. |
-| 4 · Food images | **Next candidate** (or deployment). Not started. |
+| 4 · Food images | **Built 2026-10-24, not live-checked.** Switch off by default. |
 | 5 · Natural ingredient input | Planned. |
 
-Tests: 72 server + 66 client, all mocked (no network, no paid calls); production build passes.
-Working tree clean at `b46cfe6`.
+Tests: 83 server + 70 client, all mocked (no network, no paid calls); production build passes.
 
 ## Git and remote (open decision, needs the user)
 
-- Local `main` is 25 commits ahead of `origin/main` and 5 behind. The 5 remote commits (July 2026) are
+- Local `main` is ahead of `origin/main` and 5 behind. The 5 remote commits (July 2026) are
   **not** to be merged (user decision 2026-10-20).
-- Agreed approach: the user pushes local `main` to a new remote branch, leaving remote `main` intact:
-  `git push origin main:refs/heads/companion` (the agent's push was blocked by permissions; the user
-  runs it). After that, decide whether to make `companion` the GitHub default branch or replace
-  remote `main`. Never pull, merge or force-push without the user's explicit decision.
+- The user pushed local `main` to `origin/companion` on 2026-10-24 (remote `main` untouched). Still
+  open: whether to make `companion` the GitHub default branch or replace remote `main`. Never pull,
+  merge or force-push without the user's explicit decision.
 - Local branch `phase-6b3-zine-assets` is already merged into `main` and can be deleted.
 
 ## What the app does now
@@ -82,16 +80,38 @@ doneness answer included 74°C / 165°F. A throwaway local account `assistant-te
 exists in the local database. Known nit: generated ingredient names came back lower-case with units
 like "cups (cooked)" (UI upper-cases; a prompt tweak later is optional).
 
-## Next action — ask the user which
+## Food pictures (Phase 4) — how it works
 
-1. **Phase 4 food images** (the user's stated next idea): compare OpenAI and Jimeng (即梦) on accuracy,
-   cost and terms before choosing; provider abstraction; a reusable image library keyed by dish plus
-   visible core ingredients (not title alone); variants never inherit a picture; never auto-generate.
-   Start from the paused Zine artwork pipeline (allow-list prompts, cropping, limits, cost logging;
-   `server/ZINE_ASSETS_POC.md`). Explain the plan and costs first; the user needs a Jimeng API key; no
-   paid request without explicit authorisation.
-2. **Deployment (1.5)**: hosting with persistent SQLite storage, SPA fallback (`index.html` for unknown
-   paths), `CORS_ORIGINS`, host secrets; depends on the git decision above.
+User decisions 2026-10-24: OpenAI only (Jimeng/Seedream 5.0 flash costs the same, 0.12 CNY / $0.018 a
+picture, but is untested; OpenAI medium 1024² measured ≈ $0.017); pictures made automatically, not on
+a button; low quality to save cost; minor edits keep the picture, variants get their own when kept
+(original shown meanwhile); 6 menu + 2 variant pictures per user per day; top-down round plate.
+
+- Server switch `FOOD_IMAGES_ENABLED=true` (off by default and **off** in the local `server/.env`; the
+  user decides when to turn it on). Uses `OPENAI_API_KEY`. `FOOD_IMAGE_QUALITY` low|medium (default
+  low), `FOOD_IMAGE_MENU_DAILY_LIMIT` 6, `FOOD_IMAGE_VARIANT_DAILY_LIMIT` 2, `FOOD_IMAGE_GLOBAL_DAILY_LIMIT` 100.
+  Also off once the pricing profile (`zinePocConfig.js`, shared with the Zine) expires 2026-11-13; rates
+  were re-checked unchanged on 2026-10-24, so bump the dates after the next review.
+- `POST /api/food-images` (auth) `{ recipe, purpose: "menu" | "variant" }` → `{ imageUrl, cached }`.
+  Library hit = free; parallel requests for one dish share one paid request; the limit check and the
+  request log insert are one SQL statement. `GET /api/food-images/:id.webp` is public (random UUIDs).
+- Files: `server/src/services/foodImageService.js` (config, prompt, key, OpenAI call),
+  `foodImageStore.js` (tables), `controllers/foodImageController.js`, `routes/foodImageRoutes.js`;
+  client `requestFoodImage` / `foodImageSrc` in `api.js`, `addMenuPictures` in `RecipeGenerationPage`,
+  `withVariantPicture` in `RecipeAssistant`, `imageSrc` on `PlateRing`.
+- Pictures live in `recipe.imageUrl` (as `/api/food-images/<id>.webp`); only that form is shown.
+- Pexels was removed (it filled `imageUrl` with stock photos the design forbids, and slowed the menu).
+- Browser check 2026-10-24 (mobile viewport, a temporary local picture and test account, both removed):
+  menu card, recipe page and shelf rows render the round picture and "AI image"; no console errors.
+
+## Next action — ask the user
+
+1. **Live check of food pictures** (needs explicit authorisation): turn the switch on locally, plan 2
+   menus (≈ 6 pictures) at low quality, then compare a few dishes at medium; review each picture
+   for food accuracy (allow-list held? garnish?), plate crop, text. Estimated ≈ $0.10–0.15 in total;
+   usage-based estimates are in `food_image_requests`. Then pick the quality and record the results.
+2. **Deployment (1.5)**: hosting with persistent SQLite storage (pictures are BLOBs in it), SPA
+   fallback (`index.html` for unknown paths), `CORS_ORIGINS`, host secrets.
 
 ## Local running
 
@@ -116,7 +136,7 @@ like "cups (cooked)" (UI upper-cases; a prompt tweak later is optional).
 | Recipe generation | `server/src/services/deepseekService.js`, `server/src/controllers/recipeController.js`, `server/src/utils/dietRules.js` |
 | Recipe assistant | `server/src/services/assistantService.js` (config, prompts), `assistantStore.js` (tables), `controllers/assistantController.js`, `routes/assistantRoutes.js`, `utils/recipeEdits.js` |
 | Validation and matching | `server/src/utils/recipeValidation.js`, `server/src/utils/recipeMatching.js` |
-| Images | `server/src/services/pexelsService.js` (URLs still returned, not shown) |
+| Food pictures | `server/src/services/foodImageService.js`, `foodImageStore.js`, `controllers/foodImageController.js`, `routes/foodImageRoutes.js` |
 | Paused Zine | `client/src/components/OnePageZine.jsx`, `ZineSamplePreview.jsx`, `ZineArtwork.jsx`, `client/src/data/zineStyles.js`, `zineAssetSamples.js`, `features.js`; server `zineStore.js`, `zineGenerationService.js`, `zineController.js`, `zineRoutes.js`, `utils/zineAssets.js` |
 | Developer image CLIs | `server/scripts/zine-poc.js`, `zine-assets.js` with `server/ZINE_POC.md`, `server/ZINE_ASSETS_POC.md` |
 | Tests | `server/test/*.test.js`, `client/test/*.test.mjs` |

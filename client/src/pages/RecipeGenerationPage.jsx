@@ -1,6 +1,6 @@
 ﻿import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { generateRecipes, getIngredients, saveRecipe } from "../services/api.js";
+import { generateRecipes, getIngredients, requestFoodImage, saveRecipe } from "../services/api.js";
 import RecipePreviewCard from "../components/RecipePreviewCard.jsx";
 import GenerationProgress from "../components/GenerationProgress.jsx";
 import Spark from "../components/Spark.jsx";
@@ -28,6 +28,18 @@ const dietNotes = {
 };
 
 const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream";
+
+// Pictures follow the menu instead of holding it up. Each one lands on the dish with that title while it
+// still has no picture (a small adjustment keeps the title); if it fails, the empty plate stays. They are
+// not cancelled when the page closes: the server has already paid for them and keeps them in its library.
+export function addMenuPictures(recipes, setRecipes, request = requestFoodImage) {
+  for (const recipe of recipes) {
+    request(recipe, "menu")
+      .then(({ imageUrl }) => setRecipes((list) => list.map((item) =>
+        item.title === recipe.title && !item.imageUrl ? { ...item, imageUrl } : item)))
+      .catch(() => {});
+  }
+}
 
 function RecipeGenerationPage({ onBack, onViewRecipe, recipes, setRecipes, cuisine, setCuisine, difficulty, setDifficulty, diet = "Any", setDiet = () => {} }) {
   const [ingredients, setIngredients] = useState([]);
@@ -71,6 +83,7 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, setRecipes, cuisi
         return;
       }
       setRecipes(data.recipes);
+      addMenuPictures(data.recipes, setRecipes);
       if (data.droppedForDiet > 0) {
         const count = data.droppedForDiet === 1 ? "1 dish" : `${data.droppedForDiet} dishes`;
         setMessage({ tone: "info", text: `Left out ${count} that wasn't ${diet.toLowerCase()}.` });

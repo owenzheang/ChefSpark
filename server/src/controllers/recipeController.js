@@ -1,6 +1,5 @@
 ﻿import database from "../database.js";
 import { generateRecipesWithDeepSeek, RecipeGenerationError } from "../services/deepseekService.js";
-import { fetchRecipeImageUrl } from "../services/pexelsService.js";
 import { addRecipeMatch } from "../utils/recipeMatching.js";
 import { isValidStructuredRecipe } from "../utils/recipeValidation.js";
 import { allowedDiets, applyDiet, findDietConflicts } from "../utils/dietRules.js";
@@ -68,17 +67,8 @@ export async function generateRecipes(req, res) {
       throw new RecipeGenerationError("Generated recipe matching data was invalid. Please try again.");
     }
 
-    const recipesWithImages = await Promise.all(
-      recipesWithMatches.map(async (recipe) => ({
-        ...recipe,
-        imageUrl: await fetchRecipeImageUrl({
-          imagePrompt: recipe.imagePrompt,
-          title: recipe.title
-        })
-      }))
-    );
-
-    res.json({ recipes: recipesWithImages, droppedForDiet: recipes.recipes.length - fitting.length });
+    // Pictures are made separately (POST /api/food-images) so the menu never waits for them.
+    res.json({ recipes: recipesWithMatches, droppedForDiet: recipes.recipes.length - fitting.length });
   } catch (error) {
     if (res.headersSent || cancelled.signal.aborted) return;
     if (error instanceof RecipeGenerationError) {

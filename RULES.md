@@ -36,7 +36,7 @@
 
 1. Keys stay server-side. Never commit `.env` files, credentials or request headers; never print
    or read secret values; rotate any credential exposed in history.
-2. DeepSeek, Pexels, OpenAI and any future image provider are called only from the server.
+2. DeepSeek, OpenAI and any future image provider are called only from the server.
    Developer image CLIs are never exposed through routes.
 3. Every paid AI path has an off-by-default switch, per-user and global limits, no automatic retries,
    and logs usage without secrets. Keep the developer CLIs' dry-run default, one-image limit and

@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { deleteSavedRecipe, getSavedRecipes } from "../services/api.js";
+import { deleteSavedRecipe, foodImageSrc, getSavedRecipes } from "../services/api.js";
 import Burners from "../components/Burners.jsx";
 import PlateRing from "../components/PlateRing.jsx";
 import Spark from "../components/Spark.jsx";
@@ -116,6 +116,7 @@ function SavedRecipesPage({ onViewRecipe, onCook }) {
             {savedRecipes.map((savedRecipe) => {
               const recipe = savedRecipe.recipe || {};
               const hasScore = Number.isFinite(recipe.matchScore);
+              const imageSrc = foodImageSrc(recipe.imageUrl);
               const confirming = confirmingId === savedRecipe.id;
               return (
                 <motion.li key={savedRecipe.id} layout
@@ -124,8 +125,8 @@ function SavedRecipesPage({ onViewRecipe, onCook }) {
                   className="border-b border-flour/16 py-4">
                   <button type="button" onClick={() => onViewRecipe(savedRecipe.id)} aria-label={`Open ${recipe.title}`}
                     className={`flex w-full items-center gap-4 text-left ${focusRing}`}>
-                    <PlateRing percent={hasScore ? recipe.matchScore : null} size={64} stroke={2.5} decorative>
-                      {hasScore
+                    <PlateRing percent={hasScore ? recipe.matchScore : null} size={64} stroke={2.5} decorative imageSrc={imageSrc}>
+                      {imageSrc ? null : hasScore
                         ? <span className="font-display text-lg leading-none italic">{recipe.matchScore}%</span>
                         : <Spark size={14} className="text-cream" />}
                     </PlateRing>
@@ -137,6 +138,9 @@ function SavedRecipesPage({ onViewRecipe, onCook }) {
                         {recipe.diet && <><span aria-hidden="true">·</span><span>{recipe.diet}</span></>}
                         {recipe.cookTime && <><span aria-hidden="true">·</span><span>{formatCookTime(recipe.cookTime)}</span></>}
                         <span aria-hidden="true">·</span><span>{formatSavedDate(savedRecipe.savedAt)}</span>
+                        {/* With a picture on the plate, the score moves beside it. */}
+                        {imageSrc && hasScore && <><span aria-hidden="true">·</span><span>{recipe.matchScore}% match</span></>}
+                        {imageSrc && <><span aria-hidden="true">·</span><span>AI image</span></>}
                       </span>
                     </span>
                   </button>

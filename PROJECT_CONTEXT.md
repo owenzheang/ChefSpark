@@ -56,7 +56,21 @@ Why ChefSpark rather than asking a general chatbot:
   replaces an unsaved dish in tonight's menu or saves a saved recipe's version as a new recipe.
   Limits: 20 requests per user and 300 in total per day, one at a time, 30 s, no retries, capped
   answers; step answers are cached for everyone and cache hits are free.
-- Images: Pexels search by recipe image prompt; frequently mismatched.
+- Food pictures (Phase 4, off unless `FOOD_IMAGES_ENABLED=true`): after Plan tonight returns, the client
+  asks `POST /api/food-images` for each dish (the menu never waits). One OpenAI request per new picture
+  (`gpt-image-2.5-flare`, 1024x1024 WebP, `FOOD_IMAGE_QUALITY` low by default), short top-down prompt with
+  an allow-list of visible ingredients (salt, oil, water, sugar, pepper left out). Pictures go into a
+  shared SQLite library (`food_images`) keyed by prompt version, quality, dish name and visible
+  ingredients; a dish already pictured is free for everyone, and parallel requests for one dish share
+  one paid request. A minor assistant edit keeps the picture; a variant gets its own picture only when
+  the cook keeps it (the original stays on screen meanwhile; without one it shows the empty plate).
+  Limits per user per day: 6 menu pictures (two menus of three) and 2 variant pictures; 100 in total.
+  Failed requests count, never retried; each paid request is logged in `food_image_requests` with a
+  usage-based cost estimate. A dish saved before its picture arrived gets it when it lands. Pictures are
+  served publicly by random id (`GET /api/food-images/:id.webp`) and shown as a round crop inside the
+  plate ring, labelled "AI image"; anything else in `imageUrl` (old Pexels links) shows the empty plate.
+  Off when the reviewed pricing profile in `server/src/utils/zinePocConfig.js` expires (2026-11-13).
+  Pexels was removed on 2026-10-24.
 - React Router URLs: `/kitchen`, `/cook`, `/cook/dish/:n` (unsaved dish), `/shelf`, `/shelf/:id`,
   `/login`, `/register`. Protected routes redirect to login and return afterwards; an API 401 signs
   the user out. Tonight's unsaved menu and choices are kept in the tab's sessionStorage.

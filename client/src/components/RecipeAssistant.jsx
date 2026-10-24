@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { getAssistantStatus, proposeRecipeEdit } from "../services/api.js";
+import { getAssistantStatus, proposeRecipeEdit, requestFoodImage } from "../services/api.js";
 import Spark from "./Spark.jsx";
 
 const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream";
@@ -48,6 +48,15 @@ export function DiffList({ diff }) {
 
 // Fixed recipe changes (Phase 3). The AI proposes; the server checks the result and computes what
 // changed; nothing replaces the recipe until the cook accepts it.
+// A minor change keeps the dish's picture (the server copied it). A variation is a different dish: its
+// picture is made only once the cook keeps it, while the original and its picture stay on screen.
+// Without a picture (limit reached, failure) the variation keeps the empty plate.
+export async function withVariantPicture(result, requestImage = requestFoodImage) {
+  if (result.tier !== "variant") return result.recipe;
+  const picture = await requestImage(result.recipe, "variant").catch(() => null);
+  return picture?.imageUrl ? { ...result.recipe, imageUrl: picture.imageUrl } : result.recipe;
+}
+
 function RecipeAssistant({ recipe, isSaved, onAdopt, initialStatus = null }) {
   const [status, setStatus] = useAssistantStatus(initialStatus);
   const [choosing, setChoosing] = useState(false);
@@ -92,7 +101,7 @@ function RecipeAssistant({ recipe, isSaved, onAdopt, initialStatus = null }) {
     setAdopting(true);
     setMessage("");
     try {
-      await onAdopt(result.recipe);
+      await onAdopt(await withVariantPicture(result));
       setResult(null);
     } catch (error) {
       setMessage(error.message || "Couldn't keep this version. Please try again.");
@@ -178,7 +187,7 @@ function RecipeAssistant({ recipe, isSaved, onAdopt, initialStatus = null }) {
           <div className="flex flex-wrap gap-2">
             <button type="button" onClick={adopt} disabled={adopting}
               className={`min-h-12 rounded-full bg-cream px-5 font-semibold text-iron shadow-glow disabled:opacity-70 ${focusRing}`}>
-              {adopting ? "Keeping…" : isSaved ? "Save as new recipe" : "Use this version"}
+              {adopting ? (result.tier === "variant" ? "Plating its picture…" : "Keeping…") : isSaved ? "Save as new recipe" : "Use this version"}
             </button>
             <button type="button" onClick={() => setResult(null)} disabled={adopting} className={ringButton}>Keep original</button>
           </div>

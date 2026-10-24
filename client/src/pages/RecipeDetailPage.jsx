@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { getSavedRecipe } from "../services/api.js";
+import { foodImageSrc, getSavedRecipe } from "../services/api.js";
 import ZineSamplePreview, { ZineEntry } from "../components/ZineSamplePreview.jsx";
 import { getPreviewStyle, developerStyle } from "../data/zineStyles.js";
 import { developerAssetSample } from "../data/zineAssetSamples.js";
@@ -72,6 +72,7 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, onStartCooki
 
   const hasServings = Number.isFinite(recipe?.servings) && recipe.servings > 0;
   const hasScore = Number.isFinite(recipe?.matchScore) && recipe.matchScore >= 0 && recipe.matchScore <= 100;
+  const imageSrc = foodImageSrc(recipe?.imageUrl);
 
   if (zine && recipe) {
     // Generated artwork was drawn in the Zine's stored style, so that style wins once it exists.
@@ -120,14 +121,16 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, onStartCooki
       {recipe && (
         <article className="flex flex-col">
           <div className="mt-4 flex flex-col items-center">
-            <PlateRing percent={hasScore ? recipe.matchScore : null} size={232} decorative>
-              {hasScore ? (
+            <PlateRing percent={hasScore ? recipe.matchScore : null} size={232} decorative imageSrc={imageSrc}>
+              {imageSrc ? null : hasScore ? (
                 <span role="img" aria-label={`${recipe.matchScore}% ingredient match`} className="flex flex-col items-center">
                   <span aria-hidden="true" className="font-display text-[60px] leading-none italic">{recipe.matchScore}%</span>
                   <span aria-hidden="true" className="mt-1 font-mono text-[10px] tracking-[0.2em] text-ash">MATCH</span>
                 </span>
               ) : <Spark size={34} className="text-cream" />}
             </PlateRing>
+            {/* The facts row below already gives the match score. */}
+            {imageSrc && <p className="mt-3 font-mono text-[10px] tracking-[0.2em] text-ash">AI IMAGE</p>}
           </div>
 
           <header className="mt-6 flex flex-col items-center gap-2 text-center">

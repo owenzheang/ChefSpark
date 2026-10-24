@@ -37,8 +37,9 @@ Any AI change to a recipe must produce a new validated recipe version that the u
   ("I don't have…", simpler & quicker; diet is chosen on Plan tonight, not as an edit) shown as a before/after preview the
   cook accepts or not, and two questions per step in Cooking Mode ("What does this mean?", "How do I
   know it's done?").
-- Recipe pictures: Pexels URLs are still returned by the server but no longer shown (plate rings and
-  typographic covers instead).
+- Food pictures (Phase 4, off unless `FOOD_IMAGES_ENABLED=true`): made with OpenAI after each menu and
+  for kept variations, shared through a library so a dish already pictured is free; daily limits per
+  user. Shown as a round "AI image" inside the plate ring; without one, the empty plate.
 
 Paused, code kept: the One-Page Zine and its optional AI artwork (see
 [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md)). Hidden unless `VITE_ZINE_ENABLED=true` (client) and
@@ -83,7 +84,7 @@ npm run dev
 The backend serves `http://localhost:5000`; Vite serves `http://localhost:5173`.
 
 Configuration: copy `server/.env.example` to ignored `server/.env` (secrets: `DEEPSEEK_API_KEY`,
-`JWT_SECRET`, `PEXELS_API_KEY`, optional `OPENAI_API_KEY`, `CORS_ORIGINS`) and
+`JWT_SECRET`, optional `OPENAI_API_KEY`, `CORS_ORIGINS`) and
 `client/.env.example` to ignored `client/.env` (`VITE_API_BASE_URL`, `VITE_ZINE_ENABLED`). Never
 commit either `.env` file.
 
