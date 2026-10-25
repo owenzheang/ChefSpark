@@ -16,9 +16,7 @@
     "dotenv": "^17.4.2",
     "express": "latest",
     "jsonwebtoken": "latest",
-    "sqlite3": "5.1.7"
-  },
-  "devDependencies": {
+    "sqlite3": "5.1.7",
     "pngjs": "7.0.0"
   }
 }
