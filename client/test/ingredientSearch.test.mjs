@@ -113,7 +113,7 @@ test("ingredient page preserves manual submit and add/delete API wiring", async 
   assert.match(source, /function selectSuggestion\(name\) \{\s+setForm\(\{ name \}\)/);
   assert.match(source, /setForm\(\{ name: event.target.value \}\)/);
   const html = renderToStaticMarkup(createElement(IngredientsPage, { onGenerateRecipes: () => {} }));
-  assert.match(html, /aria-label="Ingredient name"/);
+  assert.match(html, /aria-label="Ingredient name, or a list of them"/);
   assert.match(html, /aria-label="Add ingredient"/);
   assert.equal((html.match(/aria-label="Add [A-Z]/g) || []).length, 8);
   assert.doesNotMatch(html, /Did you mean this\?/);

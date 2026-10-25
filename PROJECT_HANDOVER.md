@@ -19,9 +19,27 @@ answers in Chinese or English, and explicit approval before any paid API request
 | 3 · Recipe assistant | Done 2026-10-23, live-checked. |
 | Diet choice on Plan tonight | Done 2026-10-23, live-checked. |
 | 4 · Food images | Done 2026-10-24, live-checked (3 pictures). Switch off by default, on in local `.env`. |
-| 5 · Natural ingredient input | Planned. |
+| 5 · Natural ingredient input | Done 2026-10-25 (typed lists + voice); voice not tried on a real phone. |
 
-Tests: 83 server + 70 client, all mocked (no network, no paid calls); production build passes.
+Tests: 84 server + 76 client, all mocked (no network, no paid calls); production build passes.
+
+## Natural ingredient input (Phase 5)
+
+- Kitchen's input takes one name (added straight away, as before) or a list (commas, "and", "&",
+  newlines). A list, or anything spoken, opens "Check before adding" (`IngredientConfirmList`): remove
+  items, then "Add N to kitchen" (one POST per item; the API has no batch endpoint).
+- `client/src/utils/parseIngredients.js`: code only, no AI or cost. Aliases for Australian words live
+  there; extend them when real users say something the catalog doesn't know.
+- `client/src/utils/useSpeechInput.js`: Web Speech API, `en-AU`, one phrase per tap. Error messages for
+  blocked microphone, no speech, no microphone. Works on Chrome (Android/desktop), Edge, Safari (iOS);
+  not Firefox (button hidden). Needs HTTPS, so it will not work over the plain-http LAN address; try it
+  on the deployed HTTPS site. The Browser pane blocks the microphone, so the browser check used a
+  simulated recogniser; real recognition quality is untested.
+- Browser check 2026-10-25 (mobile viewport, throwaway local accounts, removed afterwards): typed list
+  → 4 items with a correction and an unknown flagged; simulated speech → 3 items, Eggs skipped as
+  already there; success message shown; blocked-microphone message shown; no console errors.
+- Known, pre-existing: adding a single ingredient shows "Ingredient added." only for an instant (the
+  list reload clears it). The new list flow sets its message after the reload.
 
 ## Git and remote (open decision, needs the user)
 
@@ -147,6 +165,7 @@ DeepSeek request; needs authorisation).
 | Screens | `client/src/pages/` — `IngredientsPage`, `RecipeGenerationPage`, `RecipeDetailPage`, `CookingModePage`, `SavedRecipesPage`, `LoginPage`, `RegisterPage` |
 | Ember components | `client/src/components/` — `Spark`, `PlateRing`, `Burners`, `BottomNav`, `RecipePreviewCard`, `GenerationProgress`, `StoveDial`, `RecipeAssistant`, `StepHelp`, `IngredientSuggestions`, `IngredientCategoryIcon` |
 | Cooking utilities | `client/src/utils/` — `cookingTimers.js`, `scaleRecipe.js`, `useCookingTimers.js`, `useWakeLock.js`, `chime.js` |
+| Ingredient input | `client/src/utils/parseIngredients.js`, `useSpeechInput.js`, `client/src/components/IngredientConfirmList.jsx`, `client/src/pages/IngredientsPage.jsx` |
 | Styles | `client/src/index.css` (Tailwind theme tokens), `client/src/components/zine.css` (paused Zine only) |
 | API client | `client/src/services/api.js` |
 | Recipe generation | `server/src/services/deepseekService.js`, `server/src/controllers/recipeController.js`, `server/src/utils/dietRules.js` |

@@ -23,6 +23,8 @@ Any AI change to a recipe must produce a new validated recipe version that the u
 
 ## What works today
 
+- Add several ingredients at once by typing a list or speaking it (browser speech recognition); the
+  cook checks the parsed list before it is saved.
 - Accounts (JWT + bcrypt), a per-user ingredient inventory with categories and autocomplete, and
   saved recipes in SQLite.
 - DeepSeek generation of exactly three recognisable, structured recipes (servings, ingredients

@@ -13,7 +13,7 @@ time; each phase ends in a demoable version with passing tests.
 | 2 · Cooking Mode | Done (2026-10-23) | One step per screen, large type, timers detected from step text, screen wake lock, progress; serving scaling in code. No AI cost. |
 | 3 · Recipe assistant | Done (2026-10-23) — live-checked with `deepseek-flash` | Scoped actions ("I don't have X", simpler & quicker, explain this step); diet is chosen on Plan tonight (a diet edit was built, then removed by user decision). Changes return a new validated recipe version with a visible diff; questions are answered in the recipe's context; daily limits. |
 | 4 · Food images | Done (2026-10-24), live-checked: 3 low-quality pictures, ≈ $0.0064 each, all accurate | OpenAI only (Jimeng compared 2026-10-24: same price per picture, untested; user chose OpenAI). Pictures made automatically after each menu, low quality, shared library keyed by dish plus visible ingredients; minor edits keep the picture, variants get theirs when kept; 6 menu + 2 variant pictures per user per day. Quality stays low (user decision 2026-10-25). |
-| 5 · Natural ingredient input | Planned | Free-text parsing to a confirmable list, then voice (browser speech recognition); photo recognition only if justified. |
+| 5 · Natural ingredient input | Done (2026-10-25), mocked tests and a browser check; voice not yet tried on a real phone | Free-text parsing to a confirmable list (code only, no AI, no cost), then voice (browser speech recognition, `en-AU`); photo recognition only if justified. |
 
 ## Parked
 

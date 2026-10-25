@@ -32,6 +32,15 @@ Why ChefSpark rather than asking a general chatbot:
 
 - Auth (JWT/bcrypt), user ingredient inventory (names; quantity/unit columns exist but the UI stores
   names only), categories and autocomplete, saved recipes (full JSON, legacy shapes supported).
+- Natural ingredient input (Phase 5, Kitchen): a typed list ("two eggs, half a cabbage and some chicken
+  thighs") or speech goes through `parseIngredients` (client, code only: splits on commas/"and", drops
+  amounts and filler, matches the catalog with plural forms and a few Australian aliases such as
+  capsicum, prawns, mince; unpunctuated speech is split at the longest known names). The cook checks
+  the list (near misses flagged "Did you mean this?", unknown words kept as written, items already in
+  the kitchen skipped) before anything is saved. A single name is added straight away as before.
+  Voice uses the browser's Web Speech API (`en-AU`): free, no server, needs HTTPS or localhost, hidden
+  where unsupported (Firefox); the browser's speech service (Chrome: Google) hears the audio, and the
+  page says so.
 - DeepSeek generation of three structured recipes per request; cuisines limited to Chinese and
   Western; difficulty Easy/Medium/Hard. Results stay in this tab (sessionStorage) until saved.
 - Match Score V2, server authoritative. Salt, sugar and basic cooking oil satisfy matching without

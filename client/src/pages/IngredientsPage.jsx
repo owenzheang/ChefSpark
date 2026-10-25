@@ -3,8 +3,11 @@ import { AnimatePresence, motion } from "motion/react";
 import { useRef } from "react";
 import IngredientCategoryIcon from "../components/IngredientCategoryIcon.jsx";
 import IngredientSuggestions from "../components/IngredientSuggestions.jsx";
+import IngredientConfirmList from "../components/IngredientConfirmList.jsx";
 import { searchIngredients } from "../utils/ingredientSearch.js";
-import { ArrowRight, Plus, X } from "lucide-react";
+import { looksLikeList, parseIngredients } from "../utils/parseIngredients.js";
+import { useSpeechInput } from "../utils/useSpeechInput.js";
+import { ArrowRight, Mic, Plus, X } from "lucide-react";
 import Spark from "../components/Spark.jsx";
 import { addIngredient, deleteIngredient, getIngredients } from "../services/api.js";
 
@@ -49,8 +52,54 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  // A typed or spoken list waiting for the cook's check: { items, alreadyHave } or null.
+  const [pending, setPending] = useState(null);
+  const [isAdding, setIsAdding] = useState(false);
   const ingredientInput = useRef(null);
-  const suggestions = showSuggestions ? searchIngredients(form.name) : [];
+  const suggestions = showSuggestions && !looksLikeList(form.name) ? searchIngredients(form.name) : [];
+  const speech = useSpeechInput({
+    onText(text) {
+      setForm({ name: text });
+      reviewList(text);
+    }
+  });
+
+  // Splits the text into catalog names; anything already in the kitchen is left out and mentioned.
+  function reviewList(text) {
+    const have = new Set(ingredients.map((ingredient) => ingredient.name.trim().toLowerCase()));
+    const parsed = parseIngredients(text);
+    setShowSuggestions(false);
+    setMessage("");
+    setPending({
+      items: parsed.filter((item) => !have.has(item.name.toLowerCase())),
+      alreadyHave: parsed.filter((item) => have.has(item.name.toLowerCase())).map((item) => item.name)
+    });
+    requestAnimationFrame(() => document.getElementById("confirm-heading")?.focus());
+  }
+
+  // One request per ingredient (the API adds one at a time); stops at the first failure.
+  async function confirmPending() {
+    setIsAdding(true);
+    let added = 0;
+    let result;
+    try {
+      for (const item of pending.items) {
+        await addIngredient({ name: item.name, quantity: null, unit: "" });
+        added += 1;
+      }
+      setPending(null);
+      resetForm();
+      result = `Added ${added} ${added === 1 ? "ingredient" : "ingredients"}.`;
+    } catch (error) {
+      setPending((value) => value && { ...value, items: value.items.slice(added) });
+      result = `${added ? `Added ${added}. ` : ""}${error.message}`;
+    } finally {
+      setIsAdding(false);
+      // Reloading clears the message, so the result is shown after it.
+      await loadIngredients();
+      setMessage(result);
+    }
+  }
 
   function selectSuggestion(name) {
     setForm({ name });
@@ -107,6 +156,8 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
   async function handleSubmit(event) {
     event.preventDefault();
     setMessage("");
+    // "eggs, rice and spinach" goes through the check; a single name is added straight away as before.
+    if (looksLikeList(form.name)) return reviewList(form.name);
     await addIngredientByName(form.name);
   }
 
@@ -149,15 +200,15 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
         What's in your kitchen tonight?
       </h1>
 
-      <section className="mt-7" aria-label="Add an ingredient">
+      <section className="mt-7" aria-label="Add ingredients">
         <form onSubmit={handleSubmit} className="flex flex-col gap-1">
-          <label htmlFor="ingredient-name" className="font-mono text-[11px] tracking-[0.2em] text-ash uppercase">Add an ingredient</label>
-          <div className="flex items-center border-b border-flour focus-within:border-cream">
+          <label htmlFor="ingredient-name" className="font-mono text-[11px] tracking-[0.2em] text-ash uppercase">Add ingredients</label>
+          <div className="flex items-center gap-2 border-b border-flour focus-within:border-cream">
             <input
               id="ingredient-name"
               type="text"
               ref={ingredientInput}
-              aria-label="Ingredient name"
+              aria-label="Ingredient name, or a list of them"
               aria-controls={suggestions.length ? "ingredient-suggestions" : undefined}
               autoComplete="off"
               value={form.name}
@@ -168,17 +219,41 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
               onKeyDown={(event) => {
                 if (event.key === "Escape") setShowSuggestions(false);
               }}
-              placeholder="spinach, chicken thighs…"
+              placeholder="eggs, rice and spinach…"
               required
               className="min-h-12 min-w-0 flex-1 bg-transparent text-lg text-flour outline-none placeholder:text-ash"
             />
-            <motion.button type="submit" aria-label="Add ingredient" whileTap={{ scale: 0.9 }}
+            {speech.supported && (
+              <motion.button type="button" whileTap={{ scale: 0.9 }}
+                aria-label={speech.listening ? "Stop listening" : "Say what you have"} aria-pressed={speech.listening}
+                onClick={speech.listening ? speech.stop : speech.start} disabled={isAdding}
+                className={`mb-1 flex size-11 shrink-0 items-center justify-center rounded-full ring-1 ${speech.listening ? "bg-cream/16 text-cream ring-cream motion-safe:animate-pulse" : "text-flour ring-flour/40 hover:ring-flour"} ${focusRing}`}>
+                <Mic size={20} strokeWidth={2.2} aria-hidden="true" />
+              </motion.button>
+            )}
+            <motion.button type="submit" aria-label="Add ingredient" whileTap={{ scale: 0.9 }} disabled={isAdding}
               className={`mb-1 flex size-11 shrink-0 items-center justify-center rounded-full bg-cream text-iron ${focusRing}`}>
               <Plus size={22} strokeWidth={2.4} aria-hidden="true" />
             </motion.button>
           </div>
         </form>
-        <IngredientSuggestions suggestions={suggestions} onSelect={selectSuggestion} />
+        {speech.listening && (
+          <p role="status" className="mt-2 font-mono text-[11px] tracking-[0.16em] text-cream">
+            LISTENING… SAY WHAT YOU HAVE, E.G. “EGGS, RICE AND SPINACH”
+          </p>
+        )}
+        {speech.supported && !speech.listening && !pending && !speech.error && (
+          <p className="mt-2 text-[12px] text-ash">Type a list or tap the microphone. Your browser's speech service hears what you say.</p>
+        )}
+        {speech.error && <p role="alert" className="mt-2 text-[13px] text-flour">{speech.error}</p>}
+        {pending ? (
+          <IngredientConfirmList items={pending.items} alreadyHave={pending.alreadyHave} isAdding={isAdding}
+            onRemove={(name) => setPending((value) => ({ ...value, items: value.items.filter((item) => item.name !== name) }))}
+            onConfirm={confirmPending}
+            onCancel={() => { setPending(null); ingredientInput.current?.focus(); }} />
+        ) : (
+          <IngredientSuggestions suggestions={suggestions} onSelect={selectSuggestion} />
+        )}
       </section>
 
       <section aria-labelledby="kitchen-heading" className="mt-7 border-y-2 border-dashed border-flour/40 pt-3 pb-1.5">
