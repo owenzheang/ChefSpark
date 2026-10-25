@@ -18,7 +18,9 @@ time; each phase ends in a demoable version with passing tests.
 ## Parked
 
 n8n automation (e.g. weekly plan email, shopping-list export), Zine share cards ("save as image"),
-exact stock tracking, credits/payments, open-ended chat.
+exact stock tracking, credits/payments, open-ended chat. Kitchen equipment (oven, air fryer, etc.,
+noted 2026-10-25): recipes are stovetop-heavy because the prompt never mentions equipment; a per-user
+equipment setting plus a code check was judged too complex for now (user decision).
 
 ## Completed history (earlier phases)
 

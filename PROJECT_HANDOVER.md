@@ -122,8 +122,12 @@ DeepSeek request; needs authorisation).
 
 ## Next action — ask the user
 
-1. **Deployment (1.5)**: hosting with persistent SQLite storage (pictures are BLOBs in it), SPA
-   fallback (`index.html` for unknown paths), `CORS_ORIGINS`, host secrets.
+1. **Deployment (1.5)**: SPA fallback (`index.html` for unknown paths), `CORS_ORIGINS`, host secrets.
+   Storage decision (user, 2026-10-25): deploy on a free tier now (the backend was set up for Render in
+   June, commit `53d7991`) and accept that the free tier's disk is wiped on restart or redeploy, taking
+   users, saved recipes and the picture library with it (pictures are then paid for again). Keep the
+   current design (SQLite, pictures as BLOBs); the user will buy persistent cloud storage later, when
+   the database path just needs to point at the persistent disk.
 
 ## Local running
 
