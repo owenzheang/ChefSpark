@@ -18,7 +18,7 @@ answers in Chinese or English, and explicit approval before any paid API request
 | 2 · Cooking Mode | Done 2026-10-23. |
 | 3 · Recipe assistant | Done 2026-10-23, live-checked. |
 | Diet choice on Plan tonight | Done 2026-10-23, live-checked. |
-| 4 · Food images | **Built 2026-10-24, not live-checked.** Switch off by default. |
+| 4 · Food images | Done 2026-10-24, live-checked (3 pictures). Switch off by default, on in local `.env`. |
 | 5 · Natural ingredient input | Planned. |
 
 Tests: 83 server + 70 client, all mocked (no network, no paid calls); production build passes.
@@ -87,8 +87,8 @@ picture, but is untested; OpenAI medium 1024² measured ≈ $0.017); pictures ma
 a button; low quality to save cost; minor edits keep the picture, variants get their own when kept
 (original shown meanwhile); 6 menu + 2 variant pictures per user per day; top-down round plate.
 
-- Server switch `FOOD_IMAGES_ENABLED=true` (off by default and **off** in the local `server/.env`; the
-  user decides when to turn it on). Uses `OPENAI_API_KEY`. `FOOD_IMAGE_QUALITY` low|medium (default
+- Server switch `FOOD_IMAGES_ENABLED=true` (off by default; turned **on** by the user in the local, ignored
+  `server/.env` on 2026-10-24). Uses `OPENAI_API_KEY`. `FOOD_IMAGE_QUALITY` low|medium (default
   low), `FOOD_IMAGE_MENU_DAILY_LIMIT` 6, `FOOD_IMAGE_VARIANT_DAILY_LIMIT` 2, `FOOD_IMAGE_GLOBAL_DAILY_LIMIT` 100.
   Also off once the pricing profile (`zinePocConfig.js`, shared with the Zine) expires 2026-11-13; rates
   were re-checked unchanged on 2026-10-24, so bump the dates after the next review.
@@ -104,13 +104,25 @@ a button; low quality to save cost; minor edits keep the picture, variants get t
 - Browser check 2026-10-24 (mobile viewport, a temporary local picture and test account, both removed):
   menu card, recipe page and shelf rows render the round picture and "AI image"; no console errors.
 
+Live check 2026-10-24 (run by the user with the switch on, one Chinese/Easy menu, low quality):
+3 pictures, all `success`, ≈ 9.5 s each in parallel, 100–111 text input and **196 image output tokens**
+each, usage-based estimate ≈ **$0.0064 per picture** ($0.019 total; not billed cost). Medium measured
+439 output tokens (≈ $0.017) in the Zine runs, so low is about 2.6× cheaper. Review of the full-size
+pictures: Tomato Egg Stir-Fry (tomato, egg, scallion, garlic slices), Chicken and Mushroom Stir-Fry
+(chicken, shiitake, onion, ginger, garlic — matches its recipe), Garlic Squid Stir-Fry (squid rings,
+scored squid, tentacles, scallion, ginger, garlic). No unlisted garnish seen, no text, true top-down,
+plate fills the frame and sits well inside the round crop. Low quality looks sharp at the 232 px
+display size. Seen in passing (not image-related): DeepSeek now sometimes adds the Chinese name to the
+title, e.g. "Tomato Egg Stir-Fry (番茄炒蛋)"; the prompt did not ask for it.
+
+User decisions 2026-10-25: keep `low` (no medium comparison). Titles are English only: a rule in
+`recipeFieldRules` (generation and assistant edits) plus `englishTitle()` in `deepseekService.js`, which
+strips a bracketed translation or other CJK characters that slip through. Not yet live-checked (one paid
+DeepSeek request; needs authorisation).
+
 ## Next action — ask the user
 
-1. **Live check of food pictures** (needs explicit authorisation): turn the switch on locally, plan 2
-   menus (≈ 6 pictures) at low quality, then compare a few dishes at medium; review each picture
-   for food accuracy (allow-list held? garnish?), plate crop, text. Estimated ≈ $0.10–0.15 in total;
-   usage-based estimates are in `food_image_requests`. Then pick the quality and record the results.
-2. **Deployment (1.5)**: hosting with persistent SQLite storage (pictures are BLOBs in it), SPA
+1. **Deployment (1.5)**: hosting with persistent SQLite storage (pictures are BLOBs in it), SPA
    fallback (`index.html` for unknown paths), `CORS_ORIGINS`, host secrets.
 
 ## Local running

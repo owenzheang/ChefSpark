@@ -68,3 +68,13 @@ test("a missing API key reports unavailability without naming the setting", asyn
   delete process.env.DEEPSEEK_API_KEY;
   await expectError(generateRecipesWithDeepSeek(input), 503, /unavailable/);
 });
+
+test("titles are English only: the prompt asks, and code removes a translation that slips through", async () => {
+  const { buildRecipePrompt, englishTitle } = await import("../src/services/deepseekService.js");
+  assert.match(buildRecipePrompt([{ name: "Eggs" }], "Chinese", "Easy").system, /title in English only/);
+  assert.equal(englishTitle("Tomato Egg Stir-Fry (番茄炒蛋)"), "Tomato Egg Stir-Fry");
+  assert.equal(englishTitle("Garlic Squid Stir-Fry（蒜香炒鱿鱼）"), "Garlic Squid Stir-Fry");
+  assert.equal(englishTitle("Mapo Tofu 麻婆豆腐"), "Mapo Tofu");
+  assert.equal(englishTitle("Chicken (Thigh) Stir-Fry"), "Chicken (Thigh) Stir-Fry");
+  assert.equal(englishTitle("番茄炒蛋"), "番茄炒蛋", "never left empty");
+});

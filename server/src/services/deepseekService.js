@@ -47,7 +47,8 @@ export const recipeObjectShape = `    {
       "imagePrompt": "string"
     }`;
 
-export const recipeFieldRules = `- Use a realistic positive number for servings.
+export const recipeFieldRules = `- Write every title in English only: no translation in brackets and no Chinese or other non-Latin characters.
+- Use a realistic positive number for servings.
 - Each ingredients entry must contain one ingredient name, a numeric quantity when meaningful, and a human-readable unit.
 - Use quantity null and unit "" only when a precise quantity is genuinely not appropriate, such as seasoning to taste.
 - Do not combine multiple ingredients into one ingredients entry.
@@ -98,7 +99,7 @@ ${recipeFieldRules}
 - ${dietRule}` : ""}
 - Recipes must be suitable for beginner cooks.
 - steps should be clear and simple.
-- imagePrompt should be a short food photo search phrase for Pexels.
+- imagePrompt should be a short food photo description.
 - imagePrompt should include the recipe title, cuisine, and words like plated food.`,
     user: `Ingredient inventory to use as recommendation signals:
 ${ingredientList}
@@ -209,5 +210,17 @@ export async function generateRecipesWithDeepSeek({ ingredients, cuisine, diffic
     throw new RecipeGenerationError("AI response format was invalid. Please try again.");
   }
 
-  return data;
+  return { ...data, recipes: data.recipes.map((recipe) => ({ ...recipe, title: englishTitle(recipe.title) })) };
+}
+
+// Titles are English only (user decision 2026-10-25); the prompt asks, and this removes what slips through:
+// a bracketed translation such as "(番茄炒蛋)" or any other CJK characters. Falls back to the original if
+// nothing English is left.
+export function englishTitle(title) {
+  const cleaned = title
+    .replace(/\s*[(（[【][^)）\]】]*[　-鿿＀-￯][^)）\]】]*[)）\]】]/g, "")
+    .replace(/[　-鿿＀-￯]+/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  return cleaned || title;
 }

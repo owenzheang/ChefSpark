@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { promisify } from "../services/zineStore.js";
-import { requestDeepSeekJson, deepSeekModel, RecipeGenerationError } from "../services/deepseekService.js";
+import { requestDeepSeekJson, deepSeekModel, englishTitle, RecipeGenerationError } from "../services/deepseekService.js";
 import {
   ASSISTANT_TIMEOUT_MS, EDIT_MAX_TOKENS, EXPLAIN_MAX_TOKENS, MAX_ANSWER_LENGTH, buildEditPrompt, buildExplainPrompt,
   editActions, explainQuestions, readAssistantConfig, stepText
@@ -129,6 +129,7 @@ export function createAssistantController({ db, env = process.env, requestJson =
           editCount: editCount + 1
         };
         if (tier === "variant") {
+          edited.title = englishTitle(edited.title);
           if (edited.title === recipe.title) edited.title = `${recipe.title} (variation)`;
           edited.variantOf = recipe.variantOf || recipe.title;
         }
