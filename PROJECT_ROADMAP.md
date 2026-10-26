@@ -15,10 +15,24 @@ time; each phase ends in a demoable version with passing tests.
 | 4 · Food images | Done (2026-10-24), live-checked: 3 low-quality pictures, ≈ $0.0064 each, all accurate | OpenAI only (Jimeng compared 2026-10-24: same price per picture, untested; user chose OpenAI). Pictures made automatically after each menu, low quality, shared library keyed by dish plus visible ingredients; minor edits keep the picture, variants get theirs when kept; 6 menu + 2 variant pictures per user per day. Quality stays low (user decision 2026-10-25). |
 | 5 · Natural ingredient input | Done (2026-10-25), mocked tests and a browser check; voice not yet tried on a real phone | Free-text parsing to a confirmable list (code only, no AI, no cost), then voice (browser speech recognition, `en-AU`); photo recognition only if justified. |
 
+## Future directions (user ideas, 2026-10-27; not planned or scheduled yet)
+
+1. **Chef chat (paid feature).** A ChatGPT-style conversation instead of the step-by-step flow
+   (Kitchen → Plan tonight → menu), which can feel slow when the cook already knows what they want.
+   - Tell it your ingredients in plain words and it suggests and writes dishes straight away.
+   - Ask anything you're unsure about while cooking ("how thin should I slice this?").
+   - Dishes from the chat can be saved to the Shelf as normal structured recipes.
+   - No pictures by default: a picture is made only after the cook confirms (one paid image request).
+   - Paid, so it needs accounts with a plan or credits, per-user limits and cost logging like the
+     assistant. It revisits "open-ended chat" and "credits/payments" from the parked list below.
+2. **To-buy list.** A shopping list of what's missing for a dish ("You need …") plus anything the cook
+   adds by hand. Later, with a household/family-members feature, members share one list and see each
+   other's additions.
+
 ## Parked
 
 n8n automation (e.g. weekly plan email, shopping-list export), Zine share cards ("save as image"),
-exact stock tracking, credits/payments, open-ended chat. Kitchen equipment (oven, air fryer, etc.,
+exact stock tracking, credits/payments and open-ended chat (both revisited by "Chef chat" above). Kitchen equipment (oven, air fryer, etc.,
 noted 2026-10-25): recipes are stovetop-heavy because the prompt never mentions equipment; a per-user
 equipment setting plus a code check was judged too complex for now (user decision).
 

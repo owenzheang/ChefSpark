@@ -209,6 +209,9 @@ DeepSeek request; needs authorisation).
 
 ## Next action — ask the user
 
+Future directions the user added on 2026-10-27 (paid "Chef chat" and a shared "To-buy list") are in
+`PROJECT_ROADMAP.md`; they are ideas, not approved work.
+
 1. **Deployment (1.5)**: SPA fallback (`index.html` for unknown paths), `CORS_ORIGINS`, host secrets.
    Storage decision (user, 2026-10-25): deploy on a free tier now (the backend was set up for Render in
    June, commit `53d7991`) and accept that the free tier's disk is wiped on restart or redeploy, taking
