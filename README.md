@@ -70,7 +70,7 @@ Anything else needs explicit approval. See [RULES.md](RULES.md).
 Prerequisites: Node.js 18+ and npm.
 
 ```powershell
-cd D:\aproject\SmartKitchen\server
+cd D:\aproject\chefspark\server
 npm install
 npm run dev
 ```
@@ -78,7 +78,7 @@ npm run dev
 In another terminal:
 
 ```powershell
-cd D:\aproject\SmartKitchen\client
+cd D:\aproject\chefspark\client
 npm install
 npm run dev
 ```
@@ -93,8 +93,8 @@ commit either `.env` file.
 Tests (mocked, no network or paid calls):
 
 ```powershell
-cd D:\aproject\SmartKitchen\server; npm test
-cd D:\aproject\SmartKitchen\client; node --test test/*.mjs
+cd D:\aproject\chefspark\server; npm test
+cd D:\aproject\chefspark\client; node --test test/*.mjs
 ```
 
 Running the client tests re-optimises Vite's dependency cache; reload or restart a running dev

@@ -37,7 +37,7 @@ The model is asked to choose one explicitly supplied step for the cooking scene.
 
 ## Configuration and commands
 
-Run from `D:\aproject\SmartKitchen\server`. Existing ignored `.env` is read only.
+Run from `D:\aproject\chefspark\server`. Existing ignored `.env` is read only.
 Keep the existing manually configured `OPENAI_API_KEY`; never put it in terminal arguments.
 
 Required: `OPENAI_IMAGE_MODEL=gpt-image-2.5-flare`, `OPENAI_IMAGE_QUALITY=medium`,

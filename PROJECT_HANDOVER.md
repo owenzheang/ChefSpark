@@ -4,7 +4,7 @@ Immediate continuation point, rewritten 2026-10-24 for a fresh session. Read `RE
 `AGENTS.md`, `RULES.md`, `PROJECT_CONTEXT.md`, `PROJECT_ROADMAP.md`, `DESIGN_SYSTEM.md` (UI work) and
 this file before changing anything. Inspect source before treating prose as proof.
 
-Repository: `D:\aproject\SmartKitchen`, branch `main`. Owner: a career switcher (digital media art,
+Repository: `D:\aproject\chefspark`, branch `main`. Owner: a career switcher (digital media art,
 Deakin MIT) building ChefSpark as a portfolio product; prefers plans explained before building,
 answers in Chinese or English, and explicit approval before any paid API request.
 

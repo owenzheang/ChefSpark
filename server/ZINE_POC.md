@@ -50,7 +50,7 @@ Flare's additional xhigh/max options are intentionally outside its narrow settin
 
 ## Commands
 
-Run from `D:\aproject\SmartKitchen\server`.
+Run from `D:\aproject\chefspark\server`.
 
 Dry-run (default; no API call and no output files):
 
