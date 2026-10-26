@@ -83,6 +83,34 @@ Cooking Mode 26–30px), labels 11–13px. Fonts load from Google Fonts.
 - Spacing in multiples of 4px; section gaps 24–40px; centred "menu" layout for dish lists.
 - Fixed primary actions sit above the navigation with a fade from `iron` behind them.
 
+## Desktop layout (approved direction 2026-10-26, not built yet)
+
+Same tokens, type, signature elements and controls; only the arrangement changes. One codebase:
+the phone layout stays as it is below the breakpoint.
+
+- Breakpoint: phone below 1024px (`lg`). Tablets (768–1023px) keep the phone layout, centred, until a
+  tablet layout is designed.
+- Shell: a 112px left rail replaces the bottom navigation: ✦ ChefSpark at the top, then Kitchen / Cook
+  / Shelf (active = flour with a cream spark before it), Log out at the bottom. 1px `flour/16` hairline on
+  its right. Content area up to 1120px wide, 40px gutters.
+- Primary actions are no longer fixed: they sit in the flow at the end of their column, with the same
+  cream pill (one per screen). No bottom fade.
+- Columns: two columns at most beside the rail; the left one is the "prep" column (inputs, facts,
+  ingredients) and stays in view (`sticky`) while the right one scrolls.
+- Kitchen: left = heading, add input with microphone and add buttons, quick add; right = "In my
+  kitchen" ticket as a two-column list, then "Find tonight's dishes".
+- Plan tonight: left (about 260px) = heading, cuisine / difficulty / diet pills and "Try 3 new dishes";
+  right = "Tonight's menu" with the three courses side by side (I, II, III), plate rings about 168px.
+- Recipe page: left (about 320px, sticky) = back link, plate (232px) with "AI image", facts row,
+  ingredients ticket with servings; right = title, method, tips and substitutions, "Adjust this dish",
+  "Light the stove".
+- Shelf: rows become a three-column grid of the same row (64px plate, title, mono facts), hairline
+  under each; no cards.
+- Cooking Mode: still full screen without the rail. Three columns: step list (current step marked
+  with a cream spark), the current step large in the centre with its ingredients, the two step
+  questions and Back / Next, and the timer dial plus any chef's note on the right.
+- Dish lists stay centred "menu" style; no boxed cards, no shadows, as on the phone.
+
 ## Cooking Mode
 
 One step per screen, step text 26–30px in Hanken Grotesk, progress as dots with a cream spark on the
