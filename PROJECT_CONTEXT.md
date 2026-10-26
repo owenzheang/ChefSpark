@@ -44,7 +44,10 @@ Why ChefSpark rather than asking a general chatbot:
 - DeepSeek generation of three structured recipes per request; cuisines limited to Chinese and
   Western; difficulty Easy/Medium/Hard. Results stay in this tab (sessionStorage) until saved.
 - Match Score V2, server authoritative. Salt, sugar and basic cooking oil satisfy matching without
-  being written to inventory or listed in `youHave`; soy sauce is not a pantry default.
+  being written to inventory or listed in `youHave`; soy sauce is not a pantry default. Singular and
+  plural are the same ingredient, decided in code (`ingredientMatchKey`: "Tomato" covers "tomatoes",
+  only the last word changes); synonyms (Spring Onion / Scallion) still need the AI's "same" judgment
+  plus the reviewed list.
 - Recipe Guide (`RecipeDetailPage`) for structured and legacy recipes, with a servings control
   (amounts rescaled in code; amounts written inside step text are not rewritten and a note says so).
 - Cooking Mode (`/cook/dish/:n/cooking`, `/shelf/:id/cooking`): one step per screen, timers detected

@@ -10,8 +10,25 @@ test("reviewed same-food pairs require an AI same judgment and real inventory", 
   ]) {
     assert.deepEqual(calculateRecipeMatch([{ name: required }], [{ name: owned }], [judgment(required, owned)]),
       { matchScore: 100, youHave: [required], youNeed: [] });
-    assert.equal(calculateRecipeMatch([required], [owned]).matchScore, 0);
     assert.equal(calculateRecipeMatch([required], [], [judgment(required, owned)]).matchScore, 0);
+  }
+  // A synonym (not just a plural) still needs the AI's judgment.
+  assert.equal(calculateRecipeMatch(["Spring Onion"], ["Scallion"]).matchScore, 0);
+});
+
+test("singular and plural are the same ingredient, decided in code (2026-10-27)", () => {
+  for (const [required, owned] of [
+    ["tomatoes", "Tomato"], ["Tomato", "Tomatoes"], ["Potatoes", "Potato"], ["mushrooms", "Mushroom"],
+    ["Cherry Tomatoes", "Cherry Tomato"], ["Berries", "Berry"], ["Peaches", "Peach"], ["Eggs", "Egg"]
+  ]) {
+    assert.deepEqual(calculateRecipeMatch([required], [owned]), { matchScore: 100, youHave: [required], youNeed: [] }, required);
+  }
+  for (const [word, key] of [["Hummus", "hummus"], ["Couscous", "couscous"], ["Glass Noodles", "glass noodle"], ["Rice", "rice"]]) {
+    assert.equal(ingredientMatchKey(word), key);
+  }
+  // Different foods stay different: only the last word's plural changes.
+  for (const [required, owned] of [["Tomato Paste", "Tomato"], ["Tomatoes", "Potato"], ["Chicken Wings", "Chicken"]]) {
+    assert.equal(calculateRecipeMatch([required], [owned]).matchScore, 0, required);
   }
 });
 
@@ -28,30 +45,31 @@ test("AI same claims cannot equate arbitrary foods, cuts, categories, or oils", 
 });
 
 test("substitute, different, missing, uncertain and malformed judgments grant no credit", () => {
+  // Synonyms, not plurals: plurals already match in code without any judgment.
   const invalidRecords = [
-    null, [], "same", {}, judgment("Egg", "Eggs", "substitute"),
-    judgment("Egg", "Eggs", "different"), judgment("Egg", null, "missing"),
-    judgment("Egg", "Eggs", "uncertain"), judgment("Egg", null),
-    judgment("Egg", 123), judgment("Not required", "Eggs"),
-    { ...judgment("Egg", "Eggs"), confidence: 0.5 }
+    null, [], "same", {}, judgment("Spring Onion", "Scallion", "substitute"),
+    judgment("Spring Onion", "Scallion", "different"), judgment("Spring Onion", null, "missing"),
+    judgment("Spring Onion", "Scallion", "uncertain"), judgment("Spring Onion", null),
+    judgment("Spring Onion", 123), judgment("Not required", "Scallion"),
+    { ...judgment("Spring Onion", "Scallion"), confidence: 0.5 }
   ];
   for (const record of invalidRecords) {
-    assert.equal(calculateRecipeMatch(["Egg"], ["Eggs"], [record]).matchScore, 0);
+    assert.equal(calculateRecipeMatch(["Spring Onion"], ["Scallion"], [record]).matchScore, 0);
   }
   for (const metadata of [undefined, null, {}, "bad", 12]) {
-    assert.deepEqual(calculateRecipeMatch(["Rice", "Egg"], ["Rice", "Eggs"], metadata),
-      { matchScore: 50, youHave: ["Rice"], youNeed: ["Egg"] });
+    assert.deepEqual(calculateRecipeMatch(["Rice", "Spring Onion"], ["Rice", "Scallion"], metadata),
+      { matchScore: 50, youHave: ["Rice"], youNeed: ["Spring Onion"] });
   }
 });
 
 test("duplicate and conflicting records fail closed without suppressing exact matches", () => {
-  const record = judgment("Egg", "Eggs");
-  for (const duplicate of [record, judgment(" egg ", null, "missing")]) {
-    assert.equal(calculateRecipeMatch(["Egg"], ["Eggs"], [record, duplicate]).matchScore, 0);
-    assert.equal(calculateRecipeMatch(["Egg"], ["Egg"], [record, duplicate]).matchScore, 100);
+  const record = judgment("Spring Onion", "Scallion");
+  for (const duplicate of [record, judgment(" spring onion ", null, "missing")]) {
+    assert.equal(calculateRecipeMatch(["Spring Onion"], ["Scallion"], [record, duplicate]).matchScore, 0);
+    assert.equal(calculateRecipeMatch(["Spring Onion"], ["Spring Onion"], [record, duplicate]).matchScore, 100);
   }
-  assert.deepEqual(calculateRecipeMatch(["Egg", " EGG ", "Soy Sauce"], ["Eggs"], [record]),
-    { matchScore: 50, youHave: ["Egg"], youNeed: ["Soy Sauce"] });
+  assert.deepEqual(calculateRecipeMatch(["Spring Onion", " SPRING ONION ", "Soy Sauce"], ["Scallion"], [record]),
+    { matchScore: 50, youHave: ["Spring Onion"], youNeed: ["Soy Sauce"] });
 });
 
 test("semantic matches and pantry defaults produce backend score and inventory-only youHave", () => {
@@ -85,6 +103,7 @@ test("internal metadata is stripped and AI final fields are overwritten without 
 import {
   addRecipeMatch,
   calculateRecipeMatch,
+  ingredientMatchKey,
   normalizeIngredientName
 } from "../src/utils/recipeMatching.js";
 

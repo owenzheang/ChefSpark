@@ -48,16 +48,24 @@ function StepHelp({ recipe, stepIndex, initialStatus = null }) {
   return (
     <section aria-label="Ask about this step" className="mt-6">
       <div className="flex flex-wrap gap-2">
-        {questions.map(([key, label]) => (
-          <button key={key} type="button" onClick={() => ask(key)} disabled={Boolean(pending) || Boolean(answers[`${stepIndex}:${key}`])}
-            className={`min-h-11 rounded-full px-4 text-[14px] text-soft ring-1 ring-flour/40 hover:text-flour disabled:opacity-50 ${focusRing}`}>
-            {pending === key ? "Thinking…" : label}
-          </button>
-        ))}
+        {/* An answered question looks chosen (cream ring and spark), not disabled; tapping it again
+            brings its answer into view instead of asking twice. */}
+        {questions.map(([key, label]) => {
+          const answered = Boolean(answers[`${stepIndex}:${key}`]);
+          return (
+            <button key={key} type="button" aria-pressed={answered}
+              onClick={() => answered ? document.getElementById(`step-answer-${key}`)?.scrollIntoView({ block: "nearest" }) : ask(key)}
+              disabled={!answered && Boolean(pending)}
+              className={`flex min-h-11 items-center gap-1.5 rounded-full px-4 text-[14px] ring-1 disabled:opacity-50 ${answered ? "text-flour ring-cream" : "text-soft ring-flour/40 hover:text-flour"} ${focusRing}`}>
+              {answered && <Spark size={9} className="text-cream" />}
+              {pending === key ? "Thinking…" : label}
+            </button>
+          );
+        })}
       </div>
       <div aria-live="polite">
         {shown.map(([key, label]) => (
-          <div key={key} className="mt-4 border-l-2 border-cream pl-4">
+          <div key={key} id={`step-answer-${key}`} className="mt-4 border-l-2 border-cream pl-4">
             <p className="font-mono text-[10px] tracking-[0.16em] text-ash uppercase">{label}</p>
             <p className="mt-1 text-[17px] leading-relaxed text-flour">{answers[`${stepIndex}:${key}`]}</p>
           </div>

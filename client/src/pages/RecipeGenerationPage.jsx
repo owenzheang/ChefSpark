@@ -5,6 +5,7 @@ import RecipePreviewCard from "../components/RecipePreviewCard.jsx";
 import GenerationProgress from "../components/GenerationProgress.jsx";
 import Spark from "../components/Spark.jsx";
 import Burners from "../components/Burners.jsx";
+import { useSessionState } from "../utils/sessionState.js";
 
 const pageMotion = {
   initial: { opacity: 0, y: 18 },
@@ -45,10 +46,14 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, setRecipes, cuisi
   const [ingredients, setIngredients] = useState([]);
   const [message, setMessage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [savingTitle, setSavingTitle] = useState("");
+  // Per dish title: "saving" or "error" for this visit; "saved" is kept for the tab so returning to the
+  // menu still shows "Saved" instead of offering a second copy.
+  const [saveStates, setSaveStates] = useState({});
+  const [savedTitles, setSavedTitles] = useSessionState("chefspark:tonight:saved", []);
   const isMounted = useRef(false);
   const request = useRef(null);
   const resultsHeading = useRef(null);
+  const progress = useRef(null);
 
   useEffect(() => {
     isMounted.current = true;
@@ -73,7 +78,15 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, setRecipes, cuisi
     request.current = controller;
     setMessage(null);
     setRecipes([]);
+    setSavedTitles([]);
+    setSaveStates({});
     setIsLoading(true);
+    // On a phone the progress appears below the button, out of sight: bring its heading to the top of the
+    // screen (the block is taller than a phone, so centring it would hide the heading). Runs after render.
+    setTimeout(() => progress.current?.scrollIntoView({
+      block: "start",
+      behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"
+    }), 0);
 
     try {
       const data = await generateRecipes({ cuisine, difficulty, diet }, { signal: controller.signal });
@@ -104,17 +117,17 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, setRecipes, cuisi
     request.current?.abort();
   }
 
+  // The result shows on the dish's own Save button (the page message is usually scrolled out of view).
   async function handleSave(recipe) {
-    setMessage(null);
-    setSavingTitle(recipe.title);
+    const title = recipe.title;
+    setSaveStates((states) => ({ ...states, [title]: "saving" }));
 
     try {
       await saveRecipe(recipe);
-      setMessage({ tone: "info", text: `Saved ${recipe.title} to your shelf.` });
-    } catch (error) {
-      setMessage({ tone: "error", text: error.message });
-    } finally {
-      setSavingTitle("");
+      setSavedTitles((titles) => titles.includes(title) ? titles : [...titles, title]);
+      setSaveStates((states) => ({ ...states, [title]: undefined }));
+    } catch {
+      setSaveStates((states) => ({ ...states, [title]: "error" }));
     }
   }
 
@@ -221,7 +234,9 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, setRecipes, cuisi
           <p className="hidden pt-24 text-center font-display text-[32px] text-ash italic lg:block">Tonight's menu will appear here.</p>
         )}
         {isLoading && (
-          <GenerationProgress ingredientCount={ingredients.length} cuisine={cuisine} onCancel={handleCancel} />
+          <div ref={progress} className="scroll-mt-[calc(16px+env(safe-area-inset-top,0px))]">
+            <GenerationProgress ingredientCount={ingredients.length} cuisine={cuisine} onCancel={handleCancel} />
+          </div>
         )}
 
         <AnimatePresence>
@@ -249,7 +264,7 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, setRecipes, cuisi
                     recipe={recipe}
                     onViewRecipe={onViewRecipe}
                     onSave={handleSave}
-                    isSaving={savingTitle === recipe.title}
+                    saveState={savedTitles.includes(recipe.title) ? "saved" : saveStates[recipe.title]}
                   />
                 </div>
               ))}

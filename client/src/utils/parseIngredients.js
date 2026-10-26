@@ -40,11 +40,12 @@ function singularForms(text) {
 }
 
 // Exact name, alias, or the same word in singular/plural. Fuzzy corrections are marked for the cook.
-function lookup(text) {
+function lookup(text, { fuzzy = true } = {}) {
   for (const form of singularForms(text)) {
     if (catalogByName.has(form)) return { name: catalogByName.get(form), status: "matched" };
     if (aliases.has(form)) return { name: aliases.get(form), status: "matched" };
   }
+  if (!fuzzy) return null;
   const [best] = searchIngredients(text);
   if (best?.isCorrection) return { name: best.name, status: "corrected" };
   return null;
@@ -57,7 +58,8 @@ function segment(words) {
   for (let start = 0; start < words.length;) {
     let match = null;
     for (let length = Math.min(3, words.length - start); length > 0 && !match; length -= 1) {
-      const result = lookup(words.slice(start, start + length).join(" "));
+      // Only single words are corrected: a fuzzy match across words would turn "tomato pasta" into Tomato Paste.
+      const result = lookup(words.slice(start, start + length).join(" "), { fuzzy: length === 1 });
       if (result) match = { ...result, length };
     }
     if (match) {
@@ -85,8 +87,13 @@ export function parseIngredients(text) {
   for (const piece of text.split(separators)) {
     const said = clean(piece);
     if (!said) continue;
-    const whole = lookup(said);
-    items.push(...(whole ? [{ ...whole, said }] : segment(said.split(" "))));
+    const exact = lookup(said, { fuzzy: false });
+    if (exact) { items.push({ ...exact, said }); continue; }
+    // Known words said together are separate items ("tomato pasta" = Tomato + Pasta). Only when the words
+    // don't all match exactly is the whole phrase corrected ("chiken thighs" -> Chicken Thigh).
+    const parts = segment(said.split(" "));
+    const whole = parts.every((item) => item.status === "matched") ? null : lookup(said);
+    items.push(...(whole ? [{ ...whole, said }] : parts));
   }
   const seen = new Set();
   return items.filter((item) => {

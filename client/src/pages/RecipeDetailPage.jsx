@@ -11,6 +11,7 @@ import PlateRing from "../components/PlateRing.jsx";
 import Burners from "../components/Burners.jsx";
 import RecipeAssistant from "../components/RecipeAssistant.jsx";
 import { scaleIngredients } from "../utils/scaleRecipe.js";
+import { displayIngredientName } from "../utils/ingredientCategories.js";
 import { useSessionState } from "../utils/sessionState.js";
 
 const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream";
@@ -178,7 +179,7 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, onStartCooki
                     <span className="uppercase">You Have</span> · {youHave.length}
                   </h2>
                   <p className="text-[15px] leading-snug text-soft">
-                    {youHave.length ? youHave.join(", ") : "No matching ingredients in your inventory."}
+                    {youHave.length ? youHave.map(displayIngredientName).join(", ") : "No matching ingredients in your inventory."}
                   </p>
                 </div>
               )}
@@ -189,7 +190,7 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, onStartCooki
                     <span className="uppercase">You Need</span> · {youNeed.length}
                   </h2>
                   <p className="text-[15px] leading-snug text-flour">
-                    {youNeed.length ? youNeed.join(", ") : "No additional ingredients needed."}
+                    {youNeed.length ? youNeed.map(displayIngredientName).join(", ") : "No additional ingredients needed."}
                   </p>
                 </div>
               )}

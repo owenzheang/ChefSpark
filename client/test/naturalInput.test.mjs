@@ -31,6 +31,12 @@ test("speech without commas is split at known names, and Australian words are un
   assert.deepEqual(names("spring onions zucchini"), ["Spring Onion", "Zucchini"]);
 });
 
+test("known words said together stay separate; only unknown phrases are corrected (demo 2026-10-26)", () => {
+  assert.deepEqual(names("I have eggs rice milk onion tomato pasta"), ["Eggs", "Rice", "Milk", "Onion", "Tomato", "Pasta"]);
+  assert.deepEqual(names("tomato paste"), ["Tomato Paste"]);
+  assert.deepEqual(parseIngredients("chiken thighs"), [{ name: "Chicken Thigh", status: "corrected", said: "chiken thighs" }]);
+});
+
 test("near misses are marked for checking; unknown words are kept as said", () => {
   const items = parseIngredients("brocoli and dragon fruit, eggs");
   assert.deepEqual(items[0], { name: "Broccoli", status: "corrected", said: "brocoli" });

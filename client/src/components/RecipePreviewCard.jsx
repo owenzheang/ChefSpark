@@ -3,10 +3,11 @@ import Burners from "./Burners.jsx";
 import PlateRing from "./PlateRing.jsx";
 import Spark from "./Spark.jsx";
 import { foodImageSrc } from "../services/api.js";
+import { displayIngredientName } from "../utils/ingredientCategories.js";
 
 function summarizeIngredients(ingredients = []) {
   if (ingredients.length === 0) return "None";
-  const summary = ingredients.slice(0, 2).join(", ");
+  const summary = ingredients.slice(0, 2).map(displayIngredientName).join(", ");
   return ingredients.length > 2 ? `${summary} + ${ingredients.length - 2} more` : summary;
 }
 
@@ -15,7 +16,8 @@ const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-
 
 // One course of "Tonight's menu" (DESIGN_SYSTEM.md): no card, a plate ring with the match score
 // instead of a stock photo, the dish named like a menu item, and ticket-style facts.
-export default function RecipePreviewCard({ recipe, onViewRecipe, onSave, isSaving, index = 0 }) {
+// saveState: undefined | "saving" | "saved" | "error" (shown on the card, where the cook is looking).
+export default function RecipePreviewCard({ recipe, onViewRecipe, onSave, saveState, index = 0 }) {
   const youHave = recipe.youHave || [];
   const youNeed = recipe.youNeed || [];
   const hasScore = Number.isFinite(recipe.matchScore);
@@ -68,10 +70,17 @@ export default function RecipePreviewCard({ recipe, onViewRecipe, onSave, isSavi
           className={`min-h-11 border-b border-cream font-semibold text-flour hover:text-cream ${focusRing}`}>
           Open recipe →
         </button>
-        <button type="button" disabled={isSaving} onClick={() => onSave(recipe)} aria-label={`Save ${recipe.title}`}
-          className={`min-h-11 px-1 text-ash hover:text-flour disabled:cursor-wait ${focusRing}`}>
-          {isSaving ? "Saving…" : "Save"}
-        </button>
+        {saveState === "saved" ? (
+          <span role="status" className="flex min-h-11 items-center gap-1.5 px-1 text-cream">
+            <Spark size={10} /> Saved to shelf
+          </span>
+        ) : (
+          <button type="button" disabled={saveState === "saving"} onClick={() => onSave(recipe)}
+            aria-label={saveState === "error" ? `Try saving ${recipe.title} again` : `Save ${recipe.title}`}
+            className={`min-h-11 px-1 hover:text-flour disabled:cursor-wait ${saveState === "error" ? "text-flour" : "text-ash"} ${focusRing}`}>
+            {saveState === "saving" ? "Saving…" : saveState === "error" ? "Couldn't save · retry" : "Save"}
+          </button>
+        )}
       </div>
     </motion.article>
   );

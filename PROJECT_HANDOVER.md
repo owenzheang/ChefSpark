@@ -22,7 +22,27 @@ answers in Chinese or English, and explicit approval before any paid API request
 | Desktop layout | Done 2026-10-26: same codebase, `lg` (1024px+) only; phone layout unchanged. |
 | 1.5 · Deployment | Live 2026-10-26: API on Render (`companion`, root `server`), web on Vercel (root `client`). Free tier, data wiped on restart. |
 
-Tests: 84 server + 76 client, all mocked (no network, no paid calls); production build passes.
+Tests: 85 server + 81 client, all mocked (no network, no paid calls); production build passes.
+
+## Phone demo review (recorded 2026-10-26, fixed 2026-10-27)
+
+The user's 4.6-minute iPhone recording was reviewed frame by frame. Fixed (user's selection):
+- Match Score: singular/plural now match in code (the demo's Tomato vs "tomatoes" counted as missing).
+- Ingredient parser: known words said together stay separate ("tomato pasta" was read as Tomato Paste).
+- Kitchen: adds and deletes show at once and save in the background (rolled back with a message on
+  failure); no list reload or "LOADING…" flash after each change; the empty-kitchen hint line that
+  covered quick add is gone (the disabled button reads "Add an ingredient to start").
+- Plan tonight: the progress heading scrolls into view when generation starts; Save shows on the dish
+  ("Saving…", "Saved to shelf", "Couldn't save · retry"), remembered for the tab
+  (`chefspark:tonight:saved`).
+- "You have / You need" names get a capital on each word (`displayIngredientName`).
+- Cooking Mode: an answered step question looks chosen (cream ring, `aria-pressed`), not disabled.
+
+Still open from the review (not chosen this round): content scrolling visibly behind the translucent
+iPhone status bar; Cooking Mode's fixed Back/Next bar covering the timer controls (no fade, large dial);
+the recipe page's big picture loading late and showing an empty ring with "AI IMAGE"; Western menus
+labelled ITALIAN/BRITISH/SPANISH and a dessert (rice pudding) offered for dinner; the menu picture
+arriving moves the score below the plate (layout jump); speech mishearing ("eggs" → "asked").
 
 ## Desktop layout (2026-10-26)
 

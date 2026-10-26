@@ -13,6 +13,21 @@ export function normalizeIngredientName(ingredientName) {
   return ingredientName.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
+// Singular and plural are the same ingredient ("Tomato" in the kitchen covers "tomatoes" in a recipe).
+// Only the last word changes ("cherry tomatoes" -> "cherry tomato"). The same rule runs on both sides, so
+// an imperfect singular ("leaves" -> "leave") still matches its own plural; words ending in "ss", "us"
+// or "is" (glass, hummus, couscous) are left alone.
+export function ingredientMatchKey(ingredientName) {
+  const name = normalizeIngredientName(ingredientName);
+  return name.replace(/([a-z]+)$/, (word) => {
+    if (word.length <= 3 || /(?:ss|us|is)$/.test(word)) return word;
+    if (word.endsWith("ies")) return `${word.slice(0, -3)}y`;
+    if (/(?:o|s|x|z|ch|sh)es$/.test(word)) return word.slice(0, -2);
+    if (word.endsWith("s")) return word.slice(0, -1);
+    return word;
+  });
+}
+
 // AI proposes equivalence; these reviewed groups bound what the backend will accept.
 // Keep cuts, substitutes, generic categories, and specific oils out of these groups.
 const sameIngredientGroups = [
@@ -62,7 +77,8 @@ export function calculateRecipeMatch(recipeIngredients, userIngredients, ingredi
     }
   });
 
-  const availableIngredients = new Set([...inventoryIngredients, ...pantryDefaultIngredients]);
+  const inventoryKeys = new Set([...inventoryIngredients].map(ingredientMatchKey));
+  const availableKeys = new Set([...inventoryKeys, ...pantryDefaultIngredients.map(ingredientMatchKey)]);
 
   const uniqueRequirements = new Map();
   recipeIngredients.forEach((ingredient) => {
@@ -84,8 +100,9 @@ export function calculateRecipeMatch(recipeIngredients, userIngredients, ingredi
   let matchedIngredientCount = 0;
 
   requiredIngredients.forEach(({ displayName, normalizedName }) => {
-    const owned = inventoryIngredients.has(normalizedName) || semanticMatches.has(normalizedName);
-    if (availableIngredients.has(normalizedName) || owned) {
+    const key = ingredientMatchKey(normalizedName);
+    const owned = inventoryKeys.has(key) || semanticMatches.has(normalizedName);
+    if (availableKeys.has(key) || owned) {
       matchedIngredientCount += 1;
       if (owned) {
         youHave.push(displayName);

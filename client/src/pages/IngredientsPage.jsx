@@ -50,11 +50,11 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
   const [ingredients, setIngredients] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [message, setMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // the first load starts on mount
   const [showSuggestions, setShowSuggestions] = useState(false);
   // A typed or spoken list waiting for the cook's check: { items, alreadyHave } or null.
   const [pending, setPending] = useState(null);
-  const [isAdding, setIsAdding] = useState(false);
+  const temporaryIds = useRef(0);
   const ingredientInput = useRef(null);
   const suggestions = showSuggestions && !looksLikeList(form.name) ? searchIngredients(form.name) : [];
   const speech = useSpeechInput({
@@ -77,27 +77,33 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
     requestAnimationFrame(() => document.getElementById("confirm-heading")?.focus());
   }
 
-  // One request per ingredient (the API adds one at a time); stops at the first failure.
+  // The checked list appears in the kitchen at once; each item is then saved (one request each, the API
+  // adds one at a time). Items that fail to save are taken out again and the cook is told.
   async function confirmPending() {
-    setIsAdding(true);
-    let added = 0;
-    let result;
+    const names = pending.items.map((item) => item.name);
+    setPending(null);
+    resetForm();
+    const results = await Promise.allSettled(names.map((name) => addOptimistically(name)));
+    const failed = results.filter((result) => result.status === "rejected");
+    const added = names.length - failed.length;
+    setMessage(failed.length
+      ? `${added ? `Added ${added}. ` : ""}${failed[0].reason?.message || "Some ingredients couldn't be added."}`
+      : `Added ${added} ${added === 1 ? "ingredient" : "ingredients"}.`);
+  }
+
+  // Shows the ingredient straight away (a temporary row), then swaps in the saved one. Throws on failure
+  // after removing the temporary row, so callers decide what to say.
+  async function addOptimistically(name) {
+    const temporary = { id: `pending-${++temporaryIds.current}`, name, quantity: null, unit: "", pending: true };
+    setIngredients((list) => [temporary, ...list]);
     try {
-      for (const item of pending.items) {
-        await addIngredient({ name: item.name, quantity: null, unit: "" });
-        added += 1;
-      }
-      setPending(null);
-      resetForm();
-      result = `Added ${added} ${added === 1 ? "ingredient" : "ingredients"}.`;
+      const data = await addIngredient({ name, quantity: null, unit: "" });
+      // Keep the temporary key so the row stays put instead of animating out and back in.
+      setIngredients((list) => list.map((item) => item.id === temporary.id
+        ? { ...(data.ingredient || { ...temporary, pending: false }), key: temporary.id } : item));
     } catch (error) {
-      setPending((value) => value && { ...value, items: value.items.slice(added) });
-      result = `${added ? `Added ${added}. ` : ""}${error.message}`;
-    } finally {
-      setIsAdding(false);
-      // Reloading clears the message, so the result is shown after it.
-      await loadIngredients();
-      setMessage(result);
+      setIngredients((list) => list.filter((item) => item.id !== temporary.id));
+      throw error;
     }
   }
 
@@ -107,8 +113,8 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
     ingredientInput.current?.focus();
   }
 
+  // Only the first load shows "LOADING…"; after that the list is kept up to date locally.
   async function loadIngredients() {
-    setMessage("");
     setIsLoading(true);
 
     try {
@@ -137,17 +143,10 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
       return;
     }
 
-    const ingredientData = {
-      name: trimmedName,
-      quantity: null,
-      unit: ""
-    };
-
+    setMessage("");
+    resetForm();
     try {
-      await addIngredient(ingredientData);
-      setMessage("Ingredient added.");
-      resetForm();
-      await loadIngredients();
+      await addOptimistically(trimmedName);
     } catch (error) {
       setMessage(error.message);
     }
@@ -161,14 +160,18 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
     await addIngredientByName(form.name);
   }
 
+  // Removed from the list at once; put back if the server refuses.
   async function handleDelete(id) {
     setMessage("");
+    const position = ingredients.findIndex((item) => item.id === id);
+    const removed = ingredients[position];
+    if (!removed) return;
+    setIngredients((list) => list.filter((item) => item.id !== id));
 
     try {
       await deleteIngredient(id);
-      setMessage("Ingredient deleted.");
-      await loadIngredients();
     } catch (error) {
+      setIngredients((list) => [...list.slice(0, position), removed, ...list.slice(position)]);
       setMessage(error.message);
     }
   }
@@ -232,12 +235,12 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
             {speech.supported && (
               <motion.button type="button" whileTap={{ scale: 0.9 }}
                 aria-label={speech.listening ? "Stop listening" : "Say what you have"} aria-pressed={speech.listening}
-                onClick={speech.listening ? speech.stop : speech.start} disabled={isAdding}
+                onClick={speech.listening ? speech.stop : speech.start}
                 className={`mb-1 flex size-11 shrink-0 items-center justify-center rounded-full ring-1 ${speech.listening ? "bg-cream/16 text-cream ring-cream motion-safe:animate-pulse" : "text-flour ring-flour/40 hover:ring-flour"} ${focusRing}`}>
                 <Mic size={20} strokeWidth={2.2} aria-hidden="true" />
               </motion.button>
             )}
-            <motion.button type="submit" aria-label="Add ingredient" whileTap={{ scale: 0.9 }} disabled={isAdding}
+            <motion.button type="submit" aria-label="Add ingredient" whileTap={{ scale: 0.9 }}
               className={`mb-1 flex size-11 shrink-0 items-center justify-center rounded-full bg-cream text-iron ${focusRing}`}>
               <Plus size={22} strokeWidth={2.4} aria-hidden="true" />
             </motion.button>
@@ -253,7 +256,7 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
         )}
         {speech.error && <p role="alert" className="mt-2 text-[13px] text-flour">{speech.error}</p>}
         {pending ? (
-          <IngredientConfirmList items={pending.items} alreadyHave={pending.alreadyHave} isAdding={isAdding}
+          <IngredientConfirmList items={pending.items} alreadyHave={pending.alreadyHave}
             onRemove={(name) => setPending((value) => ({ ...value, items: value.items.filter((item) => item.name !== name) }))}
             onConfirm={confirmPending}
             onCancel={() => { setPending(null); ingredientInput.current?.focus(); }} />
@@ -275,18 +278,20 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
         <ul className="mt-1.5 grid grid-cols-2 gap-x-5 font-mono text-[14px] uppercase" aria-label="Ingredients in my kitchen">
           <AnimatePresence initial={false}>
             {ingredients.map((ingredient) => (
-              <motion.li key={ingredient.id} layout {...chipMotion}
+              <motion.li key={ingredient.key || ingredient.id} layout {...chipMotion}
                 className="flex min-h-11 items-center justify-between gap-2">
                 <span className="flex min-w-0 items-center gap-2">
                   <IngredientCategoryIcon name={ingredient.name} size={14} />
                   <span className="truncate">{ingredient.name}</span>
                 </span>
+                {/* A row still being saved has no server id yet, so it can't be deleted for that moment. */}
                 <motion.button
                   type="button"
                   aria-label={`Delete ${ingredient.name}`}
                   onClick={() => handleDelete(ingredient.id)}
+                  disabled={ingredient.pending}
                   whileTap={{ scale: 0.86 }}
-                  className={`-mr-2 flex size-10 shrink-0 items-center justify-center rounded-full text-ash hover:text-flour ${focusRing}`}
+                  className={`-mr-2 flex size-10 shrink-0 items-center justify-center rounded-full text-ash hover:text-flour disabled:opacity-40 ${focusRing}`}
                 >
                   <X size={16} strokeWidth={2} aria-hidden="true" />
                 </motion.button>
@@ -304,18 +309,16 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
       <div aria-hidden="true"
         className="pointer-events-none fixed inset-x-0 bottom-0 z-[5] mx-auto h-[calc(170px+env(safe-area-inset-bottom,0px))] max-w-[430px] bg-linear-to-t from-iron from-60% to-transparent lg:hidden" />
       <div className="fixed inset-x-6 bottom-[calc(84px+env(safe-area-inset-bottom,0px))] z-10 mx-auto flex max-w-[382px] flex-col gap-1.5 lg:static lg:z-auto lg:mx-0 lg:mt-6">
-        {!hasIngredients && !isLoading && (
-          <p id="find-dishes-hint" className="text-center font-mono text-[11px] tracking-[0.16em] text-ash">ADD AT LEAST ONE INGREDIENT</p>
-        )}
+        {/* With an empty kitchen the button itself says what to do: a separate hint line used to cover the
+            second row of quick add on a phone. */}
         <motion.button
           type="button"
           onClick={onGenerateRecipes}
           disabled={!hasIngredients}
-          aria-describedby={!hasIngredients ? "find-dishes-hint" : undefined}
           whileTap={{ scale: 0.97 }}
           className={`flex min-h-[58px] items-center justify-between rounded-full bg-cream px-6 text-lg font-semibold text-iron shadow-glow disabled:cursor-not-allowed disabled:bg-transparent disabled:text-ash disabled:shadow-none disabled:ring-1 disabled:ring-flour/40 ${focusRing}`}
         >
-          Find tonight's dishes
+          {hasIngredients || isLoading ? "Find tonight's dishes" : "Add an ingredient to start"}
           <ArrowRight size={22} strokeWidth={2.2} aria-hidden="true" />
         </motion.button>
       </div>

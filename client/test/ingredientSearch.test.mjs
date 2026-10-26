@@ -105,9 +105,12 @@ test("ingredient page preserves manual submit and add/delete API wiring", async 
   const source = await readFile(new URL("../src/pages/IngredientsPage.jsx", import.meta.url), "utf8");
   assert.match(source, /await addIngredientByName\(form.name\)/);
   assert.match(source, /const trimmedName = name.trim\(\)/);
-  assert.match(source, /name: trimmedName,\s+quantity: null,\s+unit: ""/);
-  assert.match(source, /await addIngredient\(ingredientData\)/);
+  // Adds and deletes show at once and are saved in the background (rolled back on failure).
+  assert.match(source, /await addOptimistically\(trimmedName\)/);
+  assert.match(source, /await addIngredient\(\{ name, quantity: null, unit: "" \}\)/);
+  assert.match(source, /setIngredients\(\(list\) => list.filter\(\(item\) => item.id !== temporary.id\)\)/);
   assert.match(source, /await deleteIngredient\(id\)/);
+  assert.doesNotMatch(source, /await loadIngredients\(\);\s*\}\s*catch/, "no reload after each change");
   assert.match(source, /onClick=\{\(\) => handleDelete\(ingredient.id\)\}/);
   assert.match(source, /onClick=\{\(\) => addIngredientByName\(ingredient\)\}/);
   assert.match(source, /function selectSuggestion\(name\) \{\s+setForm\(\{ name \}\)/);
@@ -127,8 +130,9 @@ test("Kitchen screen uses the design system, owns log out and guards the main ac
   assert.match(html, /id="ingredient-name"/);
   assert.match(html, />LOG OUT<\/button>/);
   assert.match(html, /bg-iron/);
-  assert.match(html, /<button type="button" disabled=""[^>]*aria-describedby="find-dishes-hint"/);
-  assert.match(html, /ADD AT LEAST ONE INGREDIENT/);
+  // While the first load runs the button keeps its normal label; it is disabled until there is an ingredient.
+  assert.match(html, /<button type="button" disabled=""[^>]*>Find tonight(&#x27;|')s dishes/);
+  assert.doesNotMatch(html, /ADD AT LEAST ONE INGREDIENT/);
   assert.equal((html.match(/aria-label="Add [A-Z]/g) || []).length, 8);
   assert.doesNotMatch(html, /Notifications|Recipes saved|Choose Cuisine/);
   assert.equal(loggedOut, false);
