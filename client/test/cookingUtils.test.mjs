@@ -51,6 +51,13 @@ test("quantities scale with kitchen-friendly rounding", () => {
   assert.equal(scaleQuantity(1, "tsp", 0.1), 0.25);
   assert.equal(scaleQuantity(null, "", 2), null);
   assert.equal(scaleQuantity(200, "g", 1), 200);
+  // Counted things stay whole (PC demo 2026-10-26: "12½ cloves" garlic at 5 servings).
+  assert.equal(scaleQuantity(5, "cloves", 2.5), 13);
+  assert.equal(scaleQuantity(8, "pieces", 2.5), 20);
+  assert.equal(scaleQuantity(1, "clove", 0.5), 1, "never below one");
+  assert.equal(scaleQuantity(3, "", 1.5, "Eggs"), 5);
+  assert.equal(scaleQuantity(1, "small", 2.5, "Onion"), 2.5, "half an onion is fine");
+  assert.equal(scaleQuantity(2, "", 1.25, "Tomato"), 2.5);
   assert.equal(formatQuantity(1.5), "1½");
   assert.equal(formatQuantity(0.25), "¼");
   assert.equal(formatQuantity(2 / 3), "⅔");

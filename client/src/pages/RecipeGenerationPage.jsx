@@ -1,6 +1,6 @@
 ﻿import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { generateRecipes, getIngredients, requestFoodImage, saveRecipe } from "../services/api.js";
+import { getIngredients, requestFoodImage, saveRecipe } from "../services/api.js";
 import RecipePreviewCard from "../components/RecipePreviewCard.jsx";
 import GenerationProgress from "../components/GenerationProgress.jsx";
 import Spark from "../components/Spark.jsx";
@@ -42,16 +42,20 @@ export function addMenuPictures(recipes, setRecipes, request = requestFoodImage)
   }
 }
 
-function RecipeGenerationPage({ onBack, onViewRecipe, recipes, setRecipes, cuisine, setCuisine, difficulty, setDifficulty, diet = "Any", setDiet = () => {} }) {
-  const [ingredients, setIngredients] = useState([]);
-  const [message, setMessage] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+const idleGeneration = { running: false, startedAt: 0, cuisine: "", message: null,
+  generate: async () => [], cancel() {}, setMessage() {} };
+
+// generation comes from the app shell (useMenuGeneration), so it keeps running if the cook leaves this page.
+function RecipeGenerationPage({ onBack, onViewRecipe, recipes, generation = idleGeneration, cuisine, setCuisine, difficulty, setDifficulty, diet = "Any", setDiet = () => {} }) {
+  const [ingredients, setIngredients] = useState(null); // null until loaded
+  const isLoading = generation.running;
+  const message = generation.message;
+  const setMessage = generation.setMessage;
   // Per dish title: "saving" or "error" for this visit; "saved" is kept for the tab so returning to the
   // menu still shows "Saved" instead of offering a second copy.
   const [saveStates, setSaveStates] = useState({});
   const [savedTitles, setSavedTitles] = useSessionState("chefspark:tonight:saved", []);
   const isMounted = useRef(false);
-  const request = useRef(null);
   const resultsHeading = useRef(null);
   const progress = useRef(null);
 
@@ -60,27 +64,21 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, setRecipes, cuisi
     async function loadIngredients() {
       try {
         const data = await getIngredients();
-        setIngredients(data);
+        if (isMounted.current) setIngredients(data);
       } catch (error) {
-        setMessage({ tone: "error", text: error.message });
+        if (isMounted.current) { setIngredients([]); setMessage({ tone: "error", text: error.message }); }
       }
     }
 
     loadIngredients();
     return () => {
-      isMounted.current = false;
-      request.current?.abort(); // Leaving the page cancels an unfinished generation.
+      isMounted.current = false; // leaving does not cancel: the generation belongs to the app shell
     };
   }, []);
 
   async function handleGenerate() {
-    const controller = new AbortController();
-    request.current = controller;
-    setMessage(null);
-    setRecipes([]);
     setSavedTitles([]);
     setSaveStates({});
-    setIsLoading(true);
     // On a phone the progress appears below the button, out of sight: bring its heading to the top of the
     // screen (the block is taller than a phone, so centring it would hide the heading). Runs after render.
     setTimeout(() => progress.current?.scrollIntoView({
@@ -88,33 +86,12 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, setRecipes, cuisi
       behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"
     }), 0);
 
-    try {
-      const data = await generateRecipes({ cuisine, difficulty, diet }, { signal: controller.signal });
-      if (!isMounted.current) return;
-      if (!data.recipes?.length) {
-        setMessage({ tone: "error", text: "No dishes came back this time. Please try again." });
-        return;
-      }
-      setRecipes(data.recipes);
-      addMenuPictures(data.recipes, setRecipes);
-      if (data.droppedForDiet > 0) {
-        const count = data.droppedForDiet === 1 ? "1 dish" : `${data.droppedForDiet} dishes`;
-        setMessage({ tone: "info", text: `Left out ${count} that wasn't ${diet.toLowerCase()}.` });
-      }
-      requestAnimationFrame(() => resultsHeading.current?.focus());
-    } catch (error) {
-      if (!isMounted.current) return;
-      setMessage(error.name === "AbortError"
-        ? { tone: "info", text: "Cancelled. Change your choices or try again." }
-        : { tone: "error", text: error.message });
-    } finally {
-      if (request.current === controller) request.current = null;
-      if (isMounted.current) setIsLoading(false);
-    }
+    const dishes = await generation.generate({ cuisine, difficulty, diet });
+    if (isMounted.current && dishes.length) requestAnimationFrame(() => resultsHeading.current?.focus());
   }
 
   function handleCancel() {
-    request.current?.abort();
+    generation.cancel();
   }
 
   // The result shows on the dish's own Save button (the page message is usually scrolled out of view).
@@ -131,11 +108,13 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, setRecipes, cuisi
     }
   }
 
-  const hasIngredients = ingredients.length > 0;
+  const ingredientsLoaded = ingredients !== null;
+  const hasIngredients = ingredientsLoaded && ingredients.length > 0;
+  const ingredientList = ingredients || [];
 
   return (
     <motion.main data-ds="" {...pageMotion}
-      className="min-h-screen bg-iron bg-ember-glow px-6 pt-4 pb-[calc(110px+env(safe-area-inset-bottom,0px))] lg:mx-auto lg:grid lg:max-w-[1120px] lg:grid-cols-[300px_minmax(0,1fr)] lg:items-start lg:gap-14 lg:px-10 lg:pt-10 lg:pb-16">
+      className="min-h-screen bg-iron bg-ember-glow px-6 pt-4 pb-[calc(110px+env(safe-area-inset-bottom,0px))] lg:mx-auto lg:grid lg:max-w-[1240px] lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start lg:gap-16 lg:px-12 lg:pt-12 lg:pb-16">
       {/* Desktop (DESIGN_SYSTEM.md): choices stay in view on the left, the menu fills the right. */}
       <div className="lg:sticky lg:top-10">
       <header className="flex items-center justify-between lg:flex-col lg:items-start lg:gap-1">
@@ -144,16 +123,19 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, setRecipes, cuisi
           ← KITCHEN
         </motion.button>
         <span className="font-mono text-[11px] tracking-[0.18em] text-ash">
-          STEP 2 OF 2 · {ingredients.length} {ingredients.length === 1 ? "INGREDIENT" : "INGREDIENTS"}
+          STEP 2 OF 2{ingredientsLoaded && ` · ${ingredientList.length} ${ingredientList.length === 1 ? "INGREDIENT" : "INGREDIENTS"}`}
         </span>
       </header>
 
       <h1 className="mt-8 font-display text-[56px] leading-[0.95] tracking-[-0.01em] italic">Plan tonight.</h1>
 
-      {hasIngredients ? (
+      {/* While the kitchen loads, say so; "add ingredients first" only once we know it's empty. */}
+      {!ingredientsLoaded ? (
+        <p role="status" className="mt-3 text-[15px] text-ash">Checking your kitchen…</p>
+      ) : hasIngredients ? (
         <p className="mt-3 text-[15px] text-soft">
-          Using {ingredients.slice(0, 4).map((item) => item.name).join(", ")}
-          {ingredients.length > 4 ? ` and ${ingredients.length - 4} more` : ""}.
+          Using {ingredientList.slice(0, 4).map((item) => item.name).join(", ")}
+          {ingredientList.length > 4 ? ` and ${ingredientList.length - 4} more` : ""}.
         </p>
       ) : (
         <p className="mt-3 flex items-center gap-2 text-[15px] text-flour">
@@ -235,7 +217,8 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, setRecipes, cuisi
         )}
         {isLoading && (
           <div ref={progress} className="scroll-mt-[calc(16px+env(safe-area-inset-top,0px))]">
-            <GenerationProgress ingredientCount={ingredients.length} cuisine={cuisine} onCancel={handleCancel} />
+            <GenerationProgress ingredientCount={ingredientList.length} cuisine={generation.cuisine || cuisine} onCancel={handleCancel}
+              initialSeconds={Math.max(0, Math.floor((Date.now() - generation.startedAt) / 1000))} />
           </div>
         )}
 
@@ -251,9 +234,9 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, setRecipes, cuisi
                 </h2>
                 <p className="sr-only">{recipes.length} dishes for tonight</p>
               </div>
-              <div className="flex w-full flex-col items-center gap-10 lg:grid lg:grid-cols-3 lg:items-start lg:gap-8">
+              <div className="flex w-full flex-col items-center gap-10 lg:grid lg:grid-cols-3 lg:items-stretch lg:gap-10">
               {recipes.map((recipe, index) => (
-                <div key={`${recipe.title}-${index}`} className="flex w-full flex-col items-center gap-10">
+                <div key={`${recipe.title}-${index}`} className="flex w-full flex-col items-center gap-10 lg:h-full">
                   {index > 0 && (
                     <div aria-hidden="true" className="flex w-full items-center gap-3.5 lg:hidden">
                       <span className="h-px flex-1 bg-flour/16" /><Spark size={11} className="text-cream" /><span className="h-px flex-1 bg-flour/16" />

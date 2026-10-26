@@ -8,23 +8,26 @@ const tabs = [
 
 const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream";
 
-// Desktop navigation (DESIGN_SYSTEM.md, "Desktop layout"): a 112px left rail replaces the bottom bar
+// Desktop navigation (DESIGN_SYSTEM.md, "Desktop layout"): a 144px left rail replaces the bottom bar
 // from the lg breakpoint. Same tabs and active spark; Log out sits at the bottom.
-export default function SideRail({ activePage, onNavigate, onLogout }) {
+// cooking: tonight's menu is being made (from any page); the Cook tab's spark pulses until it is ready.
+export default function SideRail({ activePage, onNavigate, onLogout, cooking = false }) {
   return (
     <nav aria-label="Main navigation" data-ds=""
-      className="fixed inset-y-0 left-0 z-10 hidden w-28 flex-col gap-2 border-r border-flour/16 bg-iron px-4 py-8 font-sans lg:flex">
-      <span className="mb-6 flex items-center gap-1.5 font-display text-[19px] italic">
+      className="fixed inset-y-0 left-0 z-10 hidden w-36 flex-col gap-2 border-r border-flour/16 bg-iron px-6 py-8 font-sans lg:flex">
+      <span className="mb-8 flex items-center gap-1.5 font-display text-[20px] italic">
         <Spark size={12} className="text-cream" />
         ChefSpark
       </span>
       {tabs.map(({ id, label }) => {
         const active = activePage === id;
+        const busy = cooking && id === "recipes";
         return (
           <button key={id} type="button" onClick={() => onNavigate(id)} aria-current={active ? "page" : undefined}
             className={`flex min-h-11 items-center gap-1.5 text-left text-[15px] ${active ? "font-semibold text-flour" : "text-ash hover:text-flour"} ${focusRing}`}>
-            <Spark size={9} className={active ? "text-cream" : "text-transparent"} />
+            <Spark size={9} className={`${active || busy ? "text-cream" : "text-transparent"} ${busy ? "motion-safe:animate-pulse" : ""}`} />
             {label}
+            {busy && <span className="sr-only">(making tonight's menu)</span>}
           </button>
         );
       })}

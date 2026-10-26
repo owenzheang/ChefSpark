@@ -59,7 +59,8 @@ export default function GenerationProgress({ ingredientCount, cuisine, onCancel,
         </button>
       </div>
 
-      <ul aria-hidden="true" className="flex flex-col items-center gap-10">
+      {/* Desktop: the three courses side by side, as the menu will be. */}
+      <ul aria-hidden="true" className="flex flex-col items-center gap-10 lg:grid lg:grid-cols-3 lg:items-start lg:gap-8">
         {courses.map((course) => (
           <li key={course} className="flex flex-col items-center gap-3">
             <span className="font-display text-[22px] text-cream">{course}</span>

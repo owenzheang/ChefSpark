@@ -76,7 +76,7 @@ function SavedRecipesPage({ onViewRecipe, onCook }) {
 
   return (
     <motion.main data-ds="" {...pageMotion}
-      className="min-h-screen bg-iron bg-ember-glow px-6 pt-5 pb-[calc(110px+env(safe-area-inset-bottom,0px))] lg:mx-auto lg:max-w-[1120px] lg:px-10 lg:pt-10 lg:pb-16">
+      className="min-h-screen bg-iron bg-ember-glow px-6 pt-5 pb-[calc(110px+env(safe-area-inset-bottom,0px))] lg:mx-auto lg:max-w-[1240px] lg:px-12 lg:pt-12 lg:pb-16">
       <header className="flex items-center justify-between">
         {/* On desktop the rail shows the name; the count stays. */}
         <span className="flex items-center gap-2 font-display text-2xl italic lg:invisible">
@@ -113,7 +113,7 @@ function SavedRecipesPage({ onViewRecipe, onCook }) {
 
       {count > 0 && (
         // Desktop: the same rows in a three-column grid, a hairline under each (no cards).
-        <ul className="mt-8 border-t border-flour/16 lg:grid lg:grid-cols-3 lg:gap-x-10 lg:border-t-0" aria-label="Saved recipes">
+        <ul className="mt-8 border-t border-flour/16 lg:grid lg:grid-cols-3 lg:gap-x-12 lg:gap-y-2 lg:border-t-0" aria-label="Saved recipes">
           <AnimatePresence initial={false}>
             {savedRecipes.map((savedRecipe) => {
               const recipe = savedRecipe.recipe || {};

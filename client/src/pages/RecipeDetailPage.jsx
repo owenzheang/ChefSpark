@@ -109,7 +109,7 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, onStartCooki
 
   return (
     <motion.main data-ds="" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-      className={`min-h-screen bg-iron bg-ember-glow px-6 pt-4 ${canCook ? "pb-[calc(190px+env(safe-area-inset-bottom,0px))]" : "pb-[calc(110px+env(safe-area-inset-bottom,0px))]"} lg:mx-auto lg:max-w-[1120px] lg:px-10 lg:pt-8 lg:pb-16`}>
+      className={`min-h-screen bg-iron bg-ember-glow px-6 pt-4 ${canCook ? "pb-[calc(190px+env(safe-area-inset-bottom,0px))]" : "pb-[calc(110px+env(safe-area-inset-bottom,0px))]"} lg:mx-auto lg:max-w-[1240px] lg:px-12 lg:pt-10 lg:pb-16`}>
       <header className="flex items-center justify-between">
         <button type="button" onClick={onBack}
           aria-label={generatedRecipe ? "Back to generated recipes" : "Back to saved recipes"}
@@ -132,7 +132,7 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, onStartCooki
       )}
 
       {recipe && (
-        <article className="flex flex-col lg:mt-4 lg:grid lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start lg:gap-x-14">
+        <article className="flex flex-col lg:mt-6 lg:grid lg:grid-cols-[360px_minmax(0,1fr)] lg:items-start lg:gap-x-16">
           {/* Desktop (DESIGN_SYSTEM.md): the prep column (plate, facts, ingredients) on the left; the title,
               method and actions on the right. Not sticky: a long ingredient list can be taller than the screen.
               On a phone both columns stack in this order. */}

@@ -54,12 +54,16 @@ test("animations only run when the user allows motion", async () => {
   assert.equal(animated.length, guarded.length);
 });
 
-test("the generation page wires cancel to an AbortController and aborts on leave", async () => {
-  const source = await readFile(new URL("../src/pages/RecipeGenerationPage.jsx", import.meta.url), "utf8");
-  assert.match(source, /generateRecipes\(\{ cuisine, difficulty, diet \}, \{ signal: controller\.signal \}\)/);
-  assert.match(source, /function handleCancel\(\) \{\s+request\.current\?\.abort\(\);/);
-  assert.match(source, /request\.current\?\.abort\(\); \/\/ Leaving the page/);
-  assert.match(source, /error\.name === "AbortError"/);
+test("generation is owned by the app shell: Cancel aborts it, leaving the page does not (2026-10-27)", async () => {
+  const hook = await readFile(new URL("../src/utils/useMenuGeneration.js", import.meta.url), "utf8");
+  assert.match(hook, /generateRecipes\(\{ cuisine, difficulty, diet \}, \{ signal: controller\.signal \}\)/);
+  assert.match(hook, /function cancel\(\) \{\s+request\.current\?\.abort\(\);/);
+  assert.match(hook, /error\.name === "AbortError"/);
+  const page = await readFile(new URL("../src/pages/RecipeGenerationPage.jsx", import.meta.url), "utf8");
+  assert.match(page, /function handleCancel\(\) \{\s+generation\.cancel\(\);/);
+  assert.doesNotMatch(page, /abort\(\)/, "unmounting the page never aborts");
+  const app = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
+  assert.match(app, /function signOut\(\) \{\s+generation\.reset\(\);/);
 });
 
 test("the diet choice is a pressed-state group with a label caution for vegetarian and vegan", async () => {

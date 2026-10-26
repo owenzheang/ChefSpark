@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+﻿import { createContext, useContext, useEffect, useState } from "react";
 import { MotionConfig } from "motion/react";
 import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router";
 import BottomNav from "./components/BottomNav.jsx";
@@ -7,12 +7,16 @@ import CookingModePage from "./pages/CookingModePage.jsx";
 import IngredientsPage from "./pages/IngredientsPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RecipeDetailPage from "./pages/RecipeDetailPage.jsx";
-import RecipeGenerationPage from "./pages/RecipeGenerationPage.jsx";
+import RecipeGenerationPage, { addMenuPictures } from "./pages/RecipeGenerationPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
 import SavedRecipesPage from "./pages/SavedRecipesPage.jsx";
 import { getSavedRecipe, getToken, removeToken, saveRecipe, SIGNED_OUT_EVENT } from "./services/api.js";
 import { dishIndexFromParam, pathForTab, paths, safeReturnPath, tabForPath } from "./routes.js";
 import { clearSessionKeys, clearSessionPrefix, useSessionState } from "./utils/sessionState.js";
+import { useMenuGeneration } from "./utils/useMenuGeneration.js";
+
+// True while tonight's menu is being made, so the navigation can show it on the Cook tab from any page.
+const CookingContext = createContext(false);
 
 const sessionKeys = {
   recipes: "chefspark:tonight:recipes",
@@ -33,16 +37,18 @@ function RequireAuth({ children }) {
 function WithNavigation({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const cooking = useContext(CookingContext);
   return (
     <RequireAuth>
       <div className="min-h-screen bg-iron">
         {/* Desktop: left rail plus a wide content area; each page sets its own max width and columns. */}
-        <SideRail activePage={tabForPath(location.pathname)} onNavigate={(tab) => navigate(pathForTab(tab))}
+        <SideRail activePage={tabForPath(location.pathname)} onNavigate={(tab) => navigate(pathForTab(tab))} cooking={cooking}
           onLogout={() => window.dispatchEvent(new Event(SIGNED_OUT_EVENT))} />
-        {/* "phone-container" is only a hook for the paused Zine's wider layout (zine.css). */}
-        <div className="phone-container relative mx-auto min-h-screen w-full max-w-[430px] overflow-x-hidden bg-iron lg:max-w-none lg:pl-28">
+        {/* "phone-container" is only a hook for the paused Zine's wider layout (zine.css). overflow-x-clip,
+            not -hidden: hidden makes this a scroll container and breaks the desktop sticky columns. */}
+        <div className="phone-container relative mx-auto min-h-screen w-full max-w-[430px] overflow-x-clip bg-iron lg:max-w-none lg:pl-36">
           {children}
-          <BottomNav activePage={tabForPath(location.pathname)} onNavigate={(tab) => navigate(pathForTab(tab))} />
+          <BottomNav activePage={tabForPath(location.pathname)} onNavigate={(tab) => navigate(pathForTab(tab))} cooking={cooking} />
         </div>
       </div>
     </RequireAuth>
@@ -58,7 +64,7 @@ function FullScreen({ children }) {
   return (
     <RequireAuth>
       <div className="min-h-screen bg-iron">
-        <div className="relative mx-auto min-h-screen w-full max-w-[430px] overflow-x-hidden lg:max-w-[1200px]">{children}</div>
+        <div className="relative mx-auto min-h-screen w-full max-w-[430px] overflow-x-clip lg:max-w-[1280px]">{children}</div>
       </div>
     </RequireAuth>
   );
@@ -129,8 +135,13 @@ export function AppRoutes() {
   const [cuisine, setCuisine] = useSessionState(sessionKeys.cuisine, "Chinese");
   const [difficulty, setDifficulty] = useSessionState(sessionKeys.difficulty, "Easy");
   const [diet, setDiet] = useSessionState(sessionKeys.diet, "Any");
+  const generation = useMenuGeneration({
+    setRecipes: setGeneratedRecipes,
+    onRecipes: (recipes) => addMenuPictures(recipes, setGeneratedRecipes)
+  });
 
   function signOut() {
+    generation.reset();
     removeToken();
     clearSessionKeys(Object.values(sessionKeys));
     clearSessionPrefix("chefspark:"); // cooking progress and chosen servings too
@@ -157,6 +168,7 @@ export function AppRoutes() {
   const signedInHome = <Navigate to={paths.kitchen} replace />;
 
   return (
+    <CookingContext.Provider value={generation.running}>
     <Routes>
       <Route path={paths.login} element={getToken() ? signedInHome
         : <LoginPage onLogin={afterSignIn} onShowRegister={() => navigate(paths.register, { state: location.state })} />} />
@@ -170,7 +182,7 @@ export function AppRoutes() {
       <Route path={paths.cook} element={<WithNavigation>
         <RecipeGenerationPage
           recipes={generatedRecipes}
-          setRecipes={setGeneratedRecipes}
+          generation={generation}
           cuisine={cuisine}
           setCuisine={setCuisine}
           difficulty={difficulty}
@@ -193,6 +205,7 @@ export function AppRoutes() {
 
       <Route path="*" element={<Navigate to={paths.kitchen} replace />} />
     </Routes>
+    </CookingContext.Provider>
   );
 }
 

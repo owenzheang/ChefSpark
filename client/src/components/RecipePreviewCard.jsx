@@ -26,7 +26,7 @@ export default function RecipePreviewCard({ recipe, onViewRecipe, onSave, saveSt
   return (
     <motion.article initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: index * 0.1 }}
-      className="flex flex-col items-center gap-3 text-center">
+      className="flex flex-col items-center gap-3 text-center lg:h-full">
       <span className="font-display text-[22px] text-cream" aria-hidden="true">{courses[index] || index + 1}</span>
       <PlateRing percent={hasScore ? recipe.matchScore : null} size={168} imageSrc={imageSrc}>
         {imageSrc ? null : hasScore ? (
@@ -65,7 +65,8 @@ export default function RecipePreviewCard({ recipe, onViewRecipe, onSave, saveSt
       ) : (
         <p className="-rotate-[1.5deg] font-hand text-[22px] text-cream">you have everything for this one</p>
       )}
-      <div className="flex items-center gap-6">
+      {/* Desktop: pushed to the bottom so all three courses line up. */}
+      <div className="flex items-center gap-6 lg:mt-auto lg:pt-2">
         <button type="button" onClick={() => onViewRecipe(recipe)} aria-label={`Open recipe: ${recipe.title}`}
           className={`min-h-11 border-b border-cream font-semibold text-flour hover:text-cream ${focusRing}`}>
           Open recipe →

@@ -44,6 +44,29 @@ the recipe page's big picture loading late and showing an empty ring with "AI IM
 labelled ITALIAN/BRITISH/SPANISH and a dessert (rice pudding) offered for dinner; the menu picture
 arriving moves the score below the plate (layout jump); speech mishearing ("eggs" → "asked").
 
+## PC demo review (recorded 2026-10-26, fixed 2026-10-27)
+
+Fixed (user's selection):
+- Desktop sticky columns: the shell used `overflow-x-hidden`, which made it a scroll container and
+  disabled `sticky`; now `overflow-x-clip`.
+- Menu generation moved to the app shell (`client/src/utils/useMenuGeneration.js`): switching pages no
+  longer cancels it; only Cancel or sign-out stops it. The Cook tab's spark pulses while it runs (rail and
+  bottom bar). Plan tonight shows "Checking your kitchen…" instead of "add ingredients first" while the
+  kitchen loads.
+- Desktop progress: the three placeholder plates sit side by side.
+- Scaling: counted units (cloves, pieces, wings, eggs…) round to whole numbers, never below one.
+- Desktop menu cards stretch so "Open recipe / Save" line up; the done screen's duplicate "Back to the
+  recipe" link is gone ("Exit Cooking Mode" remains).
+- Desktop spacing: rail 144px with 24px padding; content up to 1240px, 48px gutters, 64px column gaps;
+  wider prep columns (Plan tonight 320px, recipe page 360px); Cooking Mode 240 / step / 280.
+
+Still open from that review: two AI failures in one session (an "I don't have Onion" edit came back
+unusable; a step question returned "AI returned invalid JSON"). Suspected cause, not confirmed: answers
+cut off by `max_tokens` (250 for step questions). The server logs no reason yet; check Render logs or add
+logging before changing limits. Also open: the raw "invalid JSON" wording reaching users; the ember glow
+drawn only over the centre column (visible hard edges on wide screens); two chicken-wing dishes in one
+menu; delete animation overlapping the empty-kitchen text; brief blank content on first load.
+
 ## Desktop layout (2026-10-26)
 
 - Rules in `DESIGN_SYSTEM.md` ("Desktop layout"). One codebase: Tailwind `lg:` classes only; below 1024px

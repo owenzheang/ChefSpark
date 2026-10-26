@@ -116,7 +116,7 @@ function CookingModePage({ recipe, recipeKey, onExit, onSave, assistantStatus = 
   }
 
   return (
-    <main data-ds="" className="flex min-h-screen flex-col bg-iron px-6 pt-4 pb-[calc(104px+env(safe-area-inset-bottom,0px))] lg:px-10 lg:pt-8 lg:pb-16"
+    <main data-ds="" className="flex min-h-screen flex-col bg-iron px-6 pt-4 pb-[calc(104px+env(safe-area-inset-bottom,0px))] lg:px-12 lg:pt-10 lg:pb-16"
       style={{ backgroundImage: "radial-gradient(circle at 50% 42%, #ebcd981a, transparent 50%)" }}>
       <p role="status" aria-live="assertive" className="sr-only">{announcement}</p>
 
@@ -147,7 +147,7 @@ function CookingModePage({ recipe, recipeKey, onExit, onSave, assistantStatus = 
 
       {/* Desktop (DESIGN_SYSTEM.md): step list, the current step, and timers side by side. On a phone only
           the middle column shows, with timers inside the step and Back / Next fixed at the bottom. */}
-      <div className="lg:mt-8 lg:grid lg:grid-cols-[220px_minmax(0,1fr)_260px] lg:items-start lg:gap-12">
+      <div className="lg:mt-10 lg:grid lg:grid-cols-[240px_minmax(0,1fr)_280px] lg:items-start lg:gap-14">
       <nav aria-label="All steps" className="hidden lg:block">
         <h2 className="mb-3 font-mono text-[11px] tracking-[0.18em] text-ash">STEPS</h2>
         <ol className="flex flex-col">
@@ -180,7 +180,6 @@ function CookingModePage({ recipe, recipeKey, onExit, onSave, assistantStatus = 
             </button>
           )}
           {saveState === "error" && <p role="alert" className="text-sm text-flour">Couldn't save right now. Try again from the recipe.</p>}
-          <button type="button" onClick={onExit} className={`min-h-11 border-b border-cream font-semibold ${focusRing}`}>Back to the recipe</button>
         </motion.section>
       ) : (
         <motion.section key={current} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.25 }}

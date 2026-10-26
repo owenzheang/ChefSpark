@@ -90,9 +90,9 @@ the phone layout stays as it is below the breakpoint.
 
 - Breakpoint: phone below 1024px (`lg`). Tablets (768–1023px) keep the phone layout, centred, until a
   tablet layout is designed.
-- Shell: a 112px left rail replaces the bottom navigation: ✦ ChefSpark at the top, then Kitchen / Cook
+- Shell: a 144px left rail (24px side padding, so the name never touches its hairline) replaces the bottom navigation: ✦ ChefSpark at the top, then Kitchen / Cook
   / Shelf (active = flour with a cream spark before it), Log out at the bottom. 1px `flour/16` hairline on
-  its right. Content area up to 1120px wide, 40px gutters.
+  its right. Content area up to 1240px wide, 48px gutters, 64px between columns (2026-10-27: was 1120px and 56px, too tight).
 - Primary actions are no longer fixed: they sit in the flow at the end of their column, with the same
   cream pill (one per screen). No bottom fade.
 - Columns: two columns at most beside the rail; the left one is the "prep" column (inputs, facts,
@@ -100,14 +100,14 @@ the phone layout stays as it is below the breakpoint.
   the recipe page's ingredient list can be taller than the screen, so it scrolls with the page.
 - Kitchen: left = heading, add input with microphone and add buttons, quick add; right = "In my
   kitchen" ticket as a two-column list, then "Find tonight's dishes".
-- Plan tonight: left (about 260px) = heading, cuisine / difficulty / diet pills and "Try 3 new dishes";
+- Plan tonight: left (320px) = heading, cuisine / difficulty / diet pills and "Try 3 new dishes";
   right = "Tonight's menu" with the three courses side by side (I, II, III), plate rings about 168px.
-- Recipe page: left (about 320px) = back link, plate (232px) with "AI image", facts row,
+- Recipe page: left (360px) = back link, plate (232px) with "AI image", facts row,
   ingredients ticket with servings; right = title, method, tips and substitutions, "Adjust this dish",
   "Light the stove".
 - Shelf: rows become a three-column grid of the same row (64px plate, title, mono facts), hairline
   under each; no cards.
-- Cooking Mode: still full screen without the rail. Three columns: step list (current step marked
+- Cooking Mode: still full screen without the rail. Three columns (240px, step, 280px; up to 1280px wide): step list (current step marked
   with a cream spark), the current step large in the centre with its ingredients, the two step
   questions and Back / Next, and the timer dial plus any chef's note on the right.
 - Dish lists stay centred "menu" style; no boxed cards, no shadows, as on the phone.

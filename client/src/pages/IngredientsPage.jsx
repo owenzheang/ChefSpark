@@ -186,7 +186,7 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
 
   return (
     <motion.main data-ds="" {...pageMotion}
-      className="min-h-screen bg-iron bg-ember-glow px-6 pt-5 pb-[calc(170px+env(safe-area-inset-bottom,0px))] lg:mx-auto lg:max-w-[1120px] lg:px-10 lg:pt-10 lg:pb-16">
+      className="min-h-screen bg-iron bg-ember-glow px-6 pt-5 pb-[calc(170px+env(safe-area-inset-bottom,0px))] lg:mx-auto lg:max-w-[1240px] lg:px-12 lg:pt-12 lg:pb-16">
       {/* On desktop the rail shows the name and Log out. */}
       <header className="flex items-center justify-between lg:hidden">
         <span className="flex items-center gap-2 font-display text-2xl italic">
@@ -201,7 +201,7 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
 
       {/* Desktop (DESIGN_SYSTEM.md): heading, input and quick add on the left; the kitchen list and the main
           action on the right. On a phone the blocks stack in source order. */}
-      <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-14">
+      <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-16">
       <div className="lg:col-start-1 lg:row-start-1">
       <p className="mt-7 font-mono text-[11px] tracking-[0.2em] text-ash lg:mt-0">{weekday}</p>
       <h1 className="mt-2 font-display text-[52px] leading-[0.95] tracking-[-0.01em] italic">

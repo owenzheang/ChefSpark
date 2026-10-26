@@ -21,11 +21,20 @@ function roundKitchen(value) {
   return result === 0 ? 0.25 : result;
 }
 
-export function scaleQuantity(quantity, unit, factor) {
+// Things counted whole: nobody uses 12½ garlic cloves or 4½ eggs. Half an onion or tomato is fine, so only
+// these units (and eggs or wings counted without a unit) round to whole numbers, never below 1.
+const WHOLE_UNITS = /^(?:cloves?|pieces?|pcs?|wings?|drumsticks?|sticks?|eggs?|fillets?|bulbs?|cans?|tins?)$/;
+const WHOLE_ITEMS = /\b(?:eggs?|wings?|drumsticks?)\b/;
+
+export function scaleQuantity(quantity, unit, factor, name = "") {
   if (!Number.isFinite(quantity) || !Number.isFinite(factor) || factor <= 0) return quantity;
   if (factor === 1) return quantity;
   const scaled = quantity * factor;
-  return METRIC.has(String(unit || "").trim().toLowerCase()) ? roundMetric(scaled) : roundKitchen(scaled);
+  const unitText = String(unit || "").trim().toLowerCase();
+  if (WHOLE_UNITS.test(unitText) || (!unitText && WHOLE_ITEMS.test(String(name).toLowerCase()))) {
+    return Math.max(1, Math.round(scaled));
+  }
+  return METRIC.has(unitText) ? roundMetric(scaled) : roundKitchen(scaled);
 }
 
 export function formatQuantity(quantity) {
@@ -46,7 +55,7 @@ export function scaleIngredients(ingredients = [], fromServings, toServings) {
     if (typeof ingredient === "string") {
       return { name: ingredient, amount: "", scaled: false, unscalable: factor !== 1 };
     }
-    const quantity = scaleQuantity(ingredient.quantity, ingredient.unit, factor);
+    const quantity = scaleQuantity(ingredient.quantity, ingredient.unit, factor, ingredient.name);
     const amount = Number.isFinite(quantity)
       ? [formatQuantity(quantity), typeof ingredient.unit === "string" ? ingredient.unit : ""].filter(Boolean).join(" ")
       : "";
