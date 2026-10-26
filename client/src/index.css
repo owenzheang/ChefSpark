@@ -55,5 +55,8 @@
     min-width: 320px;
     min-height: 100vh;
     background-color: var(--color-iron);
+    /* index.html draws under the iPhone status bar (viewport-fit=cover, black-translucent status bar);
+       this keeps every page's content below it. Fixed bottom bars already add the bottom inset. */
+    padding-top: env(safe-area-inset-top, 0px);
   }
 }
