@@ -183,8 +183,9 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
 
   return (
     <motion.main data-ds="" {...pageMotion}
-      className="min-h-screen bg-iron bg-ember-glow px-6 pt-5 pb-[calc(170px+env(safe-area-inset-bottom,0px))]">
-      <header className="flex items-center justify-between">
+      className="min-h-screen bg-iron bg-ember-glow px-6 pt-5 pb-[calc(170px+env(safe-area-inset-bottom,0px))] lg:mx-auto lg:max-w-[1120px] lg:px-10 lg:pt-10 lg:pb-16">
+      {/* On desktop the rail shows the name and Log out. */}
+      <header className="flex items-center justify-between lg:hidden">
         <span className="flex items-center gap-2 font-display text-2xl italic">
           <Spark size={16} className="text-cream" />
           ChefSpark
@@ -195,12 +196,17 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
         </button>
       </header>
 
-      <p className="mt-7 font-mono text-[11px] tracking-[0.2em] text-ash">{weekday}</p>
+      {/* Desktop (DESIGN_SYSTEM.md): heading, input and quick add on the left; the kitchen list and the main
+          action on the right. On a phone the blocks stack in source order. */}
+      <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-14">
+      <div className="lg:col-start-1 lg:row-start-1">
+      <p className="mt-7 font-mono text-[11px] tracking-[0.2em] text-ash lg:mt-0">{weekday}</p>
       <h1 className="mt-2 font-display text-[52px] leading-[0.95] tracking-[-0.01em] italic">
         What's in your kitchen tonight?
       </h1>
+      </div>
 
-      <section className="mt-7" aria-label="Add ingredients">
+      <section className="mt-7 lg:col-start-1 lg:row-start-2" aria-label="Add ingredients">
         <form onSubmit={handleSubmit} className="flex flex-col gap-1">
           <label htmlFor="ingredient-name" className="font-mono text-[11px] tracking-[0.2em] text-ash uppercase">Add ingredients</label>
           <div className="flex items-center gap-2 border-b border-flour focus-within:border-cream">
@@ -256,7 +262,8 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
         )}
       </section>
 
-      <section aria-labelledby="kitchen-heading" className="mt-7 border-y-2 border-dashed border-flour/40 pt-3 pb-1.5">
+      <div className="lg:col-start-2 lg:row-span-3 lg:row-start-1">
+      <section aria-labelledby="kitchen-heading" className="mt-7 border-y-2 border-dashed border-flour/40 pt-3 pb-1.5 lg:mt-0">
         <div className="flex items-baseline justify-between font-mono text-[11px] tracking-[0.18em] text-ash">
           <h2 id="kitchen-heading">IN MY KITCHEN</h2>
           <span>{ingredients.length} {ingredients.length === 1 ? "ITEM" : "ITEMS"}</span>
@@ -289,12 +296,33 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
         </ul>
 
         {!isLoading && !hasIngredients && (
-          <p className="py-3 text-[15px] text-soft">Nothing here yet. Add what you have, or use quick add below.</p>
+          <p className="py-3 text-[15px] text-soft">Nothing here yet. Add what you have, or use quick add.</p>
         )}
       </section>
 
+      {/* Phone: floats above the navigation with a fade behind it. Desktop: sits under the kitchen list. */}
+      <div aria-hidden="true"
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-[5] mx-auto h-[calc(170px+env(safe-area-inset-bottom,0px))] max-w-[430px] bg-linear-to-t from-iron from-60% to-transparent lg:hidden" />
+      <div className="fixed inset-x-6 bottom-[calc(84px+env(safe-area-inset-bottom,0px))] z-10 mx-auto flex max-w-[382px] flex-col gap-1.5 lg:static lg:z-auto lg:mx-0 lg:mt-6">
+        {!hasIngredients && !isLoading && (
+          <p id="find-dishes-hint" className="text-center font-mono text-[11px] tracking-[0.16em] text-ash">ADD AT LEAST ONE INGREDIENT</p>
+        )}
+        <motion.button
+          type="button"
+          onClick={onGenerateRecipes}
+          disabled={!hasIngredients}
+          aria-describedby={!hasIngredients ? "find-dishes-hint" : undefined}
+          whileTap={{ scale: 0.97 }}
+          className={`flex min-h-[58px] items-center justify-between rounded-full bg-cream px-6 text-lg font-semibold text-iron shadow-glow disabled:cursor-not-allowed disabled:bg-transparent disabled:text-ash disabled:shadow-none disabled:ring-1 disabled:ring-flour/40 ${focusRing}`}
+        >
+          Find tonight's dishes
+          <ArrowRight size={22} strokeWidth={2.2} aria-hidden="true" />
+        </motion.button>
+      </div>
+      </div>
+
       {visiblePopularIngredients.length > 0 && (
-        <section aria-labelledby="quick-add-heading" className="mt-6 flex flex-col gap-2">
+        <section aria-labelledby="quick-add-heading" className="mt-6 flex flex-col gap-2 lg:col-start-1 lg:row-start-3">
           <h2 id="quick-add-heading" className="font-mono text-[11px] tracking-[0.18em] text-ash">QUICK ADD</h2>
           <div className="flex flex-wrap gap-x-5">
             {visiblePopularIngredients.map((ingredient) => (
@@ -313,24 +341,6 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
           </div>
         </section>
       )}
-
-      <div aria-hidden="true"
-        className="pointer-events-none fixed inset-x-0 bottom-0 z-[5] mx-auto h-[calc(170px+env(safe-area-inset-bottom,0px))] max-w-[430px] bg-linear-to-t from-iron from-60% to-transparent" />
-      <div className="fixed inset-x-6 bottom-[calc(84px+env(safe-area-inset-bottom,0px))] z-10 mx-auto flex max-w-[382px] flex-col gap-1.5">
-        {!hasIngredients && !isLoading && (
-          <p id="find-dishes-hint" className="text-center font-mono text-[11px] tracking-[0.16em] text-ash">ADD AT LEAST ONE INGREDIENT</p>
-        )}
-        <motion.button
-          type="button"
-          onClick={onGenerateRecipes}
-          disabled={!hasIngredients}
-          aria-describedby={!hasIngredients ? "find-dishes-hint" : undefined}
-          whileTap={{ scale: 0.97 }}
-          className={`flex min-h-[58px] items-center justify-between rounded-full bg-cream px-6 text-lg font-semibold text-iron shadow-glow disabled:cursor-not-allowed disabled:bg-transparent disabled:text-ash disabled:shadow-none disabled:ring-1 disabled:ring-flour/40 ${focusRing}`}
-        >
-          Find tonight's dishes
-          <ArrowRight size={22} strokeWidth={2.2} aria-hidden="true" />
-        </motion.button>
       </div>
     </motion.main>
   );

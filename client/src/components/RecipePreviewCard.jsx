@@ -43,7 +43,7 @@ export default function RecipePreviewCard({ recipe, onViewRecipe, onSave, isSavi
           AI IMAGE
         </p>
       )}
-      <h3 className="mt-1 font-display text-[38px] leading-none italic">{recipe.title}</h3>
+      <h3 className="mt-1 font-display text-[38px] leading-none italic lg:text-[30px]">{recipe.title}</h3>
       <p className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 font-mono text-[12px] tracking-[0.12em] text-soft uppercase">
         <Burners difficulty={recipe.difficulty} />
         <span>{recipe.difficulty}</span><span aria-hidden="true">·</span>

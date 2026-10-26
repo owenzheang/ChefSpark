@@ -11,7 +11,7 @@ const tabs = [
 export default function BottomNav({ activePage, onNavigate }) {
   return (
     <nav aria-label="Main navigation" data-ds=""
-      className="fixed inset-x-0 bottom-0 z-10 mx-auto grid max-w-[430px] grid-cols-3 border-t border-flour/16 bg-iron pb-[env(safe-area-inset-bottom,0px)] font-sans">
+      className="fixed inset-x-0 bottom-0 z-10 mx-auto grid max-w-[430px] grid-cols-3 lg:hidden border-t border-flour/16 bg-iron pb-[env(safe-area-inset-bottom,0px)] font-sans">
       {tabs.map(({ id, label }) => {
         const active = activePage === id;
         return (

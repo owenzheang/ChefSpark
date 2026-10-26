@@ -83,7 +83,7 @@ Cooking Mode 26–30px), labels 11–13px. Fonts load from Google Fonts.
 - Spacing in multiples of 4px; section gaps 24–40px; centred "menu" layout for dish lists.
 - Fixed primary actions sit above the navigation with a fade from `iron` behind them.
 
-## Desktop layout (approved direction 2026-10-26, not built yet)
+## Desktop layout (built 2026-10-26)
 
 Same tokens, type, signature elements and controls; only the arrangement changes. One codebase:
 the phone layout stays as it is below the breakpoint.
@@ -96,12 +96,13 @@ the phone layout stays as it is below the breakpoint.
 - Primary actions are no longer fixed: they sit in the flow at the end of their column, with the same
   cream pill (one per screen). No bottom fade.
 - Columns: two columns at most beside the rail; the left one is the "prep" column (inputs, facts,
-  ingredients) and stays in view (`sticky`) while the right one scrolls.
+  ingredients). It stays in view (`sticky`) only where it is short enough (Plan tonight's choices);
+  the recipe page's ingredient list can be taller than the screen, so it scrolls with the page.
 - Kitchen: left = heading, add input with microphone and add buttons, quick add; right = "In my
   kitchen" ticket as a two-column list, then "Find tonight's dishes".
 - Plan tonight: left (about 260px) = heading, cuisine / difficulty / diet pills and "Try 3 new dishes";
   right = "Tonight's menu" with the three courses side by side (I, II, III), plate rings about 168px.
-- Recipe page: left (about 320px, sticky) = back link, plate (232px) with "AI image", facts row,
+- Recipe page: left (about 320px) = back link, plate (232px) with "AI image", facts row,
   ingredients ticket with servings; right = title, method, tips and substitutions, "Adjust this dish",
   "Light the stove".
 - Shelf: rows become a three-column grid of the same row (64px plate, title, mono facts), hairline

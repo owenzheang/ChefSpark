@@ -94,17 +94,29 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, onStartCooki
   // Compact time for the spec row ("25 minutes" -> "25 min"); the full text stays as its label.
   const shortTime = typeof recipe?.cookTime === "string"
     ? recipe.cookTime.replace(/\bminutes?\b/i, "min").replace(/\bhours?\b/i, "h") : recipe?.cookTime;
+  // Shown under the plate on a phone and at the top of the method column on desktop (only one is visible).
+  const titleBlock = recipe && (
+    <>
+      {(recipe.cuisine || recipe.diet) && (
+        <span className="font-mono text-[11px] tracking-[0.3em] text-ash uppercase">
+          {[recipe.cuisine, recipe.diet].filter(Boolean).join(" · ")}
+        </span>
+      )}
+      <h1 className="font-display text-[50px] leading-[0.95] italic">{recipe.title}</h1>
+    </>
+  );
 
   return (
     <motion.main data-ds="" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-      className={`min-h-screen bg-iron bg-ember-glow px-6 pt-4 ${canCook ? "pb-[calc(190px+env(safe-area-inset-bottom,0px))]" : "pb-[calc(110px+env(safe-area-inset-bottom,0px))]"}`}>
+      className={`min-h-screen bg-iron bg-ember-glow px-6 pt-4 ${canCook ? "pb-[calc(190px+env(safe-area-inset-bottom,0px))]" : "pb-[calc(110px+env(safe-area-inset-bottom,0px))]"} lg:mx-auto lg:max-w-[1120px] lg:px-10 lg:pt-8 lg:pb-16`}>
       <header className="flex items-center justify-between">
         <button type="button" onClick={onBack}
           aria-label={generatedRecipe ? "Back to generated recipes" : "Back to saved recipes"}
           className={`min-h-11 px-1 font-mono text-[11px] tracking-[0.18em] text-ash hover:text-flour ${focusRing}`}>
           {generatedRecipe ? "← MENU" : "← SHELF"}
         </button>
-        <span className="flex items-center gap-2 font-display text-xl italic">
+        {/* On desktop the rail already shows the name. */}
+        <span className="flex items-center gap-2 font-display text-xl italic lg:hidden">
           <Spark size={13} className="text-cream" />
           ChefSpark
         </span>
@@ -119,8 +131,12 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, onStartCooki
       )}
 
       {recipe && (
-        <article className="flex flex-col">
-          <div className="mt-4 flex flex-col items-center">
+        <article className="flex flex-col lg:mt-4 lg:grid lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start lg:gap-x-14">
+          {/* Desktop (DESIGN_SYSTEM.md): the prep column (plate, facts, ingredients) on the left; the title,
+              method and actions on the right. Not sticky: a long ingredient list can be taller than the screen.
+              On a phone both columns stack in this order. */}
+          <div className="flex flex-col">
+          <div className="mt-4 flex flex-col items-center lg:mt-0">
             <PlateRing percent={hasScore ? recipe.matchScore : null} size={232} decorative imageSrc={imageSrc}>
               {imageSrc ? null : hasScore ? (
                 <span role="img" aria-label={`${recipe.matchScore}% ingredient match`} className="flex flex-col items-center">
@@ -133,13 +149,8 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, onStartCooki
             {imageSrc && <p className="mt-3 font-mono text-[10px] tracking-[0.2em] text-ash">AI IMAGE</p>}
           </div>
 
-          <header className="mt-6 flex flex-col items-center gap-2 text-center">
-            {(recipe.cuisine || recipe.diet) && (
-              <span className="font-mono text-[11px] tracking-[0.3em] text-ash uppercase">
-                {[recipe.cuisine, recipe.diet].filter(Boolean).join(" · ")}
-              </span>
-            )}
-            <h1 className="font-display text-[50px] leading-[0.95] italic">{recipe.title}</h1>
+          <header className="mt-6 flex flex-col items-center gap-2 text-center lg:hidden">
+            {titleBlock}
           </header>
 
           {(hasScore || recipe.cookTime || hasServings || recipe.difficulty) && (
@@ -232,6 +243,12 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, onStartCooki
               no {String(firstSwap.ingredient).toLowerCase()}? {String(firstSwap.substitute).toLowerCase()} works
             </p>
           )}
+          </div>
+
+          <div className="flex flex-col">
+          <header className="hidden flex-col gap-2 lg:flex">
+            {titleBlock}
+          </header>
 
           <section aria-labelledby="method-heading" className="mt-9">
             <h2 id="method-heading" className="mb-3 font-display text-[32px] italic">The method</h2>
@@ -273,11 +290,23 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, onStartCooki
           {onAdopt && <RecipeAssistant recipe={recipe} isSaved={!generatedRecipe} onAdopt={onAdopt} initialStatus={assistantStatus} />}
 
           {zineEnabled && <div className="mt-8"><ZineEntry onOpen={() => navigateZine("intro")} /></div>}
+
+          {canCook && (
+            <div className="mt-10 hidden lg:block">
+              <button type="button" onClick={onStartCooking}
+                className={`flex min-h-[58px] w-full max-w-[382px] items-center justify-between rounded-full bg-cream px-6 text-lg font-semibold text-iron shadow-glow ${focusRing}`}>
+                Light the stove — start cooking
+                <Spark size={20} />
+              </button>
+            </div>
+          )}
+          </div>
         </article>
       )}
 
+      {/* Phone: the main action floats above the navigation. Desktop shows it at the end of the method. */}
       {recipe && canCook && (
-        <>
+        <div className="lg:hidden">
           <div aria-hidden="true"
             className="pointer-events-none fixed inset-x-0 bottom-0 z-[5] mx-auto h-[calc(170px+env(safe-area-inset-bottom,0px))] max-w-[430px] bg-linear-to-t from-iron from-60% to-transparent" />
           <div className="fixed inset-x-6 bottom-[calc(84px+env(safe-area-inset-bottom,0px))] z-10 mx-auto max-w-[382px]">
@@ -287,7 +316,7 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, onStartCooki
               <Spark size={20} />
             </button>
           </div>
-        </>
+        </div>
       )}
     </motion.main>
   );

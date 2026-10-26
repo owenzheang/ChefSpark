@@ -2,6 +2,7 @@
 import { MotionConfig } from "motion/react";
 import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router";
 import BottomNav from "./components/BottomNav.jsx";
+import SideRail from "./components/SideRail.jsx";
 import CookingModePage from "./pages/CookingModePage.jsx";
 import IngredientsPage from "./pages/IngredientsPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
@@ -35,8 +36,11 @@ function WithNavigation({ children }) {
   return (
     <RequireAuth>
       <div className="min-h-screen bg-iron">
+        {/* Desktop: left rail plus a wide content area; each page sets its own max width and columns. */}
+        <SideRail activePage={tabForPath(location.pathname)} onNavigate={(tab) => navigate(pathForTab(tab))}
+          onLogout={() => window.dispatchEvent(new Event(SIGNED_OUT_EVENT))} />
         {/* "phone-container" is only a hook for the paused Zine's wider layout (zine.css). */}
-        <div className="phone-container relative mx-auto min-h-screen w-full max-w-[430px] overflow-x-hidden bg-iron">
+        <div className="phone-container relative mx-auto min-h-screen w-full max-w-[430px] overflow-x-hidden bg-iron lg:max-w-none lg:pl-28">
           {children}
           <BottomNav activePage={tabForPath(location.pathname)} onNavigate={(tab) => navigate(pathForTab(tab))} />
         </div>
@@ -54,7 +58,7 @@ function FullScreen({ children }) {
   return (
     <RequireAuth>
       <div className="min-h-screen bg-iron">
-        <div className="relative mx-auto min-h-screen w-full max-w-[430px] overflow-x-hidden">{children}</div>
+        <div className="relative mx-auto min-h-screen w-full max-w-[430px] overflow-x-hidden lg:max-w-[1200px]">{children}</div>
       </div>
     </RequireAuth>
   );

@@ -80,6 +80,32 @@ function CookingModePage({ recipe, recipeKey, onExit, onSave, assistantStatus = 
 
   const otherRunning = Object.values(timers).filter((timer) => timer.step !== current && (timer.endsAt || timer.done));
 
+  // Rendered inside the step on a phone and in the right column on desktop; only one copy is visible.
+  const dials = stepTimers.map((timer, index) => {
+    const state = timers[`${current}-${index}`];
+    if (!state) return null;
+    const id = `${current}-${index}`;
+    return (
+      <section key={id} aria-label={`Timer: ${timer.label}`} className="mt-8 lg:mt-0 lg:mb-8">
+        <StoveDial timer={state} onStart={() => startTimer(id)} onPause={() => pause(id)} onReset={() => reset(id)}
+          size={index === 0 ? 216 : 160} />
+      </section>
+    );
+  });
+  const otherTimers = otherRunning.length > 0 && (
+    <ul aria-label="Other timers" className="mt-8 flex flex-col border-t border-flour/16 lg:mt-0">
+      {otherRunning.map((timer) => (
+        <li key={timer.id} className="border-b border-flour/16">
+          <button type="button" onClick={() => setStepIndex(timer.step)}
+            className={`flex min-h-12 w-full items-center justify-between font-mono text-[13px] tracking-[0.12em] ${timer.done ? "text-cream" : "text-soft"} ${focusRing}`}>
+            <span className="flex items-center gap-2">{timer.done && <Spark size={10} />}STEP {timer.step + 1}</span>
+            <span>{timer.done ? "DONE" : formatClock(timer.remaining)}</span>
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+
   if (!steps.length) {
     return (
       <main data-ds="" className="min-h-screen bg-iron px-6 pt-6">
@@ -90,7 +116,7 @@ function CookingModePage({ recipe, recipeKey, onExit, onSave, assistantStatus = 
   }
 
   return (
-    <main data-ds="" className="flex min-h-screen flex-col bg-iron px-6 pt-4 pb-[calc(104px+env(safe-area-inset-bottom,0px))]"
+    <main data-ds="" className="flex min-h-screen flex-col bg-iron px-6 pt-4 pb-[calc(104px+env(safe-area-inset-bottom,0px))] lg:px-10 lg:pt-8 lg:pb-16"
       style={{ backgroundImage: "radial-gradient(circle at 50% 42%, #ebcd981a, transparent 50%)" }}>
       <p role="status" aria-live="assertive" className="sr-only">{announcement}</p>
 
@@ -119,6 +145,27 @@ function CookingModePage({ recipe, recipeKey, onExit, onSave, assistantStatus = 
       </div>
       {screenAwake && <p className="mt-1 text-right font-mono text-[10px] tracking-[0.16em] text-ash">SCREEN STAYS ON</p>}
 
+      {/* Desktop (DESIGN_SYSTEM.md): step list, the current step, and timers side by side. On a phone only
+          the middle column shows, with timers inside the step and Back / Next fixed at the bottom. */}
+      <div className="lg:mt-8 lg:grid lg:grid-cols-[220px_minmax(0,1fr)_260px] lg:items-start lg:gap-12">
+      <nav aria-label="All steps" className="hidden lg:block">
+        <h2 className="mb-3 font-mono text-[11px] tracking-[0.18em] text-ash">STEPS</h2>
+        <ol className="flex flex-col">
+          {steps.map((step, index) => (
+            <li key={index}>
+              <button type="button" onClick={() => setStepIndex(index)} aria-current={index === current && !finished ? "step" : undefined}
+                className={`flex w-full items-start gap-2 border-t border-flour/16 py-2.5 text-left text-[14px] leading-snug ${index === current && !finished ? "text-cream" : index < current || finished ? "text-soft" : "text-ash hover:text-flour"} ${focusRing}`}>
+                <span className="w-4 shrink-0 font-display text-[17px] italic">
+                  {index === current && !finished ? <Spark size={11} className="mt-1" /> : index + 1}
+                </span>
+                <span className="line-clamp-2">{stepText(step)}</span>
+              </button>
+            </li>
+          ))}
+        </ol>
+      </nav>
+
+      <div className="flex flex-col">
       {finished ? (
         <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mt-16 flex flex-col items-center gap-5 text-center">
           <Spark size={34} className="text-cream" />
@@ -170,17 +217,7 @@ function CookingModePage({ recipe, recipeKey, onExit, onSave, assistantStatus = 
             <p className="mt-2 text-sm text-ash">Ingredient amounts are for {servings} servings; amounts written in the steps are for {originalServings}.</p>
           )}
 
-          {stepTimers.map((timer, index) => {
-            const state = timers[`${current}-${index}`];
-            if (!state) return null;
-            const id = `${current}-${index}`;
-            return (
-              <section key={id} aria-label={`Timer: ${timer.label}`} className="mt-8">
-                <StoveDial timer={state} onStart={() => startTimer(id)} onPause={() => pause(id)} onReset={() => reset(id)}
-                  size={index === 0 ? 216 : 160} />
-              </section>
-            );
-          })}
+          <div className="lg:hidden">{dials}</div>
 
           <StepHelp recipe={recipe} stepIndex={current} initialStatus={assistantStatus} />
 
@@ -192,21 +229,9 @@ function CookingModePage({ recipe, recipeKey, onExit, onSave, assistantStatus = 
         </motion.section>
       )}
 
-      {otherRunning.length > 0 && (
-        <ul aria-label="Other timers" className="mt-8 flex flex-col border-t border-flour/16">
-          {otherRunning.map((timer) => (
-            <li key={timer.id} className="border-b border-flour/16">
-              <button type="button" onClick={() => setStepIndex(timer.step)}
-                className={`flex min-h-12 w-full items-center justify-between font-mono text-[13px] tracking-[0.12em] ${timer.done ? "text-cream" : "text-soft"} ${focusRing}`}>
-                <span className="flex items-center gap-2">{timer.done && <Spark size={10} />}STEP {timer.step + 1}</span>
-                <span>{timer.done ? "DONE" : formatClock(timer.remaining)}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+      <div className="lg:hidden">{otherTimers}</div>
 
-      <nav aria-label="Steps" className="fixed inset-x-0 bottom-0 z-10 mx-auto grid max-w-[430px] grid-cols-[1fr_2fr] gap-2.5 bg-iron px-6 pt-3 pb-[calc(20px+env(safe-area-inset-bottom,0px))]">
+      <nav aria-label="Steps" className="fixed inset-x-0 bottom-0 z-10 mx-auto grid max-w-[430px] grid-cols-[1fr_2fr] gap-2.5 bg-iron px-6 pt-3 pb-[calc(20px+env(safe-area-inset-bottom,0px))] lg:static lg:z-auto lg:mx-0 lg:mt-10 lg:max-w-[460px] lg:bg-transparent lg:px-0 lg:pb-0">
         <button type="button" onClick={() => go(-1)} disabled={current === 0}
           className={`min-h-[58px] rounded-full font-medium text-flour ring-1 ring-flour/40 disabled:opacity-40 ${focusRing}`}>Back</button>
         {finished ? (
@@ -219,6 +244,13 @@ function CookingModePage({ recipe, recipeKey, onExit, onSave, assistantStatus = 
           </button>
         )}
       </nav>
+      </div>
+
+      <aside aria-label="Timers" className="hidden lg:block">
+        {!finished && dials}
+        {otherTimers}
+      </aside>
+      </div>
     </main>
   );
 }

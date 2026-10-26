@@ -14,14 +14,40 @@ answers in Chinese or English, and explicit approval before any paid API request
 | --- | --- |
 | 0 · Clean-up and direction | Done. Zine paused behind switches; docs rewritten. |
 | 1 · UI redesign (Tailwind, "Ember" cream) | Done 2026-10-23. Every screen; React Router; legacy CSS deleted. |
-| 1.5 · Deployment | Deferred by the user. |
 | 2 · Cooking Mode | Done 2026-10-23. |
 | 3 · Recipe assistant | Done 2026-10-23, live-checked. |
 | Diet choice on Plan tonight | Done 2026-10-23, live-checked. |
 | 4 · Food images | Done 2026-10-24, live-checked (3 pictures). Switch off by default, on in local `.env`. |
 | 5 · Natural ingredient input | Done 2026-10-25 (typed lists + voice); voice not tried on a real phone. |
+| Desktop layout | Done 2026-10-26: same codebase, `lg` (1024px+) only; phone layout unchanged. |
+| 1.5 · Deployment | Live 2026-10-26: API on Render (`companion`, root `server`), web on Vercel (root `client`). Free tier, data wiped on restart. |
 
 Tests: 84 server + 76 client, all mocked (no network, no paid calls); production build passes.
+
+## Desktop layout (2026-10-26)
+
+- Rules in `DESIGN_SYSTEM.md` ("Desktop layout"). One codebase: Tailwind `lg:` classes only; below 1024px
+  every page is the phone layout as before (tablets get the centred phone column).
+- `SideRail.jsx` replaces `BottomNav` on desktop (`BottomNav` is `lg:hidden`); its Log out dispatches the
+  sign-out event that `AppRoutes` already handles. The shell drops the 430px limit at `lg`.
+- Pages: Kitchen (two columns via grid placement), Plan tonight (sticky choices left, three dishes side
+  by side), recipe page (prep column left, not sticky; title shown once per layout via `titleBlock`),
+  Shelf (three-column grid), Cooking Mode (step list / step / timers; timer dials and the other-timers
+  list are rendered in one of two places, only one visible).
+- Phone main buttons stay fixed with the fade; on desktop they sit in the flow (Kitchen and Cooking Mode
+  re-style the same element; the recipe page has a desktop copy).
+- Browser check 2026-10-26 at 1280×800 and 375×812 with the three local food pictures and a throwaway
+  account (removed): no horizontal scroll, rail/bottom bar swap, desktop-only parts hidden on the phone,
+  no console errors.
+
+## Deployment notes (2026-10-26)
+
+- Render: `npm ci`, `npm start`, health check `/api/health`; env includes `NODE_ENV=production`,
+  `CORS_ORIGINS` (exact Vercel URL). `pngjs` had to become a runtime dependency (production installs skip
+  devDependencies and the paused Zine routes import it at startup).
+- Vercel: root `client`, `VITE_API_BASE_URL=https://<render>/api`; `client/vercel.json` rewrites unknown
+  paths to `index.html`.
+- iPhone: `body` pads by `env(safe-area-inset-top)` (the page draws under the status bar).
 
 ## Natural ingredient input (Phase 5)
 

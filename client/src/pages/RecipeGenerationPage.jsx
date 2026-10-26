@@ -122,8 +122,10 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, setRecipes, cuisi
 
   return (
     <motion.main data-ds="" {...pageMotion}
-      className="min-h-screen bg-iron bg-ember-glow px-6 pt-4 pb-[calc(110px+env(safe-area-inset-bottom,0px))]">
-      <header className="flex items-center justify-between">
+      className="min-h-screen bg-iron bg-ember-glow px-6 pt-4 pb-[calc(110px+env(safe-area-inset-bottom,0px))] lg:mx-auto lg:grid lg:max-w-[1120px] lg:grid-cols-[300px_minmax(0,1fr)] lg:items-start lg:gap-14 lg:px-10 lg:pt-10 lg:pb-16">
+      {/* Desktop (DESIGN_SYSTEM.md): choices stay in view on the left, the menu fills the right. */}
+      <div className="lg:sticky lg:top-10">
+      <header className="flex items-center justify-between lg:flex-col lg:items-start lg:gap-1">
         <motion.button type="button" onClick={onBack} whileTap={{ scale: 0.95 }} aria-label="Back to kitchen"
           className={`min-h-11 px-1 font-mono text-[11px] tracking-[0.18em] text-ash hover:text-flour ${focusRing}`}>
           ← KITCHEN
@@ -212,8 +214,12 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, setRecipes, cuisi
           {message.text}
         </p>
       )}
+      </div>
 
-      <div className="mt-10">
+      <div className="mt-10 lg:mt-0">
+        {!isLoading && recipes.length === 0 && (
+          <p className="hidden pt-24 text-center font-display text-[32px] text-ash italic lg:block">Tonight's menu will appear here.</p>
+        )}
         {isLoading && (
           <GenerationProgress ingredientCount={ingredients.length} cuisine={cuisine} onCancel={handleCancel} />
         )}
@@ -230,10 +236,11 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, setRecipes, cuisi
                 </h2>
                 <p className="sr-only">{recipes.length} dishes for tonight</p>
               </div>
+              <div className="flex w-full flex-col items-center gap-10 lg:grid lg:grid-cols-3 lg:items-start lg:gap-8">
               {recipes.map((recipe, index) => (
                 <div key={`${recipe.title}-${index}`} className="flex w-full flex-col items-center gap-10">
                   {index > 0 && (
-                    <div aria-hidden="true" className="flex w-full items-center gap-3.5">
+                    <div aria-hidden="true" className="flex w-full items-center gap-3.5 lg:hidden">
                       <span className="h-px flex-1 bg-flour/16" /><Spark size={11} className="text-cream" /><span className="h-px flex-1 bg-flour/16" />
                     </div>
                   )}
@@ -246,6 +253,7 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, setRecipes, cuisi
                   />
                 </div>
               ))}
+              </div>
               <p className="text-[13px] text-ash">Every ingredient, amount and step comes from the recipe itself.</p>
             </motion.section>
           )}

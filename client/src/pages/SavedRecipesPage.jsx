@@ -76,9 +76,10 @@ function SavedRecipesPage({ onViewRecipe, onCook }) {
 
   return (
     <motion.main data-ds="" {...pageMotion}
-      className="min-h-screen bg-iron bg-ember-glow px-6 pt-5 pb-[calc(110px+env(safe-area-inset-bottom,0px))]">
+      className="min-h-screen bg-iron bg-ember-glow px-6 pt-5 pb-[calc(110px+env(safe-area-inset-bottom,0px))] lg:mx-auto lg:max-w-[1120px] lg:px-10 lg:pt-10 lg:pb-16">
       <header className="flex items-center justify-between">
-        <span className="flex items-center gap-2 font-display text-2xl italic">
+        {/* On desktop the rail shows the name; the count stays. */}
+        <span className="flex items-center gap-2 font-display text-2xl italic lg:invisible">
           <Spark size={16} className="text-cream" />
           ChefSpark
         </span>
@@ -111,7 +112,8 @@ function SavedRecipesPage({ onViewRecipe, onCook }) {
       )}
 
       {count > 0 && (
-        <ul className="mt-8 border-t border-flour/16" aria-label="Saved recipes">
+        // Desktop: the same rows in a three-column grid, a hairline under each (no cards).
+        <ul className="mt-8 border-t border-flour/16 lg:grid lg:grid-cols-3 lg:gap-x-10 lg:border-t-0" aria-label="Saved recipes">
           <AnimatePresence initial={false}>
             {savedRecipes.map((savedRecipe) => {
               const recipe = savedRecipe.recipe || {};
@@ -131,7 +133,7 @@ function SavedRecipesPage({ onViewRecipe, onCook }) {
                         : <Spark size={14} className="text-cream" />}
                     </PlateRing>
                     <span className="flex min-w-0 flex-1 flex-col gap-1.5">
-                      <span className="font-display text-[26px] leading-none italic">{recipe.title}</span>
+                      <span className="font-display text-[26px] leading-none italic lg:text-[22px]">{recipe.title}</span>
                       <span className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[11px] tracking-[0.12em] text-ash uppercase">
                         {recipe.difficulty && <><Burners difficulty={recipe.difficulty} size={7} /><span>{recipe.difficulty}</span></>}
                         {recipe.cuisine && <><span aria-hidden="true">·</span><span>{recipe.cuisine}</span></>}
