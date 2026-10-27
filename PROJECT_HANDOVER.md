@@ -20,7 +20,7 @@ answers in Chinese or English, and explicit approval before any paid API request
 | 4 · Food images | Done 2026-10-24, live-checked (3 pictures). Switch off by default, on in local `.env`. |
 | 5 · Natural ingredient input | Done 2026-10-25 (typed lists + voice); voice not tried on a real phone. |
 | Desktop layout | Done 2026-10-26: same codebase, `lg` (1024px+) only; phone layout unchanged. |
-| 1.5 · Deployment | Live 2026-10-26: API on Render (`companion`, root `server`), web on Vercel (root `client`). Free tier, data wiped on restart. |
+| 1.5 · Deployment | Live 2026-10-26: API on Render (`main`, root `server`), web on Vercel (root `client`). Free tier, data wiped on restart. |
 
 Tests: 85 server + 81 client, all mocked (no network, no paid calls); production build passes.
 
@@ -110,14 +110,12 @@ menu; delete animation overlapping the empty-kitchen text; brief blank content o
 - Known, pre-existing: adding a single ingredient shows "Ingredient added." only for an instant (the
   list reload clears it). The new list flow sets its message after the reload.
 
-## Git and remote (open decision, needs the user)
+## Git and remote
 
-- Local `main` is ahead of `origin/main` and 5 behind. The 5 remote commits (July 2026) are
-  **not** to be merged (user decision 2026-10-20).
-- The user pushed local `main` to `origin/companion` on 2026-10-24 (remote `main` untouched). Still
-  open: whether to make `companion` the GitHub default branch or replace remote `main`. Never pull,
-  merge or force-push without the user's explicit decision.
-- Local branch `phase-6b3-zine-assets` is already merged into `main` and can be deleted.
+- Remote: `https://github.com/owenzheang/ChefSpark.git`. Single branch `main`, which local `main`
+  tracks; plain `git push` works.
+- 2026-10-27: the old July 2026 `main` was dropped, `companion` became `main`, and the
+  `companion` branch was deleted. Render and Vercel both deploy `main`.
 
 ## What the app does now
 
