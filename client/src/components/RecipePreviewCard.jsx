@@ -20,22 +20,26 @@ const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-
 // instead of a stock photo, the dish named like a menu item, and ticket-style facts.
 // saveState: undefined | "saving" | "saved" | "error" (shown on the card, where the cook is looking);
 // justSaved: saving finished on screen just now, so the spark lights once.
-export default function RecipePreviewCard({ recipe, onViewRecipe, onSave, saveState, justSaved = false, index = 0 }) {
+// returning: back from a dish page; the menu is simply there (no arrival) while that dish's plate flies home.
+export default function RecipePreviewCard({ recipe, onViewRecipe, onSave, saveState, justSaved = false, returning = false, index = 0 }) {
   const youHave = recipe.youHave || [];
   const youNeed = recipe.youNeed || [];
   const hasScore = Number.isFinite(recipe.matchScore);
   const imageSrc = foodImageSrc(recipe.imageUrl);
   const delay = courseDelay(index);
+  // Shared with the dish page (App.jsx), so this plate flies there and back.
+  const flightId = `dish-plate-${index}`;
 
   return (
-    <motion.article initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
+    <motion.article initial={returning ? false : { opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
       transition={{ duration: duration.slow, delay: delay - 0.15, ease: ember }}
-      className="flex flex-col items-center gap-3 text-center lg:h-full">
+      data-course={index} className="flex flex-col items-center gap-3 text-center lg:h-full">
       <span className="font-display text-[22px] text-cream" aria-hidden="true">{courses[index] || index + 1}</span>
-      <PlateRing percent={hasScore ? recipe.matchScore : null} size={168} imageSrc={imageSrc} animated delay={delay}>
+      <PlateRing percent={hasScore ? recipe.matchScore : null} size={168} imageSrc={imageSrc} animated={!returning} delay={delay}
+        flightId={flightId}>
         {imageSrc ? null : hasScore ? (
           <>
-            <CountUp value={recipe.matchScore} suffix="%" delay={delay} className="font-display text-[44px] leading-none italic" />
+            <CountUp value={recipe.matchScore} suffix="%" delay={delay} animated={!returning} className="font-display text-[44px] leading-none italic" />
             <span className="mt-1 font-mono text-[10px] tracking-[0.2em] text-ash">MATCH</span>
           </>
         ) : <Spark size={28} className="text-cream" />}
@@ -46,7 +50,7 @@ export default function RecipePreviewCard({ recipe, onViewRecipe, onSave, saveSt
         {imageSrc && <>
           {/* The ring already announces the score to screen readers. */}
           {hasScore && <span aria-hidden="true" className="flex items-baseline gap-2">
-            <CountUp value={recipe.matchScore} suffix="%" delay={delay} className="font-display text-[26px] leading-none tracking-normal text-flour italic" />MATCH<span>·</span>
+            <CountUp value={recipe.matchScore} suffix="%" delay={delay} animated={!returning} className="font-display text-[26px] leading-none tracking-normal text-flour italic" />MATCH<span>·</span>
           </span>}
           AI IMAGE
         </>}

@@ -142,6 +142,12 @@ Warm and unhurried, like a hob coming up to heat; never bouncy or techy. Tokens 
   - Save: "Saved to shelf" rises in and its spark lights once (only when the save just happened).
   - Servings and the recipe page's amounts roll like a counter (`RollingNumber`): up for more, down for fewer.
   - Cooking Mode step help: an answer opens downward into its place.
+- Shared plate (phase C, 2026-10-29): opening a dish from tonight's menu flies its plate from the menu to the
+  dish page (and back with "← Menu", which returns the menu scrolled to that dish). The flying plate arrives
+  already filled; the pages it lands on skip their fade-in so nothing dims it. Built on screen coordinates
+  (`PlateRing` `flightId`, `plateDeparted`/`takeDeparture` in `motion.js`), not motion's `layoutId`, which
+  misplaces the start when the page scrolls on navigation. No flight if the landing spot is off screen.
+  The breathing top glow was considered and declined.
 - Reduced motion: `MotionConfig reducedMotion="user"` stops transform animations; components that animate
   other values (ring fill, counting) check `useReducedMotion` and show the final state. CSS animations always
   use `motion-safe:`.

@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { getIngredients, requestFoodImage, saveRecipe } from "../services/api.js";
 import RecipePreviewCard from "../components/RecipePreviewCard.jsx";
@@ -52,7 +52,7 @@ const idleGeneration = { running: false, startedAt: 0, cuisine: "", message: nul
   generate: async () => [], cancel() {}, setMessage() {} };
 
 // generation comes from the app shell (useMenuGeneration), so it keeps running if the cook leaves this page.
-function RecipeGenerationPage({ onBack, onViewRecipe, recipes, generation = idleGeneration, cuisine, setCuisine, difficulty, setDifficulty, diet = "Any", setDiet = () => {} }) {
+function RecipeGenerationPage({ onBack, onViewRecipe, returnFromDish, recipes, generation = idleGeneration, cuisine, setCuisine, difficulty, setDifficulty, diet = "Any", setDiet = () => {} }) {
   const [ingredients, setIngredients] = useState(null); // null until loaded
   const isLoading = generation.running;
   const message = generation.message;
@@ -61,6 +61,12 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, generation = idle
   // menu still shows "Saved" instead of offering a second copy.
   const [saveStates, setSaveStates] = useState({});
   const [ignited, setIgnited] = useState(0);
+  // Back from a dish page: the menu is already here and that dish's plate flies home, so nothing fades in.
+  const [returningTo] = useState(() => recipes[returnFromDish] ? returnFromDish : -1);
+  const returning = returningTo >= 0;
+  useLayoutEffect(() => {
+    if (returning) document.querySelector(`[data-course="${returningTo}"]`)?.scrollIntoView({ block: "center" });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [savedTitles, setSavedTitles] = useSessionState("chefspark:tonight:saved", []);
   const isMounted = useRef(false);
   const resultsHeading = useRef(null);
@@ -121,7 +127,7 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, generation = idle
   const ingredientList = ingredients || [];
 
   return (
-    <motion.main data-ds="" {...pageMotion}
+    <motion.main data-ds="" {...pageMotion} initial={returning ? false : pageMotion.initial}
       className="min-h-screen bg-iron bg-ember-glow px-6 pt-4 pb-[calc(110px+env(safe-area-inset-bottom,0px))] lg:mx-auto lg:grid lg:max-w-[1240px] lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start lg:gap-16 lg:px-12 lg:pt-12 lg:pb-16">
       {/* Desktop (DESIGN_SYSTEM.md): choices stay in view on the left, the menu fills the right. */}
       <div className="lg:sticky lg:top-10">
@@ -237,7 +243,7 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, generation = idle
         <AnimatePresence>
           {!isLoading && recipes.length > 0 && (
             <motion.section aria-labelledby="results-heading" className="flex flex-col items-center gap-10 text-center"
-              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+              initial={returning ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
               <div className="flex flex-col items-center gap-2">
                 <span className="font-mono text-[11px] tracking-[0.3em] text-ash">FROM YOUR KITCHEN</span>
                 <h2 id="results-heading" ref={resultsHeading} tabIndex={-1}
@@ -261,6 +267,7 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, generation = idle
                     onSave={handleSave}
                     saveState={savedTitles.includes(recipe.title) ? "saved" : saveStates[recipe.title]}
                     justSaved={saveStates[recipe.title] === "just saved"}
+                    returning={returning}
                   />
                 </div>
               ))}

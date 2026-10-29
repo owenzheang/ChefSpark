@@ -21,6 +21,25 @@ export const sparkGlide = { type: "spring", stiffness: 420, damping: 34 };
 // Courses of tonight's menu arrive one after another.
 export const courseDelay = (index) => 0.15 + index * 0.18;
 
+// Plates that fly between screens (tonight's menu and the dish page). A plate leaving the screen notes
+// where it was (in viewport coordinates, so page scrolling cannot skew it); the plate with the same id that
+// arrives within a moment flies in from there. Notes are short-lived: an old one never starts a flight.
+const departures = new Map();
+const FLIGHT_WINDOW_MS = 700;
+
+export function plateDeparted(id, element) {
+  departures.set(id, { rect: element.getBoundingClientRect(), element, at: performance.now() });
+}
+
+// The departing plate's position, once. A note left by this same element (React StrictMode runs effects
+// twice in development) is not a flight.
+export function takeDeparture(id, element) {
+  const note = departures.get(id);
+  departures.delete(id);
+  if (!note || note.element === element || performance.now() - note.at >= FLIGHT_WINDOW_MS) return null;
+  return note.rect;
+}
+
 // For things that fill the first time they scroll into view: whether they have been seen, and how long
 // to still wait. The delay counts from mount, so a plate already on screen waits for its course to
 // arrive, while one scrolled to later starts at once.

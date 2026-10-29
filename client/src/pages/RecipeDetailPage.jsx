@@ -18,7 +18,8 @@ import { useSessionState } from "../utils/sessionState.js";
 
 const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream";
 
-function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, onStartCooking, onAdopt, servingsKey,
+// plateFlightId: set for a dish opened from tonight's menu, whose plate flies here from the menu (and back).
+function RecipeDetailPage({ savedRecipeId, generatedRecipe, plateFlightId, onBack, onStartCooking, onAdopt, servingsKey,
   zineEnabled = features.zine, assistantStatus = null }) {
   const [savedRecipe, setSavedRecipe] = useState(null);
   const [message, setMessage] = useState("");
@@ -110,7 +111,8 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, onStartCooki
   );
 
   return (
-    <motion.main data-ds="" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+    // No page fade when the plate flies in from the menu: it would dim the plate in flight.
+    <motion.main data-ds="" initial={plateFlightId ? false : { opacity: 0 }} animate={{ opacity: 1 }}
       className={`min-h-screen bg-iron bg-ember-glow px-6 pt-4 ${canCook ? "pb-[calc(190px+env(safe-area-inset-bottom,0px))]" : "pb-[calc(110px+env(safe-area-inset-bottom,0px))]"} lg:mx-auto lg:max-w-[1240px] lg:px-12 lg:pt-10 lg:pb-16`}>
       <header className="flex items-center justify-between">
         <button type="button" onClick={onBack}
@@ -140,10 +142,11 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, onStartCooki
               On a phone both columns stack in this order. */}
           <div className="flex flex-col">
           <div className="mt-4 flex flex-col items-center lg:mt-0">
-            <PlateRing percent={hasScore ? recipe.matchScore : null} size={232} decorative imageSrc={imageSrc} animated delay={0.2}>
+            <PlateRing percent={hasScore ? recipe.matchScore : null} size={232} decorative imageSrc={imageSrc} animated={!plateFlightId} delay={0.2}
+              flightId={plateFlightId}>
               {imageSrc ? null : hasScore ? (
                 <span role="img" aria-label={`${recipe.matchScore}% ingredient match`} className="flex flex-col items-center">
-                  <CountUp value={recipe.matchScore} suffix="%" delay={0.2} aria-hidden="true" className="font-display text-[60px] leading-none italic" />
+                  <CountUp value={recipe.matchScore} suffix="%" delay={0.2} animated={!plateFlightId} aria-hidden="true" className="font-display text-[60px] leading-none italic" />
                   <span aria-hidden="true" className="mt-1 font-mono text-[10px] tracking-[0.2em] text-ash">MATCH</span>
                 </span>
               ) : <Spark size={34} className="text-cream" />}

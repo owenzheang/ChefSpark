@@ -1,4 +1,4 @@
-﻿import { createContext, useContext, useEffect, useState } from "react";
+﻿import { createContext, useContext, useEffect, useLayoutEffect, useState } from "react";
 import { MotionConfig } from "motion/react";
 import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router";
 import BottomNav from "./components/BottomNav.jsx";
@@ -79,7 +79,8 @@ function GeneratedDishRoute({ recipes, setRecipes }) {
   if (!recipe) return <Navigate to={paths.cook} replace />;
   // An accepted assistant version replaces this unsaved dish in tonight's menu.
   const adopt = (edited) => setRecipes((list) => list.map((item, position) => position === index ? edited : item));
-  return <RecipeDetailPage key={`generated-${dish}`} generatedRecipe={recipe} onBack={() => navigate(paths.cook)}
+  return <RecipeDetailPage key={`generated-${dish}`} generatedRecipe={recipe} plateFlightId={`dish-plate-${index}`}
+    onBack={() => navigate(paths.cook, { state: { fromDish: index } })}
     servingsKey={generatedKey(dish, recipe)} onStartCooking={() => navigate(paths.generatedDishCooking(index))} onAdopt={adopt} />;
 }
 
@@ -159,10 +160,13 @@ export function AppRoutes() {
     return () => window.removeEventListener(SIGNED_OUT_EVENT, onSignedOut);
   });
 
-  // New page, new scroll position (the browser restores it on back where it can).
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [location.pathname]);
+  // New page, new scroll position (the browser restores it on back where it can). Back on tonight's menu
+  // from a dish, the menu scrolls to that dish instead (RecipeGenerationPage), so its plate can fly home.
+  // A layout effect, so the scroll is settled before a flying plate measures where it lands.
+  const fromDish = location.pathname === paths.cook && Number.isInteger(location.state?.fromDish) ? location.state.fromDish : undefined;
+  useLayoutEffect(() => {
+    if (fromDish === undefined) window.scrollTo(0, 0);
+  }, [location.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const afterSignIn = () => navigate(safeReturnPath(location.state?.from), { replace: true });
   const signedInHome = <Navigate to={paths.kitchen} replace />;
@@ -190,6 +194,7 @@ export function AppRoutes() {
           diet={diet}
           setDiet={setDiet}
           onViewRecipe={(recipe) => navigate(paths.generatedDish(Math.max(0, generatedRecipes.indexOf(recipe))))}
+          returnFromDish={fromDish}
           onBack={() => navigate(paths.kitchen)}
         />
       </WithNavigation>} />
