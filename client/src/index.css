@@ -36,6 +36,18 @@
       transform: translateX(250%);
     }
   }
+
+  /* A finished timer's dial glows and fades like a hot ring (Cooking Mode only). */
+  --animate-ember-glow: ember-glow 1.6s ease-in-out infinite;
+  @keyframes ember-glow {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 #ebcd9800;
+    }
+    50% {
+      box-shadow: 0 0 40px 6px #ebcd9866;
+    }
+  }
 }
 
 /* Faint cream glow at the top of the cast-iron background. */

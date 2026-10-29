@@ -1,9 +1,11 @@
 import { motion } from "motion/react";
 import Burners from "./Burners.jsx";
+import CountUp from "./CountUp.jsx";
 import PlateRing from "./PlateRing.jsx";
 import Spark from "./Spark.jsx";
 import { foodImageSrc } from "../services/api.js";
 import { displayIngredientName } from "../utils/ingredientCategories.js";
+import { courseDelay, duration, ember } from "../utils/motion.js";
 
 function summarizeIngredients(ingredients = []) {
   if (ingredients.length === 0) return "None";
@@ -22,29 +24,32 @@ export default function RecipePreviewCard({ recipe, onViewRecipe, onSave, saveSt
   const youNeed = recipe.youNeed || [];
   const hasScore = Number.isFinite(recipe.matchScore);
   const imageSrc = foodImageSrc(recipe.imageUrl);
+  const delay = courseDelay(index);
 
   return (
-    <motion.article initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay: index * 0.1 }}
+    <motion.article initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: duration.slow, delay: delay - 0.15, ease: ember }}
       className="flex flex-col items-center gap-3 text-center lg:h-full">
       <span className="font-display text-[22px] text-cream" aria-hidden="true">{courses[index] || index + 1}</span>
-      <PlateRing percent={hasScore ? recipe.matchScore : null} size={168} imageSrc={imageSrc}>
+      <PlateRing percent={hasScore ? recipe.matchScore : null} size={168} imageSrc={imageSrc} animated delay={delay}>
         {imageSrc ? null : hasScore ? (
           <>
-            <span className="font-display text-[44px] leading-none italic">{recipe.matchScore}%</span>
+            <CountUp value={recipe.matchScore} suffix="%" delay={delay} className="font-display text-[44px] leading-none italic" />
             <span className="mt-1 font-mono text-[10px] tracking-[0.2em] text-ash">MATCH</span>
           </>
         ) : <Spark size={28} className="text-cream" />}
       </PlateRing>
-      {imageSrc && (
-        <p className="flex items-baseline gap-2 font-mono text-[10px] tracking-[0.2em] text-ash">
+      {/* Always takes its line, so the picture arriving (and the score moving out of the plate) never
+          shifts the course below it. */}
+      <p className="flex h-[26px] items-baseline gap-2 font-mono text-[10px] tracking-[0.2em] text-ash">
+        {imageSrc && <>
           {/* The ring already announces the score to screen readers. */}
           {hasScore && <span aria-hidden="true" className="flex items-baseline gap-2">
-            <span className="font-display text-[26px] leading-none tracking-normal text-flour italic">{recipe.matchScore}%</span>MATCH<span>·</span>
+            <CountUp value={recipe.matchScore} suffix="%" delay={delay} className="font-display text-[26px] leading-none tracking-normal text-flour italic" />MATCH<span>·</span>
           </span>}
           AI IMAGE
-        </p>
-      )}
+        </>}
+      </p>
       <h3 className="mt-1 font-display text-[38px] leading-none italic lg:text-[30px]">{recipe.title}</h3>
       <p className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 font-mono text-[12px] tracking-[0.12em] text-soft uppercase">
         <Burners difficulty={recipe.difficulty} />

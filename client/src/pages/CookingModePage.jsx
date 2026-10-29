@@ -9,6 +9,7 @@ import { useSessionState } from "../utils/sessionState.js";
 import { useCookingTimers } from "../utils/useCookingTimers.js";
 import { useWakeLock } from "../utils/useWakeLock.js";
 import { playChime, prepareChime } from "../utils/chime.js";
+import { duration, ember, sparkGlide } from "../utils/motion.js";
 
 const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream";
 const stepText = (step) => typeof step === "string" ? step : step?.instruction || "";
@@ -29,6 +30,10 @@ function CookingModePage({ recipe, recipeKey, onExit, onSave, assistantStatus = 
 
   const current = Math.min(Math.max(0, Number(stepIndex) || 0), steps.length);
   const finished = current >= steps.length;
+  // Next comes in from the right, Back from the left.
+  const previous = useRef(current);
+  const direction = current >= previous.current ? 1 : -1;
+  useEffect(() => { previous.current = current; }, [current]);
   const rows = useMemo(() => scaleIngredients(recipe?.ingredients || [], originalServings, servings || originalServings),
     [recipe, originalServings, servings]);
   const scaledDifferently = originalServings && servings && servings !== originalServings;
@@ -116,8 +121,11 @@ function CookingModePage({ recipe, recipeKey, onExit, onSave, assistantStatus = 
   }
 
   return (
-    <main data-ds="" className="flex min-h-screen flex-col bg-iron px-6 pt-4 pb-[calc(104px+env(safe-area-inset-bottom,0px))] lg:px-12 lg:pt-10 lg:pb-16"
-      style={{ backgroundImage: "radial-gradient(circle at 50% 42%, #ebcd981a, transparent 50%)" }}>
+    <main data-ds="" className="relative isolate flex min-h-screen flex-col bg-iron px-6 pt-4 pb-[calc(104px+env(safe-area-inset-bottom,0px))] lg:px-12 lg:pt-10 lg:pb-16">
+      {/* The stove lights: the warm glow behind the step comes up as Cooking Mode opens. */}
+      <motion.div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10"
+        style={{ backgroundImage: "radial-gradient(circle at 50% 42%, #ebcd981a, transparent 50%)" }}
+        initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: duration.fill, ease: ember }} />
       <p role="status" aria-live="assertive" className="sr-only">{announcement}</p>
 
       <header className="flex items-center justify-between gap-3">
@@ -136,7 +144,7 @@ function CookingModePage({ recipe, recipeKey, onExit, onSave, assistantStatus = 
         <div role="progressbar" aria-label="Recipe progress" aria-valuemin={1} aria-valuemax={steps.length}
           aria-valuenow={Math.min(current + 1, steps.length)} className="flex flex-wrap items-center gap-2">
           {steps.map((_, index) => index === current
-            ? <Spark key={index} size={14} className="text-cream" />
+            ? <motion.span key={index} layoutId="cooking-step-spark" transition={sparkGlide} className="flex"><Spark size={14} className="text-cream" /></motion.span>
             : <span key={index} className={`size-2 rounded-full ${index < current ? "bg-flour" : "ring-1 ring-flour/40 ring-inset"}`} />)}
         </div>
         <span className="ml-auto font-mono text-[11px] tracking-[0.16em] text-ash">
@@ -182,7 +190,7 @@ function CookingModePage({ recipe, recipeKey, onExit, onSave, assistantStatus = 
           {saveState === "error" && <p role="alert" className="text-sm text-flour">Couldn't save right now. Try again from the recipe.</p>}
         </motion.section>
       ) : (
-        <motion.section key={current} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.25 }}
+        <motion.section key={current} initial={{ opacity: 0, x: 24 * direction }} animate={{ opacity: 1, x: 0 }} transition={{ duration: duration.base, ease: ember }}
           aria-labelledby="cooking-step" className="mt-8 flex flex-col">
           <h1 id="cooking-step" ref={stepHeading} tabIndex={-1} className="sr-only focus:outline-none">Step {current + 1}</h1>
           <p className="text-[27px] leading-[1.32] text-flour">{stepText(steps[current])}</p>

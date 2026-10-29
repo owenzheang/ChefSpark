@@ -1,3 +1,4 @@
+import { NavSpark } from "./BottomNav.jsx";
 import Spark from "./Spark.jsx";
 
 const tabs = [
@@ -25,7 +26,7 @@ export default function SideRail({ activePage, onNavigate, onLogout, cooking = f
         return (
           <button key={id} type="button" onClick={() => onNavigate(id)} aria-current={active ? "page" : undefined}
             className={`flex min-h-11 items-center gap-1.5 text-left text-[15px] ${active ? "font-semibold text-flour" : "text-ash hover:text-flour"} ${focusRing}`}>
-            <Spark size={9} className={`${active || busy ? "text-cream" : "text-transparent"} ${busy ? "motion-safe:animate-pulse" : ""}`} />
+            <NavSpark id="rail-spark" active={active} busy={busy} size={9} />
             {label}
             {busy && <span className="sr-only">(making tonight's menu)</span>}
           </button>

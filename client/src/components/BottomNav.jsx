@@ -1,10 +1,25 @@
+import { motion } from "motion/react";
 import Spark from "./Spark.jsx";
+import { sparkGlide } from "../utils/motion.js";
 
 const tabs = [
   { id: "ingredients", label: "Kitchen" },
   { id: "recipes", label: "Cook" },
   { id: "savedRecipes", label: "Shelf" }
 ];
+
+// The active tab's spark glides to the new tab (one shared layoutId per nav); a busy tab's spark pulses.
+export function NavSpark({ id, active, busy, size }) {
+  const pulse = busy ? "motion-safe:animate-pulse" : "";
+  if (active) {
+    return (
+      <motion.span layoutId={id} transition={sparkGlide} className="flex">
+        <Spark size={size} className={`text-cream ${pulse}`} />
+      </motion.span>
+    );
+  }
+  return <Spark size={size} className={busy ? `text-cream ${pulse}` : "text-transparent"} />;
+}
 
 // Full-width bar with a top hairline and three text tabs; a cream spark marks the active tab
 // (DESIGN_SYSTEM.md). Log out lives in the Kitchen header.
@@ -19,7 +34,7 @@ export default function BottomNav({ activePage, onNavigate, cooking = false }) {
         return (
           <button key={id} type="button" onClick={() => onNavigate(id)} aria-current={active ? "page" : undefined}
             className={`flex min-h-16 flex-col items-center justify-center gap-1 text-[15px] focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-cream ${active ? "font-semibold text-flour" : "text-ash hover:text-flour"}`}>
-            <Spark size={10} className={`${active || busy ? "text-cream" : "text-transparent"} ${busy ? "motion-safe:animate-pulse" : ""}`} />
+            <NavSpark id="bottom-nav-spark" active={active} busy={busy} size={10} />
             <span>{label}</span>
             {busy && <span className="sr-only">(making tonight's menu)</span>}
           </button>

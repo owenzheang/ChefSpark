@@ -18,6 +18,8 @@ export default function StoveDial({ timer, onStart, onPause, onReset, size = 216
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="relative" style={{ width: size, height: size }}>
+        {/* Done: the knob glows like a hot ring until the timer is reset. */}
+        {timer.done && <span aria-hidden="true" className="absolute inset-[18px] rounded-full motion-safe:animate-ember-glow" />}
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true" className="absolute inset-0">
           {ticks.map(([x1, y1, x2, y2], index) => (
             <line key={index} x1={x1} y1={y1} x2={x2} y2={y2} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="text-ash" />

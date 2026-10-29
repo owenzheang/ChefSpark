@@ -7,6 +7,7 @@ import { developerAssetSample } from "../data/zineAssetSamples.js";
 import { useZineArtwork, ZineArtworkPanel } from "../components/ZineArtwork.jsx";
 import { features } from "../data/features.js";
 import Spark from "../components/Spark.jsx";
+import CountUp from "../components/CountUp.jsx";
 import PlateRing from "../components/PlateRing.jsx";
 import Burners from "../components/Burners.jsx";
 import RecipeAssistant from "../components/RecipeAssistant.jsx";
@@ -138,10 +139,10 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, onStartCooki
               On a phone both columns stack in this order. */}
           <div className="flex flex-col">
           <div className="mt-4 flex flex-col items-center lg:mt-0">
-            <PlateRing percent={hasScore ? recipe.matchScore : null} size={232} decorative imageSrc={imageSrc}>
+            <PlateRing percent={hasScore ? recipe.matchScore : null} size={232} decorative imageSrc={imageSrc} animated delay={0.2}>
               {imageSrc ? null : hasScore ? (
                 <span role="img" aria-label={`${recipe.matchScore}% ingredient match`} className="flex flex-col items-center">
-                  <span aria-hidden="true" className="font-display text-[60px] leading-none italic">{recipe.matchScore}%</span>
+                  <CountUp value={recipe.matchScore} suffix="%" delay={0.2} aria-hidden="true" className="font-display text-[60px] leading-none italic" />
                   <span aria-hidden="true" className="mt-1 font-mono text-[10px] tracking-[0.2em] text-ash">MATCH</span>
                 </span>
               ) : <Spark size={34} className="text-cream" />}

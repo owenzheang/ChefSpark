@@ -118,6 +118,27 @@ One step per screen, step text 26–30px in Hanken Grotesk, progress as dots wit
 current step, the dial timer when the step text contains a duration, Back (outlined) and Next (cream)
 as large bottom buttons, screen kept awake where supported.
 
+## Motion
+
+Warm and unhurried, like a hob coming up to heat; never bouncy or techy. Tokens live in
+`client/src/utils/motion.js` (the `motion` library is already in the stack).
+
+- Timing: fast 150ms (presses), base 250ms (steps, toggles), slow 450ms (arrivals), fill 1.1s (rings and
+  counting numbers). One easing, "ember" `cubic-bezier(0.22, 1, 0.36, 1)`; springs only for the gliding spark.
+- Animate transform and opacity only (plus SVG `pathLength` for rings). At most one signature moment per screen.
+- Signature moments (phase A, 2026-10-29):
+  - Plate ring: the rim fills like a flame and the percentage counts up from 0 the first time a plate scrolls
+    into view (menu, recipe page); the food picture fades in once loaded. The line under each course's plate
+    always takes its space, so a picture arriving never shifts the page.
+  - Spark: the active tab's spark glides between tabs (bottom bar and rail); the spark on "Cook up 3 dishes"
+    flares and sends out a ring when pressed.
+  - Tonight's menu: the courses arrive one after another (I, II, III).
+  - Cooking Mode: the stove glow comes up on entry; Next slides in from the right and Back from the left; the
+    step spark glides along the progress dots; a finished timer's dial glows and fades (`animate-ember-glow`).
+- Reduced motion: `MotionConfig reducedMotion="user"` stops transform animations; components that animate
+  other values (ring fill, counting) check `useReducedMotion` and show the final state. CSS animations always
+  use `motion-safe:`.
+
 ## Accessibility
 
 Real `<button>`, `<a>`, `<input>` and `<label>` elements; visible focus (2px cream outline with offset);

@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { getIngredients, requestFoodImage, saveRecipe } from "../services/api.js";
 import RecipePreviewCard from "../components/RecipePreviewCard.jsx";
 import GenerationProgress from "../components/GenerationProgress.jsx";
-import Spark from "../components/Spark.jsx";
+import Spark, { IgniteSpark } from "../components/Spark.jsx";
 import Burners from "../components/Burners.jsx";
 import { useSessionState } from "../utils/sessionState.js";
 
@@ -54,6 +54,7 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, generation = idle
   // Per dish title: "saving" or "error" for this visit; "saved" is kept for the tab so returning to the
   // menu still shows "Saved" instead of offering a second copy.
   const [saveStates, setSaveStates] = useState({});
+  const [ignited, setIgnited] = useState(0);
   const [savedTitles, setSavedTitles] = useSessionState("chefspark:tonight:saved", []);
   const isMounted = useRef(false);
   const resultsHeading = useRef(null);
@@ -197,10 +198,11 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, generation = idle
         )}
       </fieldset>
 
-      <motion.button type="button" onClick={handleGenerate} disabled={isLoading || !hasIngredients} whileTap={{ scale: 0.97 }}
+      <motion.button type="button" onClick={() => { setIgnited((count) => count + 1); handleGenerate(); }}
+        disabled={isLoading || !hasIngredients} whileTap={{ scale: 0.97 }}
         className={`mt-9 flex min-h-[58px] w-full items-center justify-between rounded-full bg-cream px-6 text-lg font-semibold text-iron shadow-glow disabled:cursor-not-allowed ${isLoading ? "disabled:opacity-70" : "disabled:bg-transparent disabled:text-ash disabled:shadow-none disabled:ring-1 disabled:ring-flour/40"} ${focusRing}`}>
         {isLoading ? "Cooking up 3 dishes…" : recipes.length ? "Try 3 new dishes" : "Cook up 3 dishes"}
-        <Spark size={20} className={isLoading ? "motion-safe:animate-spin" : ""} />
+        <IgniteSpark burst={ignited} size={20} className={isLoading ? "motion-safe:animate-spin" : ""} />
       </motion.button>
 
       {message && (
