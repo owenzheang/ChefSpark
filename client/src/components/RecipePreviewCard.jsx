@@ -2,7 +2,7 @@ import { motion } from "motion/react";
 import Burners from "./Burners.jsx";
 import CountUp from "./CountUp.jsx";
 import PlateRing from "./PlateRing.jsx";
-import Spark from "./Spark.jsx";
+import Spark, { IgniteSpark } from "./Spark.jsx";
 import { foodImageSrc } from "../services/api.js";
 import { displayIngredientName } from "../utils/ingredientCategories.js";
 import { courseDelay, duration, ember } from "../utils/motion.js";
@@ -18,8 +18,9 @@ const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-
 
 // One course of "Tonight's menu" (DESIGN_SYSTEM.md): no card, a plate ring with the match score
 // instead of a stock photo, the dish named like a menu item, and ticket-style facts.
-// saveState: undefined | "saving" | "saved" | "error" (shown on the card, where the cook is looking).
-export default function RecipePreviewCard({ recipe, onViewRecipe, onSave, saveState, index = 0 }) {
+// saveState: undefined | "saving" | "saved" | "error" (shown on the card, where the cook is looking);
+// justSaved: saving finished on screen just now, so the spark lights once.
+export default function RecipePreviewCard({ recipe, onViewRecipe, onSave, saveState, justSaved = false, index = 0 }) {
   const youHave = recipe.youHave || [];
   const youNeed = recipe.youNeed || [];
   const hasScore = Number.isFinite(recipe.matchScore);
@@ -77,9 +78,10 @@ export default function RecipePreviewCard({ recipe, onViewRecipe, onSave, saveSt
           Open recipe →
         </button>
         {saveState === "saved" ? (
-          <span role="status" className="flex min-h-11 items-center gap-1.5 px-1 text-cream">
-            <Spark size={10} /> Saved to shelf
-          </span>
+          <motion.span role="status" className="flex min-h-11 items-center gap-1.5 px-1 text-cream"
+            initial={justSaved ? { opacity: 0, y: 6 } : false} animate={{ opacity: 1, y: 0 }} transition={{ duration: duration.base, ease: ember }}>
+            <IgniteSpark burst={justSaved ? 1 : 0} size={10} /> Saved to shelf
+          </motion.span>
         ) : (
           <button type="button" disabled={saveState === "saving"} onClick={() => onSave(recipe)}
             aria-label={saveState === "error" ? `Try saving ${recipe.title} again` : `Save ${recipe.title}`}

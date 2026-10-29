@@ -6,6 +6,7 @@ import GenerationProgress from "../components/GenerationProgress.jsx";
 import Spark, { IgniteSpark } from "../components/Spark.jsx";
 import Burners from "../components/Burners.jsx";
 import { useSessionState } from "../utils/sessionState.js";
+import { sparkGlide } from "../utils/motion.js";
 
 const pageMotion = {
   initial: { opacity: 0, y: 18 },
@@ -20,6 +21,11 @@ const cuisineOptions = [
 ];
 
 const difficultyOptions = ["Easy", "Medium", "Hard"];
+
+// The cream fill glides to the chosen option (one shared layoutId per group); the button stays the control.
+function Chosen({ group, className = "rounded-full" }) {
+  return <motion.span layoutId={`chosen-${group}`} transition={sparkGlide} aria-hidden="true" className={`absolute inset-0 -z-10 bg-cream ${className}`} />;
+}
 
 // Must match the server's allowedDiets (server/src/utils/dietRules.js).
 const dietOptions = ["Any", "Vegetarian", "Vegan"];
@@ -103,7 +109,8 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, generation = idle
     try {
       await saveRecipe(recipe);
       setSavedTitles((titles) => titles.includes(title) ? titles : [...titles, title]);
-      setSaveStates((states) => ({ ...states, [title]: undefined }));
+      // "just saved": the card lights its spark once; a dish remembered as saved just shows it.
+      setSaveStates((states) => ({ ...states, [title]: "just saved" }));
     } catch {
       setSaveStates((states) => ({ ...states, [title]: "error" }));
     }
@@ -153,9 +160,10 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, generation = idle
             return (
               <motion.button key={option.name} type="button" aria-pressed={selected} onClick={() => setCuisine(option.name)}
                 whileTap={{ scale: 0.97 }}
-                className={`flex min-h-20 flex-col items-start justify-center gap-0.5 rounded-[20px] px-4 py-3 text-left disabled:cursor-not-allowed disabled:opacity-60 ${selected ? "bg-cream text-iron" : "text-flour ring-1 ring-flour/40 hover:ring-flour"} ${focusRing}`}>
+                className={`relative isolate flex min-h-20 flex-col items-start justify-center gap-0.5 rounded-[20px] px-4 py-3 text-left disabled:cursor-not-allowed disabled:opacity-60 ${selected ? "text-iron" : "text-flour ring-1 ring-flour/40 hover:ring-flour"} ${focusRing}`}>
                 <span className="font-display text-[26px] leading-none italic">{option.name}</span>
                 <span className={`text-[13px] leading-tight ${selected ? "text-iron/80" : "text-ash"}`}>{option.description}</span>
+                {selected && <Chosen group="cuisine" className="rounded-[20px]" />}
               </motion.button>
             );
           })}
@@ -169,7 +177,8 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, generation = idle
             const selected = difficulty === option;
             return (
               <button key={option} type="button" aria-pressed={selected} onClick={() => setDifficulty(option)}
-                className={`flex min-h-12 items-center justify-center gap-2 rounded-full text-[15px] font-medium disabled:cursor-not-allowed disabled:opacity-60 ${selected ? "bg-cream text-iron" : "text-flour ring-1 ring-flour/40 hover:ring-flour"} ${focusRing}`}>
+                className={`relative isolate flex min-h-12 items-center justify-center gap-2 rounded-full text-[15px] font-medium disabled:cursor-not-allowed disabled:opacity-60 ${selected ? "text-iron" : "text-flour ring-1 ring-flour/40 hover:ring-flour"} ${focusRing}`}>
+                {selected && <Chosen group="difficulty" />}
                 <Burners difficulty={option} size={7} onCream={selected} />
                 {option}
               </button>
@@ -185,8 +194,9 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, generation = idle
             const selected = diet === option;
             return (
               <button key={option} type="button" aria-pressed={selected} onClick={() => setDiet(option)}
-                className={`flex min-h-12 items-center justify-center rounded-full text-[15px] font-medium disabled:cursor-not-allowed disabled:opacity-60 ${selected ? "bg-cream text-iron" : "text-flour ring-1 ring-flour/40 hover:ring-flour"} ${focusRing}`}>
+                className={`relative isolate flex min-h-12 items-center justify-center rounded-full text-[15px] font-medium disabled:cursor-not-allowed disabled:opacity-60 ${selected ? "text-iron" : "text-flour ring-1 ring-flour/40 hover:ring-flour"} ${focusRing}`}>
                 {option}
+                {selected && <Chosen group="diet" />}
               </button>
             );
           })}
@@ -250,6 +260,7 @@ function RecipeGenerationPage({ onBack, onViewRecipe, recipes, generation = idle
                     onViewRecipe={onViewRecipe}
                     onSave={handleSave}
                     saveState={savedTitles.includes(recipe.title) ? "saved" : saveStates[recipe.title]}
+                    justSaved={saveStates[recipe.title] === "just saved"}
                   />
                 </div>
               ))}

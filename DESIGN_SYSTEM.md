@@ -135,6 +135,13 @@ Warm and unhurried, like a hob coming up to heat; never bouncy or techy. Tokens 
   - Tonight's menu: the courses arrive one after another (I, II, III).
   - Cooking Mode: the stove glow comes up on entry; Next slides in from the right and Back from the left; the
     step spark glides along the progress dots; a finished timer's dial glows and fades (`animate-ember-glow`).
+- Small interactions (phase B, 2026-10-29):
+  - Kitchen: confirmed ingredients drop into the ticket one after another; a deleted one shrinks away and the
+    empty-kitchen line fades in only after it has gone; while listening, rings spread from the microphone.
+  - Choice pills (cuisine, difficulty, diet): the cream fill glides to the chosen option.
+  - Save: "Saved to shelf" rises in and its spark lights once (only when the save just happened).
+  - Servings and the recipe page's amounts roll like a counter (`RollingNumber`): up for more, down for fewer.
+  - Cooking Mode step help: an answer opens downward into its place.
 - Reduced motion: `MotionConfig reducedMotion="user"` stops transform animations; components that animate
   other values (ring fill, counting) check `useReducedMotion` and show the final state. CSS animations always
   use `motion-safe:`.

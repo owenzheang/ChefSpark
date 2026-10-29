@@ -10,6 +10,7 @@ import { useSpeechInput } from "../utils/useSpeechInput.js";
 import { ArrowRight, Mic, Plus, X } from "lucide-react";
 import Spark from "../components/Spark.jsx";
 import { addIngredient, deleteIngredient, getIngredients } from "../services/api.js";
+import { duration, ember } from "../utils/motion.js";
 
 const emptyForm = {
   name: ""
@@ -21,11 +22,18 @@ const pageMotion = {
   transition: { duration: 0.42, ease: [0.25, 0.46, 0.45, 0.94] }
 };
 
+// New ingredients drop into the ticket one after another (newest first, so the order is their index);
+// a deleted one shrinks away and the rest close the gap.
 const chipMotion = {
-  initial: { opacity: 0, scale: 0.82, y: 6 },
-  animate: { opacity: 1, scale: 1, y: 0 },
-  exit: { opacity: 0, scale: 0.74, y: -4 },
-  transition: { duration: 0.18 }
+  initial: "enter",
+  animate: "shown",
+  exit: "gone",
+  variants: {
+    enter: { opacity: 0, scale: 0.9, y: -12 },
+    shown: (order) => ({ opacity: 1, scale: 1, y: 0, transition: { duration: duration.slow, ease: ember, delay: Math.min(order, 6) * 0.07 } }),
+    gone: { opacity: 0, scale: 0.8, transition: { duration: duration.fast } }
+  },
+  transition: { layout: { duration: duration.base, ease: ember } }
 };
 
 const popularIngredients = [
@@ -233,12 +241,20 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
               className="min-h-12 min-w-0 flex-1 bg-transparent text-lg text-flour outline-none placeholder:text-ash"
             />
             {speech.supported && (
-              <motion.button type="button" whileTap={{ scale: 0.9 }}
-                aria-label={speech.listening ? "Stop listening" : "Say what you have"} aria-pressed={speech.listening}
-                onClick={speech.listening ? speech.stop : speech.start}
-                className={`mb-1 flex size-11 shrink-0 items-center justify-center rounded-full ring-1 ${speech.listening ? "bg-cream/16 text-cream ring-cream motion-safe:animate-pulse" : "text-flour ring-flour/40 hover:ring-flour"} ${focusRing}`}>
-                <Mic size={20} strokeWidth={2.2} aria-hidden="true" />
-              </motion.button>
+              <span className="relative mb-1 flex shrink-0">
+                {/* Listening: rings of sound spread out from the microphone. */}
+                {speech.listening && [0, 0.8].map((delay) => (
+                  <motion.span key={delay} aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-cream"
+                    initial={{ scale: 1, opacity: 0.7 }} animate={{ scale: 1.9, opacity: 0 }}
+                    transition={{ duration: 1.6, delay, repeat: Infinity, ease: "easeOut" }} />
+                ))}
+                <motion.button type="button" whileTap={{ scale: 0.9 }}
+                  aria-label={speech.listening ? "Stop listening" : "Say what you have"} aria-pressed={speech.listening}
+                  onClick={speech.listening ? speech.stop : speech.start}
+                  className={`relative flex size-11 items-center justify-center rounded-full ring-1 ${speech.listening ? "bg-iron text-cream ring-cream" : "text-flour ring-flour/40 hover:ring-flour"} ${focusRing}`}>
+                  <Mic size={20} strokeWidth={2.2} aria-hidden="true" />
+                </motion.button>
+              </span>
             )}
             <motion.button type="submit" aria-label="Add ingredient" whileTap={{ scale: 0.9 }}
               className={`mb-1 flex size-11 shrink-0 items-center justify-center rounded-full bg-cream text-iron ${focusRing}`}>
@@ -277,8 +293,8 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
 
         <ul className="mt-1.5 grid grid-cols-2 gap-x-5 font-mono text-[14px] uppercase" aria-label="Ingredients in my kitchen">
           <AnimatePresence initial={false}>
-            {ingredients.map((ingredient) => (
-              <motion.li key={ingredient.key || ingredient.id} layout {...chipMotion}
+            {ingredients.map((ingredient, index) => (
+              <motion.li key={ingredient.key || ingredient.id} layout custom={index} {...chipMotion}
                 className="flex min-h-11 items-center justify-between gap-2">
                 <span className="flex min-w-0 items-center gap-2">
                   <IngredientCategoryIcon name={ingredient.name} size={14} />
@@ -301,7 +317,11 @@ function IngredientsPage({ onGenerateRecipes, onLogout }) {
         </ul>
 
         {!isLoading && !hasIngredients && (
-          <p className="py-3 text-[15px] text-soft">Nothing here yet. Add what you have, or use quick add.</p>
+          // Waits for the last deleted ingredient to finish leaving, so the two never overlap.
+          <motion.p className="py-3 text-[15px] text-soft" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            transition={{ duration: duration.base, delay: duration.fast + 0.05 }}>
+            Nothing here yet. Add what you have, or use quick add.
+          </motion.p>
         )}
       </section>
 

@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { explainStep } from "../services/api.js";
 import { useAssistantStatus } from "./RecipeAssistant.jsx";
 import Spark from "./Spark.jsx";
+import { duration, ember } from "../utils/motion.js";
 
 const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream";
 const questions = [
@@ -16,6 +18,7 @@ function StepHelp({ recipe, stepIndex, initialStatus = null }) {
   const [pending, setPending] = useState("");
   const [message, setMessage] = useState("");
   const request = useRef(null);
+  const reduce = useReducedMotion();
 
   useEffect(() => {
     request.current?.abort();
@@ -64,12 +67,19 @@ function StepHelp({ recipe, stepIndex, initialStatus = null }) {
         })}
       </div>
       <div aria-live="polite">
-        {shown.map(([key, label]) => (
-          <div key={key} id={`step-answer-${key}`} className="mt-4 border-l-2 border-cream pl-4">
-            <p className="font-mono text-[10px] tracking-[0.16em] text-ash uppercase">{label}</p>
-            <p className="mt-1 text-[17px] leading-relaxed text-flour">{answers[`${stepIndex}:${key}`]}</p>
-          </div>
-        ))}
+        {/* A new answer opens downward into its place rather than pushing the page all at once. */}
+        <AnimatePresence initial={false}>
+          {shown.map(([key, label]) => (
+            <motion.div key={key} id={`step-answer-${key}`} className="overflow-hidden"
+              initial={reduce ? false : { height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }}
+              transition={{ height: { duration: duration.slow, ease: ember }, opacity: { duration: duration.slow, delay: 0.1 } }}>
+              <div className="mt-4 border-l-2 border-cream pl-4">
+                <p className="font-mono text-[10px] tracking-[0.16em] text-ash uppercase">{label}</p>
+                <p className="mt-1 text-[17px] leading-relaxed text-flour">{answers[`${stepIndex}:${key}`]}</p>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
         {shown.length > 0 && (
           <p className="mt-2 flex items-center gap-1.5 text-[12px] text-ash">
             <Spark size={8} className="text-cream" />AI help · the recipe's amounts and times still apply

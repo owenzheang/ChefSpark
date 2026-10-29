@@ -9,6 +9,7 @@ import { features } from "../data/features.js";
 import Spark from "../components/Spark.jsx";
 import CountUp from "../components/CountUp.jsx";
 import PlateRing from "../components/PlateRing.jsx";
+import RollingNumber from "../components/RollingNumber.jsx";
 import Burners from "../components/Burners.jsx";
 import RecipeAssistant from "../components/RecipeAssistant.jsx";
 import { scaleIngredients } from "../utils/scaleRecipe.js";
@@ -210,7 +211,7 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, onStartCooki
                   <button type="button" aria-label="Fewer servings" disabled={servings <= 1}
                     onClick={() => setServingsChoice((value) => Math.max(1, (value || recipe.servings) - 1))}
                     className={`flex size-11 items-center justify-center rounded-full text-xl ring-1 ring-flour/40 disabled:opacity-40 ${focusRing}`}>−</button>
-                  <span aria-live="polite" className="w-10 text-center font-display text-2xl italic">{servings}</span>
+                  <RollingNumber value={servings} aria-live="polite" className="w-10 font-display text-2xl italic" />
                   <button type="button" aria-label="More servings" disabled={servings >= 24}
                     onClick={() => setServingsChoice((value) => Math.min(24, (value || recipe.servings) + 1))}
                     className={`flex size-11 items-center justify-center rounded-full text-xl ring-1 ring-flour/40 disabled:opacity-40 ${focusRing}`}>+</button>
@@ -229,7 +230,7 @@ function RecipeDetailPage({ savedRecipeId, generatedRecipe, onBack, onStartCooki
                       <span>{name}</span>
                       {isNeeded && <span className="text-[10px] tracking-[0.16em]"> · NEED</span>}
                     </span>
-                    {amount && <span className="shrink-0 text-right uppercase">{amount}</span>}
+                    {amount && <RollingNumber value={amount} className="shrink-0 justify-end text-right uppercase" />}
                   </li>
                 );
               })}

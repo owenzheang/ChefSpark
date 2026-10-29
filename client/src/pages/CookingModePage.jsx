@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
-import Spark from "../components/Spark.jsx";
+import Spark, { IgniteSpark } from "../components/Spark.jsx";
+import RollingNumber from "../components/RollingNumber.jsx";
 import StoveDial from "../components/StoveDial.jsx";
 import StepHelp from "../components/StepHelp.jsx";
 import { findStepTimers, formatClock } from "../utils/cookingTimers.js";
@@ -183,7 +184,8 @@ function CookingModePage({ recipe, recipeKey, onExit, onSave, assistantStatus = 
           <p className="text-soft">That's every step. Plate it up while it's hot.</p>
           {onSave && (
             <button type="button" onClick={save} disabled={saveState === "saving" || saveState === "saved"}
-              className={`min-h-[52px] rounded-full bg-cream px-6 font-semibold text-iron shadow-glow disabled:opacity-70 ${focusRing}`}>
+              className={`flex min-h-[52px] items-center gap-2 rounded-full bg-cream px-6 font-semibold text-iron shadow-glow ${saveState === "saving" ? "opacity-70" : ""} ${focusRing}`}>
+              {saveState === "saved" && <IgniteSpark burst={1} size={14} />}
               {saveState === "saved" ? "Saved to your shelf" : saveState === "saving" ? "Saving…" : "Save to your shelf"}
             </button>
           )}
@@ -213,7 +215,7 @@ function CookingModePage({ recipe, recipeKey, onExit, onSave, assistantStatus = 
                 <button type="button" aria-label="Fewer servings" disabled={(servings || originalServings) <= 1}
                   onClick={() => setServings((value) => Math.max(1, (value || originalServings) - 1))}
                   className={`flex size-11 items-center justify-center rounded-full text-xl ring-1 ring-flour/40 disabled:opacity-40 ${focusRing}`}>−</button>
-                <span aria-live="polite" className="w-10 text-center font-display text-2xl italic">{servings || originalServings}</span>
+                <RollingNumber value={servings || originalServings} aria-live="polite" className="w-10 font-display text-2xl italic" />
                 <button type="button" aria-label="More servings" disabled={(servings || originalServings) >= 24}
                   onClick={() => setServings((value) => Math.min(24, (value || originalServings) + 1))}
                   className={`flex size-11 items-center justify-center rounded-full text-xl ring-1 ring-flour/40 disabled:opacity-40 ${focusRing}`}>+</button>
