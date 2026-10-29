@@ -142,6 +142,9 @@ Warm and unhurried, like a hob coming up to heat; never bouncy or techy. Tokens 
   - Save: "Saved to shelf" rises in and its spark lights once (only when the save just happened).
   - Servings and the recipe page's amounts roll like a counter (`RollingNumber`): up for more, down for fewer.
   - Cooking Mode step help: an answer opens downward into its place.
+- Making tonight's menu (2026-10-29): on each empty plate a short cream flame circles the rim (`animate-burner`,
+  2.4s loop, plates offset by 0.8s) around the breathing centre spark. It loops and never fills, so it claims no
+  progress. Steam lines were tried and dropped: too small to read as steam. With reduced motion only the rim shows.
 - Shared plate (phase C, 2026-10-29): opening a dish from tonight's menu flies its plate from the menu to the
   dish page (and back with "← Menu", which returns the menu scrolled to that dish). The flying plate arrives
   already filled; the pages it lands on skip their fade-in so nothing dims it. Built on screen coordinates

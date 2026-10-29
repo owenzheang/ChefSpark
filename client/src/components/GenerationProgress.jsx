@@ -61,10 +61,18 @@ export default function GenerationProgress({ ingredientCount, cuisine, onCancel,
 
       {/* Desktop: the three courses side by side, as the menu will be. */}
       <ul aria-hidden="true" className="flex flex-col items-center gap-10 lg:grid lg:grid-cols-3 lg:items-start lg:gap-8">
-        {courses.map((course) => (
+        {courses.map((course, index) => (
           <li key={course} className="flex flex-col items-center gap-3">
             <span className="font-display text-[22px] text-cream">{course}</span>
-            <span className="flex size-[168px] items-center justify-center rounded-full ring-1 ring-flour/16">
+            <span className="relative flex size-[168px] items-center justify-center">
+              {/* The plates are warming: a short flame circles each rim, one after another. It loops and never
+                  fills, so it claims no progress; with reduced motion only the still rim shows. */}
+              <svg width="168" height="168" viewBox="0 0 168 168" className="absolute inset-0">
+                <circle cx="84" cy="84" r="83" fill="none" stroke="currentColor" strokeWidth="1" className="text-flour/16" />
+                <circle cx="84" cy="84" r="80" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"
+                  strokeDasharray="70 433" style={{ animationDelay: `${index * -0.8}s` }}
+                  className="hidden origin-center text-cream motion-safe:block motion-safe:animate-burner" />
+              </svg>
               <Spark size={22} className="text-cream/60 motion-safe:animate-pulse" />
             </span>
             <span className="font-mono text-[11px] tracking-[0.2em] text-ash">COURSE {course} · PLATING</span>

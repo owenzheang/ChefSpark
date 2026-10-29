@@ -37,6 +37,17 @@
     }
   }
 
+  /* While tonight's menu is made, a short flame circles each empty plate's rim (never fills). */
+  --animate-burner: burner 2.4s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  @keyframes burner {
+    from {
+      transform: rotate(-90deg);
+    }
+    to {
+      transform: rotate(270deg);
+    }
+  }
+
   /* A finished timer's dial glows and fades like a hot ring (Cooking Mode only). */
   --animate-ember-glow: ember-glow 1.6s ease-in-out infinite;
   @keyframes ember-glow {
